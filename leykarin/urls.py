@@ -21,6 +21,7 @@ from appkarin import views
 
 
 urlpatterns = [
-    path('home/',views.home,name='home'),
+    path('',views.home,name='home'),
+    path('denuncia/',views.denuncia,name='home'),
     path(settings.ADMIN_URL, admin.site.urls),
 ]

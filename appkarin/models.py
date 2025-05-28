@@ -21,7 +21,7 @@ class Categoria(models.Model):
 
 class Item(models.Model):
     enunciado = models.CharField(max_length=500)
-    categoria_id = models.ForeignKey(Categoria, on_delete=models.CASCADE)
+    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
     
     class Meta:
         verbose_name = "Item"
@@ -45,9 +45,9 @@ class Usuario(models.Model):
         verbose_name_plural = "Usuarios"
 
 class Denuncia(models.Model):
-    usuario_id = models.ForeignKey(Usuario, on_delete=models.CASCADE)
-    item_id = models.ForeignKey(Item, on_delete=models.CASCADE)
-    relacion_empresa_id=models.ForeignKey(RelacionEmpresa, on_delete=models.CASCADE)
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    relacion_empresa=models.ForeignKey(RelacionEmpresa, on_delete=models.CASCADE)
     descripcion = models.CharField(max_length=2000) #descripción de los hechos
     fecha=models.DateTimeField(auto_now_add=True)
 
@@ -57,7 +57,7 @@ class Denuncia(models.Model):
         verbose_name_plural = "Denuncias"
 
 class Archivo(models.Model):
-    denuncia_id=models.ForeignKey(Denuncia, on_delete=models.CASCADE)
+    denuncia=models.ForeignKey(Denuncia, on_delete=models.CASCADE)
     url=models.URLField(max_length=500)
 
     class Meta:
@@ -73,8 +73,8 @@ class DenunciaEstado(models.Model):
 
 
 class EstadosDenuncia(models.Model):
-    denuncia_id=models.ForeignKey(Denuncia, on_delete=models.CASCADE)
-    estado_id=models.ForeignKey(DenunciaEstado, on_delete=models.CASCADE)
+    denuncia=models.ForeignKey(Denuncia, on_delete=models.CASCADE)
+    estado=models.ForeignKey(DenunciaEstado, on_delete=models.CASCADE)
     fecha=models.DateTimeField(auto_now_add=True)
 
     class Meta:

@@ -86,6 +86,9 @@
   box-sizing: border-box;
 }
 
+
+
+
 @media (prefers-reduced-motion: no-preference) {
   :root {
     scroll-behavior: smooth;
@@ -246,6 +249,7 @@ sup {
 }
 
 a {
+  box-shadow: inset 0 0 0 1000px rgba(0, 0, 0, 0.1);
   color: var(--bs-link-color);
   text-decoration: underline;
 }
@@ -641,6 +645,7 @@ progress {
   margin-right: auto;
   margin-left: auto;
 }
+
 
 .header-container img{
   height: 100px;
@@ -10844,11 +10849,20 @@ html {
 }
 
 header {
-  padding-top: 9.5rem;
-  padding-bottom: 6rem;
+  padding-top:0%;
+  padding-bottom:0%;
 }
 
 section {
-  padding-top: 9rem;
-  padding-bottom: 9rem;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.height-half-page{
+  height: 50vh;
+}
+
+
+a:hover {
+   box-shadow: inset 0 0 0 1000px rgba(0, 0, 0, 0.0);
 }
