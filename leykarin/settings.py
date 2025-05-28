@@ -91,6 +91,24 @@ WSGI_APPLICATION = 'leykarin.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# -------- CONFIGURACION DE SESIONES -------------#
+# Tiempo de vida de la sesión: 30 minutos (1800 segundos)
+SESSION_COOKIE_AGE = 1800
+
+# Renovar sesión en cada request (importante para formularios largos)
+SESSION_SAVE_EVERY_REQUEST = True
+
+# Sesión expira al cerrar el navegador (más seguro para encuestas)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# Motor de sesión: Base de datos (más confiable que memoria)
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
+# Configuraciones de seguridad para cookies de sesión
+SESSION_COOKIE_SECURE = False  # Cambiar a True en producción (HTTPS)
+SESSION_COOKIE_HTTPONLY = True  # No accesible desde JavaScript
+SESSION_COOKIE_SAMESITE = 'Lax'  # Protección contra CSRF
+
 
 
 # -------- CONFIGURACION BASE DE DATOS -------------#

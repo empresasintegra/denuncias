@@ -10,23 +10,12 @@ def home(request):
 
 def itemsDenuncia(request):
     
-    print("alo!!!!!?")
   
-    categorias= Categoria.objects.all()
-    print("TERMINE!!!")
-    print("ESTO ES CATEGORIAS",Categoria.objects.all())
-
-
+    categorias = Categoria.objects.all().prefetch_related('item_set')
     
-    count=1
-    context={}
-
-    for categoria in categorias:
-        items= Item.objects.filter(categoria=categoria)
-        print(items)
-        context['items_categoria_{count}']= items
-        print(context)
-        count+=1
+    context = {
+        'categorias': categorias
+    }
 
     
     return render(request, 'pageItemsDenuncia.html', context)

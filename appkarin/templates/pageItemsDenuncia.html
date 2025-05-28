@@ -14,52 +14,40 @@
     <body id="page-top">
         <!-- Navigation-->
         <!-- Header-->
-        <header class="bg-lightblue bg-gradient">
-            <div class="container header-container">
-                <h1>Linea de Denuncia</h1>
-            </div>
-        </header>
+
+        {% include './headers/denuncia_header.html'%}
 
         <!-- About section form-->
         <div >
-            <form>
-                <section class="height-onethird-page">
-                    <div class="container home_container px-5 text-start">
-                        <h3>Respeto y seguridad en el trabajo</h3>
-                        {% for item in items_categoria_1 %}
-                            <label><input type="radio"></input>{{item}}</label>
-                        {% for %}
-                    </div>
-                </section>
-
-                <section class="height-onethird-page">
-                    <div class="container home_container px-5 text-start">
-                        <h3>Integridad de los negocios</h3>
-                        {% for item in items_categoria_2 %}
-                            <label><input type="radio"></input>{{item}}</label>
-                        {% for %}
-                    </div>
-                </section>
-
-                <section class="height-onethird-page">
-                    <div class="container home_container px-5 text-start">
-                         <h3>Sostenibilidad, medio ambiente</h3>
-                        {% for item in items_categoria_3 %}
-                            <label><input type="radio"></input>{{item}}</label>
-                        {% for %}
-                    </div>
+            <form method="post" target="_blank">
+                {% for categoria in categorias %}
+                    <section class="height-auto">
+                        <div class="container px-5 text-start">
+                            <h3>{{ categoria.nombre }}</h3>
+                                <div class="display-flex-column">
+                                    {% for item in categoria.item_set.all %}
+                                        <label class="form-check-label">
+                                            <input class="form-check-input" type="radio" name="denuncia_item" value="{{ item.id }}">
+                                            {{ item.enunciado }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                        </div>
+                    </section>
+                {% endfor %}
+                <section>
+                        <div class="container px-5 text-start">
+                            <div class="display-flex-row-reverse">
+                                <button class="btn bg-info text-white btn-info btn-light">siguiente</button>
+                                <button class="btn bg-info text-white btn-info btn-light">atrás</button>
+                            </div>
+                        </div>
                 </section>
             </form>
         </div>
 
         <!-- Footer-->
-        <footer class="py-5 bg-dark">
-            <div class="container px-4"><p class="m-0 text-center text-white">Copyright &copy; Somos un grupo de empresas destinadas a suplir y atender de forma integral las necesidades de servicios de la gran industria del sector público y privado, a través de la diversificación de nuestros negocios.</p></div>
-            
-        </footer>
-        <!-- Bootstrap core JS-->
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-        <!-- Core theme JS-->
-        <script src="{% static 'js/scripts.js' %}"></script>
+        {% include './footer/footer.html'%}
+
     </body>
 </html>

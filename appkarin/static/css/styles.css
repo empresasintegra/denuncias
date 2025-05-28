@@ -8150,6 +8150,10 @@ textarea.form-control-lg {
   background-color: rgba(var(--bs-primary-rgb), var(--bs-bg-opacity)) !important;
 }
 
+.bg-lightblue {
+  background-color: rgb(var(--bs-lightblue-rgb)) 
+}
+
 .bg-secondary {
   --bs-bg-opacity: 1;
   background-color: rgba(var(--bs-secondary-rgb), var(--bs-bg-opacity)) !important;
@@ -8178,11 +8182,6 @@ textarea.form-control-lg {
 .bg-light {
   --bs-bg-opacity: 1;
   background-color: rgba(var(--bs-light-rgb), var(--bs-bg-opacity)) !important;
-}
-
-.bg-lightblue {
-  --bs-bg-opacity: 1;
-  background-color: rgba(var(--bs-lightblue-rgb), var(--bs-bg-opacity)) !important;
 }
 
 
@@ -10877,7 +10876,24 @@ input {
   height: 33vh;
 }
 
+.height-auto{
+  height: auto;
+}
+
 
 a:hover {
    box-shadow: inset 0 0 0 1000px rgba(0, 0, 0, 0.0);
 }
+
+.display-flex-column{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.display-flex-row-reverse{
+  display: flex;
+  flex-direction: row-reverse;
+  gap: 10px;
+}
+
