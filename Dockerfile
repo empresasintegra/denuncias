@@ -15,6 +15,7 @@ RUN apt-get update \
         build-essential \
         libpq-dev \
         git \
+        curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiar archivos de requirements primero (para aprovechar el cache de Docker)
@@ -27,9 +28,8 @@ RUN pip install -r requirements.txt
 # Copiar el proyecto
 COPY . /app/
 
-# Crear usuario no-root para seguridad
-RUN adduser --disabled-password --gecos '' appuser && chown -R appuser:appuser /app
-USER appuser
+# Dar permisos de ejecución a manage.py
+RUN chmod +x manage.py
 
 # Exponer puerto 8000
 EXPOSE 8000

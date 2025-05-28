@@ -12,11 +12,13 @@ class Tiempo(models.Model):
 
 # Create your models here.
 class Categoria(models.Model):
-    nombre=models.CharField(max_length=250)
-    
+    nombre=models.CharField(max_length=250) 
+
     class Meta:
         verbose_name = "Categoria"
         verbose_name_plural = "Categorias"
+
+    
 
 
 class Item(models.Model):
