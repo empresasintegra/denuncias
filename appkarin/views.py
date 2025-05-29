@@ -19,48 +19,31 @@ def itemsDenuncia(request):
     }
 
     
-    return render(request, 'pageItemsDenuncia.html', context)
+    return render(request, 'InicioDenuncia.html', context)
 
 
-def getRelacionDenuncia(request):
+def wizzDenuncia(request):
+    """
+    Vista única del wizard que carga todos los datos necesarios
+    Reemplaza tus vistas: itemsDenuncia, relacionDenuncia, descripcionDenuncia
+    """
+    # Cargar todos los datos para todos los pasos
+    categorias = Categoria.objects.all().prefetch_related('item_set')
+    relacion_empresas = RelacionEmpresa.objects.all()
+    tiempos = Tiempo.objects.all()  # Necesitas crear este modelo si no existe
     
-    if request.method == 'POST':
-        
-        print("denuncia item")
-
-        datos={
-            'item': request.POST.get('denuncia_item'),
-        }
-
-        if all(datos.values()):
-            request.session['datos_denuncia'] = datos
-            # REDIRECT: Lleva al usuario a otra página
-            return redirect('relacion_empresa')  # URL cambia a 
-        else:
-            messages.error(request, 'Complete todos los campos')
-            # RENDER: Muestra la misma página con error
-            return render(request, 'pageItemsDenuncia.html')
+    # Datos de sesión para repoblar formulario si existe
+    wizard_data = request.session.get('wizard_data', {})
     
-        # Si no es POST, redirigir al formulario
-    return redirect('mostrar_formulario')
-
-
-
-def relacionDenuncia(request):
-    
-    relacionempresa= RelacionEmpresa.objects.all()
-    print(relacionempresa[0].rol)
-
-
     context = {
-        'relacion_empresas': relacionempresa
+        'categorias': categorias,
+        'relacion_empresas': relacion_empresas,
+        'tiempos': tiempos,
+        'wizard_data': wizard_data,
     }
-
     
-    return render(request, 'pageRelacionDenuncia.html', context)
+    return render(request, 'denunciaWizzard.html', context)
 
-
-def descripcionDenuncia(request):
+def userDenuncia(request):
     
-    
-    return render(request, 'pageItemsDenuncia.html')
+    return render(request, 'terminoDenuncia.html')

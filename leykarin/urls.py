@@ -21,20 +21,23 @@ from appkarin import views, service
 
 
 urlpatterns = [
+    
+    #APIS
+    path('api/denuncia/items/', service.serviceItems, name='process_items'),
+    path('api/denuncia/wizzard/', service.serviceProcessDenuncia, name='process_denuncia'),
+    #path('api/denuncia/tiempo/', service.serviceRelacionEmpresa, name='process_tiempo'),
+
+
 
 
     #RENDER VIEWS
     path('',views.home,name='home'),
     path('denuncia/Paso1/',views.itemsDenuncia,name='items'),
-    path('denuncia/Paso2/',views.relacionDenuncia,name='relacion_empresa'),
-    path('denuncia/Paso3/',views.descripcionDenuncia,name='descripcion'),
+    path('denuncia/Paso2/',views.wizzDenuncia,name='denuncia_wizzard'),
+    path('denuncia/Paso3/',views.userDenuncia,name='tiempo'),
 
 
 
-
-    #APIS
-    path('api/denuncia/items/', service.serviceItems, name='process_items'),
-
-
+    #ADMIN URL
     path(settings.ADMIN_URL, admin.site.urls),
 ]

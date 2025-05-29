@@ -1,0 +1,490 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Denuncia - Wizard</title>
+        <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+        
+        <!-- Tu CSS existente -->
+        <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
+        
+        <!-- SmartWizard CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/smartwizard@6/dist/css/smart_wizard_all.min.css" rel="stylesheet">
+        
+        <!-- CSS personalizado para integrar con tu diseño -->
+        <style>
+            /* Integrar SmartWizard con tu diseño existente */
+            #smartwizard {
+                background: transparent;
+                border: none;
+            }
+            
+            .sw-theme-default .sw-toolbar {
+                background: transparent;
+                border: none;
+                padding: 0;
+            }
+            
+            .sw-theme-default .sw-btn {
+                display: none; /* Ocultar botones por defecto, usar tus backForward */
+            }
+            
+            .sw-theme-default .nav {
+                margin-bottom: 30px;
+                justify-content: center;
+            }
+            
+            .sw-theme-default .nav-link {
+                color: #6c757d;
+                border: 2px solid #dee2e6;
+                border-radius: 50px;
+                margin: 0 10px;
+                padding: 10px 20px;
+                text-decoration: none;
+                transition: all 0.3s;
+            }
+            
+            .sw-theme-default .nav-link.active {
+                background-color: #007bff;
+                color: white;
+                border-color: #007bff;
+            }
+            
+            .sw-theme-default .nav-link.done {
+                background-color: #28a745;
+                color: white;
+                border-color: #28a745;
+            }
+            
+            .tab-content {
+                min-height: 500px;
+            }
+            
+            .step-content {
+                display: none;
+            }
+            
+            .step-content.active {
+                display: block;
+            }
+        </style>
+    </head>
+    <body id="page-top">
+        <!-- Tu header existente -->
+        {% include './headers/denuncia_header.html' %}
+
+        <!-- SmartWizard Container -->
+        <div id="smartwizard">
+            <!-- Navegación del Wizard -->
+            <ul class="nav nav-progress">
+                <li class="nav-item">
+                    <a class="nav-link" href="#step-1">
+                        <div class="num">1</div>
+                        Relación Empresa
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#step-2">
+                        <div class="num">2</div>
+                        Tiempo
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#step-3">
+                        <div class="num">3</div>
+                        Descripción
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#step-4">
+                        <div class="num">4</div>
+                        Subida de archivos
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Contenido de los pasos -->
+            <div class="tab-content">
+
+                <!-- PASO 1: Relación con Empresa (tu pageRelacionDenuncia.html) -->
+                <div id="step-1" class="tab-pane step-content" role="tabpanel">
+                    <section class="height-auto">
+                        <div class="container px-5 text-start">
+                            <h3>¿Cuál es tu relación con la empresa?</h3>
+                            <div class="display-flex-column">
+                                {% for relacion in relacion_empresas %}
+                                    <label class="form-check-label d-block mb-2">
+                                        <input class="form-check-input me-2" type="radio" 
+                                               name="denuncia_relacion" value="{{ relacion.id }}">
+                                        {{ relacion.rol }}
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </section>
+                    
+                    <!-- Navegación personalizada -->
+                    <div class="custom-nav-buttons">
+                        <div class="container px-4">
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-outline-secondary" onclick="prevStep()" id="btn-prev-2">
+                                    Anterior
+                                </button>
+                                <button type="button" class="btn btn-primary" onclick="nextStep()" id="btn-next-2">
+                                    Siguiente
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PASO 2: Tiempo (tu pageTiemposDenuncia.html corregido) -->
+                <div id="step-2" class="tab-pane step-content" role="tabpanel">
+                    <section class="height-auto">
+                        <div class="container px-5 text-start">
+                            <h3>¿Hace cuánto tiempo están ocurriendo los hechos?</h3>
+                            <div class="display-flex-column">
+                                <label class="form-check-label">
+                                    <select class="form-select" name="denuncia_tiempo">
+                                        <option value="">Seleccione una opción</option>
+                                        {% for tiempo in tiempos %}
+                                            <option value="{{ tiempo.id }}">
+                                                {{ tiempo.intervalo }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </label>
+                            </div>
+                        </div>
+                    </section>
+                    
+                    <!-- Navegación personalizada -->
+                    <div class="custom-nav-buttons">
+                        <div class="container px-4">
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-outline-secondary" onclick="prevStep()" id="btn-prev-3">
+                                    Anterior
+                                </button>
+                                <button type="button" class="btn btn-primary" onclick="nextStep()" id="btn-next-3">
+                                    Siguiente
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PASO 3: Descripción (tu pageDescripcionDenuncia.html corregido) -->
+                <div id="step-3" class="tab-pane step-content" role="tabpanel">
+                    <section class="height-auto">
+                        <div class="container px-5 text-start">
+                            <h3>Por favor explique la ocurrencia de los hechos</h3>
+                            <p>Explique lugar, forma, etc</p>
+                            <div class="display-flex-column">
+                                <label class="form-check-label">
+                                    <textarea class="form-control" name="descripcion" rows="6" 
+                                              placeholder="Describa detalladamente los hechos..."
+                                              id="descripcion-textarea"
+                                              >
+                                    </textarea>
+                                </label>
+                                <div id="contador-palabras" class="mt-2 small">
+                                    <span id="palabras-count">0</span> palabras (mínimo 50 requeridas)
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    
+                    <!-- Navegación personalizada -->
+                    <div class="custom-nav-buttons">
+                        <div class="container px-4">
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-outline-secondary" onclick="prevStep()" id="btn-prev-4">
+                                    Anterior
+                                </button>
+                                <button type="button" class="btn btn-primary" onclick="nextStep()" id="btn-next-4">
+                                    Siguiente
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PASO 4: Confirmación -->
+                <div id="step-4" class="tab-pane step-content" role="tabpanel">
+                    <section class="height-auto">
+                        <div class="container px-5 text-start">
+                            <h3>Confirme su denuncia</h3>
+                            <div class="alert alert-info">
+                                <strong>Revise cuidadosamente la información antes de enviar</strong>
+                            </div>
+                            
+                            <!-- Resumen de la denuncia -->
+                            <div id="resumen-denuncia" class="border p-3 mb-4 bg-light">
+                                <!-- Se genera dinámicamente con JavaScript -->
+                            </div>
+                            
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="acepta_terminos" 
+                                       name="acepta_terminos" required>
+                                <label class="form-check-label" for="acepta_terminos">
+                                    <strong>Acepto los términos y condiciones</strong>
+                                    <small class="d-block text-muted">
+                                        Confirmo que la información proporcionada es veraz.
+                                    </small>
+                                </label>
+                            </div>
+                        </div>
+                    </section>
+                    
+                    <!-- Navegación final -->
+                    <div class="custom-nav-buttons">
+                        <div class="container px-4">
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-outline-secondary" onclick="prevStep()" id="btn-prev-5">
+                                    Anterior
+                                </button>
+                                <button type="button" class="btn btn-success" onclick="submitDenuncia()" id="btn-submit">
+                                    Enviar Denuncia
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Tu footer existente -->
+        {% include './footer/footer.html' %}
+
+        <!-- jQuery -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        
+        <!-- SmartWizard JS -->
+        <script src="https://cdn.jsdelivr.net/npm/smartwizard@6/dist/js/jquery.smartWizard.min.js"></script>
+
+        <script>
+            let currentStep = 0;
+            const totalSteps = 4;
+
+            $(document).ready(function() {
+
+
+                 $('#descripcion-textarea').on('input', function() {
+                    const texto = $(this).val().trim();
+                    const caracteres = texto.length;
+                    
+                    // Actualizar contador
+                    $('#palabras-count').text(caracteres);
+                    
+                    // Cambiar color según criterio
+                    const contador = $('#contador-caracteres');
+                    
+                    if (caracteres < 50) {
+                        // Rojo suave si no cumple
+                        contador.css('color', '#d63384').removeClass('text-success');
+                    } else {
+                        // Verde suave si cumple
+                        contador.css('color', '#198754').addClass('text-success');
+                    }
+                });
+
+
+
+                // Inicializar SmartWizard
+                $('#smartwizard').smartWizard({
+                    selected: 0,
+                    theme: 'default',
+                    justified: true,
+                    autoAdjustHeight: true,
+                    backButtonSupport: false, // Usar tus propios botones
+                    enableUrlHash: false,
+                    transition: {
+                        animation: 'slideHorizontal',
+                        speed: '300'
+                    },
+                    toolbarSettings: {
+                        showNextButton: false, // Ocultar botones por defecto
+                        showPreviousButton: false
+                    }
+                });
+
+                // Mostrar primer paso
+                showStep(0);
+
+                // Event listeners para SmartWizard
+                $('#smartwizard').on("leaveStep", function(e, anchorObject, currentStepIndex, nextStepIndex, stepDirection) {
+                    if (stepDirection === 'forward') {
+                        return validateStep(currentStepIndex);
+                    }
+                    return true;
+                });
+
+                $('#smartwizard').on("showStep", function(e, anchorObject, stepIndex, stepDirection, stepPosition) {
+                    currentStep = stepIndex;
+                    updateNavigation();
+                    
+                    if (stepIndex === 3) { // Último paso
+                        generateResumen();
+                    }
+                });
+            });
+
+            // Funciones de navegación (compatibles con tus backForward)
+            function nextStep() {
+                if (validateStep(currentStep)) {
+                    $('#smartwizard').smartWizard("next");
+                }
+            }
+
+            function prevStep() {
+                $('#smartwizard').smartWizard("prev");
+            }
+
+            function showStep(step) {
+                $('#smartwizard').smartWizard("goToStep", step);
+            }
+
+            // Actualizar navegación
+            function updateNavigation() {
+                // Actualizar botones anterior
+                for (let i = 1; i <= totalSteps; i++) {
+                    const prevBtn = document.getElementById(`btn-prev-${i}`);
+                    if (prevBtn) {
+                        prevBtn.disabled = currentStep === 0;
+                    }
+                }
+            }
+
+            // Validación por paso
+            function validateStep(stepIndex) {
+                let isValid = true;
+                let errorMessage = '';
+
+                switch(stepIndex) {
+                    
+                    case 0: // Relación empresa
+                        if (!$('input[name="denuncia_relacion"]:checked').length) {
+                            errorMessage = 'Por favor seleccione su relación con la empresa';
+                            isValid = false;
+                        }
+                        break;
+                    
+                    case 1: // Tiempo
+                        if (!$('select[name="denuncia_tiempo"]').val()) {
+                            errorMessage = 'Por favor seleccione hace cuánto tiempo ocurren los hechos';
+                            isValid = false;
+                        }
+                        break;
+                    
+                    case 2: // Descripción
+                        const descripcion = $('textarea[name="descripcion"]').val().trim();
+                        if (!descripcion) {
+                            errorMessage = 'Por favor ingrese una descripción de los hechos';
+                            isValid = false;
+                        } else if (descripcion.length < 50) {
+                            errorMessage = 'La descripción debe tener al menos 50 caracteres';
+                            isValid = false;
+                        }
+                        break;
+                    
+                    case 3: // Confirmación
+                        if (!$('#acepta_terminos').is(':checked')) {
+                            errorMessage = 'Debe aceptar los términos y condiciones';
+                            isValid = false;
+                        }
+                        break;
+                }
+
+                if (!isValid) {
+                    showError(errorMessage);
+                }
+
+                return isValid;
+            }
+
+            // Generar resumen
+            function generateResumen() {
+                let resumen = '<h4>Resumen de su denuncia:</h4>';
+
+                // Relación
+                const relacion = $('input[name="denuncia_relacion"]:checked');
+                if (relacion.length) {
+                    const relacionTexto = relacion.next().text() || relacion.parent().text().trim();
+                    resumen += `<p><strong>Relación con la empresa:</strong> ${relacionTexto}</p>`;
+                }
+
+                // Tiempo
+                const tiempo = $('select[name="denuncia_tiempo"] option:selected');
+                if (tiempo.val()) {
+                    resumen += `<p><strong>Tiempo de ocurrencia:</strong> ${tiempo.text()}</p>`;
+                }
+
+                // Descripción
+                const descripcion = $('textarea[name="descripcion"]').val().trim();
+                if (descripcion) {
+                    const descripcionCorta = descripcion.length > 200 ? 
+                                           descripcion.substring(0, 200) + '...' : descripcion;
+                    resumen += `<p><strong>Descripción:</strong> ${descripcionCorta}</p>`;
+                }
+
+                $('#resumen-denuncia').html(resumen);
+            }
+
+            // Enviar denuncia
+            function submitDenuncia() {
+                if (!validateStep(3)) {
+                    return;
+                }
+
+                // Deshabilitar botón
+                $('#btn-submit').prop('disabled', true).text('Enviando...');
+
+                const formData = {
+                    'denuncia_relacion': $('input[name="denuncia_relacion"]:checked').val(),
+                    'denuncia_tiempo': $('select[name="denuncia_tiempo"]').val(),
+                    'descripcion': $('textarea[name="descripcion"]').val(),
+                    'acepta_terminos': $('#acepta_terminos').is(':checked'),
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                };
+
+                // Ajax request
+                $.ajax({
+                    url: '{% url "process_denuncia" %}',
+                    method: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        if (response.success) {
+                            alert('¡Denuncia enviada exitosamente!');
+                            window.location.href = response.redirect_url || '{% url "home" %}';
+                        } else {
+                            showError(response.message || 'Error al procesar la denuncia');
+                            $('#btn-submit').prop('disabled', false).text('Enviar Denuncia');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        showError('Error al enviar la denuncia. Por favor intente nuevamente.');
+                        $('#btn-submit').prop('disabled', false).text('Enviar Denuncia');
+                    }
+                });
+            }
+
+            // Mostrar errores
+          function showError(message) {
+                $('.alert-danger').remove();
+                
+                const alert = `<div class="alert alert-danger d-flex justify-content-between align-items-center" role="alert">
+                                <span>${message}</span>
+                                <button type="button" class="btn btn-sm btn-outline-red" onclick="$(this).parent().remove()">✕</button>
+                            </div>`;
+                
+                $('#step-' + (currentStep + 1) + ' .container.px-5').prepend(alert);
+                $('html, body').animate({scrollTop: 0}, 300);
+            }
+        </script>
+    </body>
+</html>
