@@ -1,0 +1,44 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Scrolling Nav - Start Bootstrap Template</title>
+        <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
+    </head>
+    <body id="page-top">
+        <!-- Navigation-->
+        <!-- Header-->
+
+        {% include './headers/denuncia_header.html'%}
+
+        <!-- About section form-->
+        <div >
+            <form action="{% url 'process_items' %}" method="post" target="_blank">
+                    <section class="height-auto">
+                        <div class="container px-5 text-start">
+                            <h3>¿Cual es tú la relación con la empresa?</h3>
+                                <div class="display-flex-column">
+                                    {% for relacion in relacion_empresas%}
+                                        <label class="form-check-label">
+                                            <input class="form-check-input" type="radio" name="denuncia_relacion" value="{{ relacionempresa.id }}">
+                                            {{ relacion.rol }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                        </div>
+                    </section>
+                {% include './components/backForward.html'%}
+            </form>
+        </div>
+
+        <!-- Footer-->
+        {% include './footer/footer.html'%}
+
+    </body>
+</html>

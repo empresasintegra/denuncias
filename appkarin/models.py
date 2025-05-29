@@ -33,6 +33,10 @@ class Item(models.Model):
 class RelacionEmpresa(models.Model):
     rol = models.CharField(max_length=500)
 
+    class Meta:
+        verbose_name = "Relacion_empresa"
+        verbose_name_plural = "Relaciones_empresa"
+
 class Usuario(models.Model):
     anonimo=models.BooleanField(default=True)
     nombre = models.CharField(max_length=250)

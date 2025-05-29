@@ -17,11 +17,24 @@ Including another URLconf
 from django.conf import settings
 from django.contrib import admin
 from django.urls import path
-from appkarin import views
+from appkarin import views, service
 
 
 urlpatterns = [
+
+
+    #RENDER VIEWS
     path('',views.home,name='home'),
-    path('denuncia/1',views.itemsDenuncia,name='home'),
+    path('denuncia/Paso1/',views.itemsDenuncia,name='items'),
+    path('denuncia/Paso2/',views.relacionDenuncia,name='relacion_empresa'),
+    path('denuncia/Paso3/',views.descripcionDenuncia,name='descripcion'),
+
+
+
+
+    #APIS
+    path('api/denuncia/items/', service.serviceItems, name='process_items'),
+
+
     path(settings.ADMIN_URL, admin.site.urls),
 ]

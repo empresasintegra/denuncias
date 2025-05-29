@@ -19,7 +19,8 @@
 
         <!-- About section form-->
         <div >
-            <form method="post" target="_blank">
+            <form action="{% url 'process_items'  %}" method="post" target="_blank">
+                {% csrf_token %}
                 {% for categoria in categorias %}
                     <section class="height-auto">
                         <div class="container px-5 text-start">
@@ -35,14 +36,7 @@
                         </div>
                     </section>
                 {% endfor %}
-                <section>
-                        <div class="container px-5 text-start">
-                            <div class="display-flex-row-reverse">
-                                <button class="btn bg-info text-white btn-info btn-light">siguiente</button>
-                                <button class="btn bg-info text-white btn-info btn-light">atrás</button>
-                            </div>
-                        </div>
-                </section>
+                {% include './components/backForward.html'%}
             </form>
         </div>
 
