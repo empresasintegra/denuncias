@@ -10897,3 +10897,9 @@ a:hover {
   gap: 10px;
 }
 
+#file-list{
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 10px; /* para evitar que el scroll tape el contenido */
+}
+
