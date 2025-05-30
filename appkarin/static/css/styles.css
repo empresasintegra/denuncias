@@ -10878,6 +10878,11 @@ input {
 
 .height-auto{
   height: auto;
+  overflow: visible;
+}
+
+.height-full{
+  height: 100%;
 }
 
 

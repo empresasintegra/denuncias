@@ -1,33 +1,52 @@
 from django.shortcuts import redirect
-from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-import json
 from .models import *
 
 
+
+
+
+
+@require_http_methods(["POST"])
 def serviceItems(request):
     
-    if request.method == 'POST':
-        
-        print("denuncia item")
 
-        datos={
-            'item': request.POST.get('denuncia_item'),
-        }
+    datos={
+        'item': request.POST.get('denuncia_item'),
+    }
 
+    try:
         if all(datos.values()):
-            request.session['item'] = datos
+            print("estamos en datos values")
+            request.session['item_id'] = datos
+            print("datos",datos)
             # REDIRECT: Lleva al usuario a otra página
-            return redirect('denuncia_wizzard')  # URL cambia a 
+            return JsonResponse({
+                'success': True,
+                'message': 'Denuncia procesada correctamente',
+                'redirect_url': '/denuncia/Paso2/'  # O la URL que corresponda
+            })
         else:
-            messages.error(request, 'Complete todos los campos')
             # RENDER: Muestra la misma página con error
-            return redirect('items')
+            return JsonResponse({
+                    'success': False,
+                    'message': 'Debe seleccionar el tipo de denuncia'
+                })
+        
+    except Exception as e:
+        print(f"Error al procesar denuncia: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'message': 'Error interno del servidor. Por favor intente nuevamente.'
+        })
+
+
+
+        
+        
     
-        # Si no es POST, redirigir al home
-    return redirect('home')
 
 
 @require_http_methods(["POST"])
@@ -39,15 +58,14 @@ def serviceProcessDenuncia(request):
     try:
         # Extraer datos del formulario
         data = {
-            'denuncia_item': request.POST.get('denuncia_item'),
-            'denuncia_relacion': request.POST.get('denuncia_relacion'),
-            'denuncia_tiempo': request.POST.get('denuncia_tiempo'),
+            'denuncia_relacion_id': int(request.POST.get('denuncia_relacion')),
+            'denuncia_tiempo_id': int(request.POST.get('denuncia_tiempo')),
             'descripcion': request.POST.get('descripcion', '').strip(),
-            'acepta_terminos': request.POST.get('acepta_terminos') == 'true',
+
         }
         
         print("Datos recibidos:", data)  # Para debug
-        
+        request.session['wizzard_data'] = data
         # Validar datos
         validation_errors = validate_denuncia_data(data)
         if validation_errors:
@@ -77,16 +95,9 @@ def validate_denuncia_data(data):
     errors = []
     
     # Validar tipo de denuncia
-    if not data['denuncia_item']:
-        errors.append('Debe seleccionar un tipo de denuncia')
-    else:
-        try:
-            Item.objects.get(id=data['denuncia_item'])
-        except Item.DoesNotExist:
-            errors.append('Tipo de denuncia no válido')
     
     # Validar relación empresa
-    if not data['denuncia_relacion']:
+    if not data['denuncia_relacion_id']:
         errors.append('Debe seleccionar su relación con la empresa')
     else:
         try:
@@ -95,7 +106,7 @@ def validate_denuncia_data(data):
             errors.append('Relación con empresa no válida')
     
     # Validar tiempo
-    if not data['denuncia_tiempo']:
+    if not data['denuncia_tiempo_id']:
         errors.append('Debe seleccionar hace cuánto tiempo ocurren los hechos')
     else:
         try:
@@ -106,11 +117,8 @@ def validate_denuncia_data(data):
     # Validar descripción
     if not data['descripcion']:
         errors.append('La descripción es obligatoria')
-    elif len(data['descripcion']) < 20:
-        errors.append('La descripción debe tener al menos 20 caracteres')
+    elif len(data['descripcion']) < 50:
+        errors.append('La descripción debe tener al menos 50 caracteres')
     
-    # Validar términos
-    if not data['acepta_terminos']:
-        errors.append('Debe aceptar los términos y condiciones')
     
     return errors

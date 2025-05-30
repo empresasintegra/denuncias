@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Linea Denuncia Integra</title>
+        <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
+    </head>
+    <body id="page-top">
+        <!-- Navigation-->
+        <!-- Header-->
+
+        {% include './headers/denuncia_header.html'%}
+
+        <!-- About section form-->
+        <div >
+            <form action="{% url 'process_items'  %}" method="post" target="_blank">
+                {% csrf_token %}
+                {% for categoria in categorias %}
+                    <section class="height-auto">
+                        
+                        <div class="container px-5 text-start">
+                            <h3>{{ categoria.nombre }}</h3>
+                                <div class="display-flex-column">
+                                    {% for item in categoria.item_set.all %}
+                                        <label class="form-check-label">
+                                            <input class="form-check-input" type="radio" name="denuncia_item" value="{{ item.id }}">
+                                            {{ item.enunciado }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                        </div>
+                    </section>
+                {% endfor %}
+                {% include './components/backForward.html'%}
+                </form>
+            </div>
+
+            <script type="text/javascript">
+                    var frm = $('#contactForm1');
+
+                    frm.submit(function (e) {
+
+                        e.preventDefault();
+
+                        $.ajax({
+                            type: frm.attr('method'),
+                            url: frm.attr('action'),
+                            data: frm.serialize(),
+                            success: function (data) {
+                                console.log('Submission was successful.');
+                                console.log(data);
+                            },
+                            error: function (data) {
+                                console.log('An error occurred.');
+                                console.log(data);
+                            },
+                        });
+                    });
+                </script>
+            
+        <!-- Footer-->
+        {% include './footer/footer.html'%}
+
+    </body>
+</html>
