@@ -6,10 +6,10 @@ from django.contrib import messages
 
 
 # Create your views here.
-def home(request):
+def renderHome(request):
     return render(request, 'index.html')
 
-def itemsDenuncia(request):
+def renderItemsDenuncia(request):
     
   
     categorias = Categoria.objects.all().prefetch_related('item_set')
@@ -22,7 +22,7 @@ def itemsDenuncia(request):
     return render(request, 'InicioDenuncia.html', context)
 
 
-def wizzDenuncia(request):
+def renderWizzDenuncia(request):
     """
     Vista única del wizard que carga todos los datos necesarios
     Reemplaza tus vistas: itemsDenuncia, relacionDenuncia, descripcionDenuncia
@@ -44,6 +44,18 @@ def wizzDenuncia(request):
     
     return render(request, 'denunciaWizzard.html', context)
 
-def userDenuncia(request):
+def renderUserDenuncia(request):
     
     return render(request, 'terminoDenuncia.html')
+
+
+
+def renderCodeDenuncia(request):
+
+
+    context = {
+        'code': request.session['user_id'],
+    }
+
+    
+    return render(request, 'codeIndex.html',context)

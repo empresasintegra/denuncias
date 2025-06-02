@@ -23,18 +23,20 @@ from appkarin import views, service
 urlpatterns = [
     
     #APIS
-    path('api/denuncia/items/', service.serviceItems, name='process_items'),
-    path('api/denuncia/wizzard/', service.serviceProcessDenuncia, name='process_denuncia'),
-    #path('api/denuncia/tiempo/', service.serviceRelacionEmpresa, name='process_tiempo'),
-
+    path('api/post/denuncia/items/', service.serviceItems, name='process_items'),
+    path('api/post/denuncia/wizzard/', service.serviceProcessDenuncia, name='process_denuncia'),
+    path('api/post/denuncia/user/', service.serviceUserDenuncia, name='process_user'),
+   #path('api/get/denuncia/user/', service.serviceGetDenunciaByUser, name='process_user'),
+   # path('api/get/denuncia/user/', service.serviceGetDenunciaByUser, name='process_user'),
 
 
 
     #RENDER VIEWS
-    path('',views.home,name='home'),
-    path('denuncia/Paso1/',views.itemsDenuncia,name='items'),
-    path('denuncia/Paso2/',views.wizzDenuncia,name='denuncia_wizzard'),
-    path('denuncia/Paso3/',views.userDenuncia,name='tiempo'),
+    path('',views.renderHome,name='home'),
+    path('denuncia/Paso1/',views.renderItemsDenuncia,name='items'),
+    path('denuncia/Paso2/',views.renderWizzDenuncia,name='denuncia_wizzard'),
+    path('denuncia/Paso3/',views.renderUserDenuncia,name='user_register'),
+    path('denuncia/final/',views.renderCodeDenuncia,name='code_view'),
 
 
 

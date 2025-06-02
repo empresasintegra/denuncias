@@ -190,7 +190,7 @@
 
 
             .step-content-step4 {
-                display: flex;
+                 display: flex;
                 background: white;
                 border-radius: 20px;
                 padding: 0;
@@ -198,7 +198,9 @@
                 border: 1px solid rgba(255, 255, 255, 0.2);
                 backdrop-filter: blur(10px);
                 transition: all 0.3s ease;
-                overflow: visible;
+                overflow: hidden;
+                height: 600px; /* ALTURA FIJA - ESTO ES CLAVE */
+                max-height: 80vh;
             }
 
 
@@ -400,8 +402,6 @@
             /* Lista de archivos mejorada */
             .file-list {
                 margin-top: 1.5rem;
-                max-height: 300px;
-                overflow-y: auto;
                 overflow-x: hidden;
                 padding-right: 10px;
                 margin-bottom: 1rem;
@@ -619,18 +619,111 @@
                 #step-4 section {
                     display: flex;
                     flex-direction: column;
-                    min-height: 500px;
-                    height: auto;
+                    height: 100%; /* ✅ CAMBIO: de auto a 100% */
+                    width: 100%;
+                    overflow: hidden; /* ✅ NUEVO */
                 }
 
                 /* Asegurar que container2 no limite el crecimiento */
                 /* Hacer que file-list sea scrolleable correctamente */
 
                 /* Asegurar que custom-nav-buttons se mantenga abajo */
+
+                #step-4 .custom-nav-buttons::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    height: 1px;
+                    background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+                }
+
+
                 #step-4 .custom-nav-buttons {
-                    margin-top: auto;
+                    flex-shrink: 0;
+                    margin-top: 0; /* ✅ CAMBIO: remover auto */
+                    position: sticky; /* ✅ NUEVO */
+                    bottom: 0; /* ✅ NUEVO */
+                    background: #f8fafc;
+                    z-index: 10;
+                }   
+
+                #step-4 .container.px-5 {
+                    padding: 2.5rem !important;
+                    position: relative;
+                    flex: 1; /* ✅ NUEVO */
+                    overflow-y: auto; /* ✅ NUEVO: permitir scroll vertical */
+                    overflow-x: hidden; /* ✅ NUEVO */
+                    margin-right: 10px; /* ✅ NUEVO: espacio para scrollbar */
+                }
+
+                #step-4 .container.px-5::after {
+                    content: '';
+                    display: block;
+                    height: 100px;
                     flex-shrink: 0;
                 }
+
+                #step-4 .container.px-5::-webkit-scrollbar {
+                    width: 8px;
+                }
+
+                #step-4 .container.px-5::-webkit-scrollbar-track {
+                    background: #f1f1f1;
+                    border-radius: 4px;
+                }
+
+
+                #step-4 .container.px-5::-webkit-scrollbar-thumb {
+                    background: linear-gradient(135deg, #667eea, #764ba2);
+                    border-radius: 4px;
+                }
+
+                #step-4 .container.px-5::-webkit-scrollbar-thumb:hover {
+                    background: linear-gradient(135deg, #5a67d8, #6b46c1);
+                }
+
+                #step-4 section.d-flex.flex-column.height-auto {
+                    height: 100% !important;
+                    min-height: unset !important;
+                    overflow: hidden;
+                }
+                
+                #step-4 .container.px-5.text-start {
+                    flex: 1;
+                    overflow-y: auto;
+                    overflow-x: hidden;
+                    padding: 2.5rem 2.5rem 1rem 2.5rem !important;
+                }
+
+
+                #step-4 .custom-nav-buttons.mt-auto {
+                    flex-shrink: 0;
+                    margin-top: 0 !important;
+                    background: #f8fafc;
+                    border-top: 1px solid #e2e8f0;
+                }
+
+                #step-4 .file-list {
+                    margin-top: 1.5rem;
+                    margin-bottom: 1rem;
+                }
+
+
+            #step-4 .container.px-5.text-start::-webkit-scrollbar {
+                    width: 8px;
+            }
+
+            #step-4 .container.px-5.text-start::-webkit-scrollbar-track {
+                background: #f8fafc;
+                border-radius: 4px;
+            }
+
+            #step-4 .container.px-5.text-start::-webkit-scrollbar-thumb {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                border-radius: 4px;
+            }
 
 
 
@@ -750,7 +843,9 @@
                                 <label class="form-check-label">
                                     <textarea class="form-control" name="descripcion" rows="6" 
                                               placeholder="Describa detalladamente los hechos, incluyendo lugar, fecha, personas involucradas y circunstancias..."
-                                              id="descripcion-textarea"></textarea>
+                                              id="descripcion-textarea"
+                                              maxlength="2000"
+                                              ></textarea>
                                 </label>
                                 <div id="contador-palabras" class="mt-2 small">
                                     <span id="palabras-count">0</span> caracteres (mínimo 50 requeridos)
@@ -812,7 +907,7 @@
                                         <i class="fas fa-arrow-left me-2"></i>Anterior
                                     </button>
                                     <button type="button" class="btn btn-success" onclick="submitDenuncia()" id="btn-submit">
-                                        <i class="fas fa-paper-plane me-2"></i>Enviar Denuncia
+                                        <i class="fas fa-paper-plane me-2"></i>Continuar
                                     </button>
                                 </div>
                             </div>
@@ -1163,7 +1258,7 @@
             // Enviar denuncia con archivos
             function submitDenuncia() {
                 // Deshabilitar botón
-                $('#btn-submit').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Enviando...');
+                $('#btn-submit').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Procesando...');
 
                 // Crear FormData para enviar archivos
                 const formData = new FormData();
@@ -1191,15 +1286,15 @@
                     success: function(response) {
                         if (response.success) {
                             alert('¡Denuncia enviada exitosamente!');
-                            window.location.href = response.redirect_url || '{% url "home" %}';
+                            window.location.href = response.redirect_url;
                         } else {
                             showError(response.message || 'Error al procesar la denuncia');
-                            $('#btn-submit').prop('disabled', false).html('<i class="fas fa-paper-plane me-2"></i>Enviar Denuncia');
+                            $('#btn-submit').prop('disabled', false).html('<i class="fas fa-paper-plane me-2"></i>Continuar');
                         }
                     },
                     error: function(xhr, status, error) {
                         showError('Error al enviar la denuncia. Por favor intente nuevamente.');
-                        $('#btn-submit').prop('disabled', false).html('<i class="fas fa-paper-plane me-2"></i>Enviar Denuncia');
+                        $('#btn-submit').prop('disabled', false).html('<i class="fas fa-paper-plane me-2"></i>Continuar');
                     }
                 });
             }

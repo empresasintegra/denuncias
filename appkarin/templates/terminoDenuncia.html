@@ -1,71 +1,971 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <meta name="description" content="" />
-        <meta name="author" content="" />
-        <title>Linea Denuncia Integra</title>
+        <meta name="description" content="Línea de Denuncia - Empresas Integra" />
+        <meta name="author" content="Empresas Integra" />
+        <title>Línea Denuncia Integra - Datos del Usuario</title>
         <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
-        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
+        
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Inter', sans-serif;
+                line-height: 1.6;
+                color: #2d3748;
+                background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+                min-height: 100vh;
+            }
+
+            /* Animaciones */
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            @keyframes fadeInDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            @keyframes gradient {
+                0% {
+                    background-position: 0% 50%;
+                }
+                50% {
+                    background-position: 100% 50%;
+                }
+                100% {
+                    background-position: 0% 50%;
+                }
+            }
+
+            @keyframes pulse {
+                0%, 100% {
+                    transform: scale(1);
+                }
+                50% {
+                    transform: scale(1.02);
+                }
+            }
+
+            @keyframes slideDown {
+                from {
+                    opacity: 0;
+                    max-height: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    max-height: 500px;
+                    transform: translateY(0);
+                }
+            }
+
+            /* Header moderno */
+            .bg-lightblue.bg-gradient {
+                background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c) !important;
+                background-size: 400% 400% !important;
+                animation: gradient 15s ease infinite;
+                padding: 3rem 0 !important;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .bg-lightblue.bg-gradient::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+            }
+
+            .header-container {
+                position: relative;
+                z-index: 2;
+                text-align: center;
+            }
+
+            .header-container h1 {
+                color: white !important;
+                font-size: 3rem !important;
+                font-weight: 700 !important;
+                text-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                margin: 0 !important;
+                animation: fadeInUp 1s ease-out;
+                position: relative;
+            }
+
+            .header-container h1::after {
+                content: '';
+                position: absolute;
+                bottom: -15px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 100px;
+                height: 4px;
+                background: rgba(255, 255, 255, 0.8);
+                border-radius: 2px;
+            }
+
+            .header-container p {
+                color: rgba(255, 255, 255, 0.9) !important;
+                font-size: 1.2rem !important;
+                margin-top: 2rem !important;
+                animation: fadeInUp 1s ease-out 0.2s both;
+            }
+
+            /* Formulario moderno */
+            .form-container {
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 2rem;
+            }
+
+            .form-card {
+                background: white;
+                border-radius: 20px;
+                padding: 3rem;
+                margin: 2rem 0;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                backdrop-filter: blur(10px);
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                animation: fadeInUp 0.6s ease-out;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .form-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 5px;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                border-radius: 20px 20px 0 0;
+            }
+
+            .form-card h2 {
+                font-size: 2.2rem;
+                font-weight: 600;
+                color: #2d3748;
+                margin-bottom: 1rem;
+                text-align: center;
+                position: relative;
+            }
+
+            .form-card h2::before {
+                content: '👤';
+                display: block;
+                font-size: 3rem;
+                margin-bottom: 1rem;
+            }
+
+            .form-card .subtitle {
+                text-align: center;
+                color: #718096;
+                font-size: 1.1rem;
+                margin-bottom: 3rem;
+                line-height: 1.6;
+            }
+
+            /* Sección de privacidad */
+            .privacy-section {
+                margin-bottom: 3rem;
+            }
+
+            .privacy-section h3 {
+                font-size: 1.5rem;
+                font-weight: 600;
+                color: #2d3748;
+                margin-bottom: 1.5rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .privacy-section h3::before {
+                content: '🔒';
+                font-size: 1.3rem;
+            }
+
+            .privacy-options {
+                display: flex;
+                gap: 1rem;
+                flex-wrap: wrap;
+            }
+
+            .privacy-option {
+                flex: 1;
+                min-width: 250px;
+            }
+
+            .privacy-btn {
+                width: 100%;
+                padding: 1.5rem;
+                background: #f8fafc;
+                border: 2px solid #e2e8f0;
+                border-radius: 15px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                text-align: center;
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .privacy-btn:hover {
+                background: #edf2f7;
+                border-color: #cbd5e0;
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            }
+
+            .privacy-btn.selected {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                border-color: #667eea;
+                box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+                animation: pulse 0.5s ease-out;
+            }
+
+            .privacy-btn .icon {
+                font-size: 2rem;
+            }
+
+            .privacy-btn .title {
+                font-weight: 600;
+                font-size: 1.1rem;
+            }
+
+            .privacy-btn .description {
+                font-size: 0.9rem;
+                opacity: 0.8;
+                line-height: 1.4;
+            }
+
+            .privacy-input {
+                display: none;
+            }
+
+            /* Sección de datos personales */
+            .datos-personales {
+                opacity: 0;
+                max-height: 0;
+                overflow: hidden;
+                transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+                margin-top: 0;
+            }
+
+            .datos-personales.show {
+                opacity: 1;
+                max-height: 1000px;
+                margin-top: 2rem;
+                animation: slideDown 0.5s ease-out;
+            }
+
+            .datos-personales h3 {
+                font-size: 1.5rem;
+                font-weight: 600;
+                color: #2d3748;
+                margin-bottom: 1.5rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding-top: 2rem;
+                border-top: 1px solid #e2e8f0;
+            }
+
+            .datos-personales h3::before {
+                content: '📝';
+                font-size: 1.3rem;
+            }
+
+            .form-group {
+                margin-bottom: 1.5rem;
+            }
+
+            .form-group label {
+                display: block;
+                font-weight: 600;
+                color: #4a5568;
+                margin-bottom: 0.5rem;
+                font-size: 1rem;
+            }
+
+            .form-group .required {
+                color: #e53e3e;
+            }
+
+            .form-control {
+                width: 100%;
+                padding: 1rem 1.25rem;
+                border: 2px solid #e2e8f0;
+                border-radius: 12px;
+                font-size: 1rem;
+                transition: all 0.3s ease;
+                background: #f8fafc;
+                font-family: 'Inter', sans-serif;
+            }
+
+            .form-control:focus {
+                outline: none;
+                border-color: #667eea;
+                background: white;
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+                transform: translateY(-1px);
+            }
+
+            .form-control::placeholder {
+                color: #a0aec0;
+            }
+
+            /* Contenedor de navegación */
+            .navigation-container {
+                background: white;
+                border-radius: 20px;
+                padding: 2rem;
+                margin: 3rem auto 0;
+                max-width: 800px;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+                text-align: center;
+            }
+
+            /* Botones de navegación */
+            .nav-buttons {
+                display: flex;
+                gap: 1.5rem;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .btn {
+                padding: 1rem 2rem;
+                border: none;
+                border-radius: 12px;
+                font-size: 1rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 150px;
+                font-family: 'Inter', sans-serif;
+            }
+
+            .btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            }
+
+            .btn:active {
+                transform: translateY(0);
+            }
+
+            .btn-secondary {
+                background: #f7fafc;
+                color: #4a5568;
+                border: 2px solid #e2e8f0;
+            }
+
+            .btn-secondary:hover {
+                background: #edf2f7;
+                border-color: #cbd5e0;
+                color: #2d3748;
+            }
+
+            .btn-primary {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            }
+
+            .btn-primary:hover {
+                background: linear-gradient(135deg, #5a67d8, #6b46c1);
+                box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            }
+
+            .btn-primary:disabled {
+                background: #a0aec0;
+                cursor: not-allowed;
+                transform: none;
+                box-shadow: none;
+            }
+
+            .btn i {
+                font-size: 0.9rem;
+            }
+
+            /* Alert de error */
+            .alert {
+                padding: 1rem 1.5rem;
+                border-radius: 12px;
+                margin-bottom: 1.5rem;
+                animation: fadeInDown 0.3s ease-out;
+            }
+
+            .alert-danger {
+                background: linear-gradient(135deg, #feb2b2, #fc8181);
+                color: #742a2a;
+                border: 1px solid #fed7d7;
+            }
+
+            /* Responsive */
+            @media (max-width: 768px) {
+                .header-container h1 {
+                    font-size: 2.2rem !important;
+                }
+
+                .form-card {
+                    padding: 2rem;
+                    margin: 1rem;
+                }
+
+                .form-card h2 {
+                    font-size: 1.8rem;
+                }
+
+                .privacy-options {
+                    flex-direction: column;
+                }
+
+                .privacy-option {
+                    min-width: auto;
+                }
+
+                .form-container {
+                    padding: 1rem;
+                }
+
+                .nav-buttons {
+                    flex-direction: column;
+                    gap: 1rem;
+                }
+
+                .btn {
+                    width: 100%;
+                    min-width: auto;
+                }
+            }
+
+            /* Indicador de progreso */
+            .progress-indicator {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: rgba(102, 126, 234, 0.2);
+                z-index: 1000;
+            }
+
+            .progress-bar {
+                height: 100%;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                width: 60%;
+                transition: width 0.3s ease;
+            }
+        </style>
     </head>
     <body id="page-top">
-        <!-- Navigation-->
-        <!-- Header-->
+        <div class="progress-indicator">
+            <div class="progress-bar"></div>
+        </div>
 
-        {% include './headers/denuncia_header.html'%}
+        <!-- Header -->
+        {% include './headers/denuncia_header.html' %}
 
-        <!-- About section form-->
-        <div >
-            <form action="{% url 'process_items'  %}" method="post" target="_blank">
+        <!-- Formulario -->
+        <div class="form-container">
+            <form id="usuarioForm" action="{% url 'process_user' %}" method="post">
                 {% csrf_token %}
-                {% for categoria in categorias %}
-                    <section class="height-auto">
-                        
-                        <div class="container px-5 text-start">
-                            <h3>{{ categoria.nombre }}</h3>
-                                <div class="display-flex-column">
-                                    {% for item in categoria.item_set.all %}
-                                        <label class="form-check-label">
-                                            <input class="form-check-input" type="radio" name="denuncia_item" value="{{ item.id }}">
-                                            {{ item.enunciado }}
-                                        </label>
-                                    {% endfor %}
-                                </div>
+                
+                <div class="form-card">
+                    <h2>Información del Denunciante</h2>
+                    <p class="subtitle">
+                        Para procesar su denuncia de manera adecuada, necesitamos conocer si desea 
+                        mantener su identidad anónima o proporcionar sus datos de contacto.
+                    </p>
+
+                    <!-- Sección de Privacidad -->
+                    <div class="privacy-section">
+                        <h3>Tipo de Denuncia</h3>
+                        <div class="privacy-options">
+                            <div class="privacy-option">
+                                <label class="privacy-btn" for="anonimo">
+                                    <input type="radio" name="tipo_denuncia" value="anonimo" id="anonimo" class="privacy-input">
+                                    <div class="icon">🕶️</div>
+                                    <div class="title">Denuncia Anónima</div>
+                                    <div class="description">
+                                        Su identidad permanecerá completamente confidencial. 
+                                        No necesita proporcionar datos personales.
+                                    </div>
+                                </label>
+                            </div>
+                            
+                            <div class="privacy-option">
+                                <label class="privacy-btn" for="identificado">
+                                    <input type="radio" name="tipo_denuncia" value="identificado" id="identificado" class="privacy-input">
+                                    <div class="icon">👤</div>
+                                    <div class="title">Denuncia Identificada</div>
+                                    <div class="description">
+                                        Proporcione sus datos para posibles seguimientos. 
+                                        Sus datos serán tratados con total confidencialidad.
+                                    </div>
+                                </label>
+                            </div>
                         </div>
-                    </section>
-                {% endfor %}
-                {% include './components/backForward.html'%}
-                </form>
-            </div>
+                    </div>
 
-            <script type="text/javascript">
-                    var frm = $('#contactForm1');
+                    <!-- Sección de Datos Personales (Se muestra condicionalmente) -->
+                    <div class="datos-personales" id="datosPersonales">
+                        <h3>Datos de Contacto</h3>
 
-                    frm.submit(function (e) {
+                        <div class="form-group">
+                            <label for="rut">
+                                Rut<span class="required">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="rut" 
+                                name="rut" 
+                                class="form-control"
+                                placeholder="Ingrese su rut"
+                                required
+                            >
+                        </div>
 
-                        e.preventDefault();
+                        
+                        <div class="form-group">
+                            <label for="nombre_completo">
+                                Nombres <span class="required">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="nombre_completo" 
+                                name="nombre_completo" 
+                                class="form-control"
+                                placeholder="Ingrese su nombre"
+                                required
+                            >
+                        </div>
 
-                        $.ajax({
-                            type: frm.attr('method'),
-                            url: frm.attr('action'),
-                            data: frm.serialize(),
-                            success: function (data) {
-                                console.log('Submission was successful.');
-                                console.log(data);
-                            },
-                            error: function (data) {
-                                console.log('An error occurred.');
-                                console.log(data);
-                            },
-                        });
+
+                        <div class="form-group">
+                            <label for="apellidos">
+                                Apellidos<span class="required">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="apellidos" 
+                                name="apellidos" 
+                                class="form-control"
+                                placeholder="Ingrese sus apellidos"
+                                required
+                            >
+                        </div>
+
+
+                        <div class="form-group">
+                            <label for="correo_electronico">
+                                Correo Electrónico <span class="required">*</span>
+                            </label>
+                            <input 
+                                type="email" 
+                                id="correo_electronico" 
+                                name="correo electronico" 
+                                class="form-control"
+                                placeholder="ejemplo@correo.com"
+                                required
+                            >
+                        </div>
+
+
+                        <div class="form-group">
+                            <label for="celular">Celular <span class="required">*</span></label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">+56 9</span>
+                                </div>
+                                <input 
+                                    type="tel" 
+                                    id="celular" 
+                                    name="celular" 
+                                    class="form-control" 
+                                    maxlength="8" 
+                                    placeholder="1234 5678" 
+                                    required
+                                >
+                            </div>
+                        </div>
+
+
+                        <div style="background: #f0f8ff; padding: 1rem; border-radius: 8px; border-left: 4px solid #667eea; margin-top: 1rem;">
+                            <p style="margin: 0; font-size: 0.9rem; color: #4a5568;">
+                                <i class="fas fa-info-circle" style="color: #667eea; margin-right: 0.5rem;"></i>
+                                Sus datos serán utilizados únicamente para el seguimiento de esta denuncia 
+                                y serán tratados conforme a nuestra política de privacidad.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="navigation-container">
+                    <div class="nav-buttons">
+                        <button type="button" class="btn btn-secondary" id="btnAtras">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Atrás
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="btnEnviar">
+                            <i class="fas fa-paper-plane me-2"></i>
+                            Enviar Denuncia
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Footer original -->
+        {% include './footer/footer.html' %}
+
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script>
+
+            function formatearRUT(rut) {
+                // Quita todo menos números y la K/k final
+                rut = rut.replace(/[^0-9kK]/g, '').toUpperCase();
+
+                if (rut.length <= 1) return rut;
+
+                let cuerpo = rut.slice(0, -1);
+                let dv = rut.slice(-1);
+
+                // Agrega puntos cada 3 dígitos desde el final
+                cuerpo = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+                return `${cuerpo}-${dv}`;
+            }
+
+
+            function validarRUT(rut) {
+                // Limpiar RUT (quitar puntos y guión)
+                const rutLimpio = rut.replace(/[.-]/g, '');
+                
+                // Verificar longitud
+                if (rutLimpio.length < 8 || rutLimpio.length > 9) {
+                    return false;
+                }
+                
+                // Extraer número y dígito verificador
+                const numero = rutLimpio.slice(0, -1);
+                const dv = rutLimpio.slice(-1).toUpperCase();
+                
+                // Verificar que el número contenga solo dígitos
+                if (!/^\d+$/.test(numero)) {
+                    return false;
+                }
+                
+                // Calcular dígito verificador
+                let suma = 0;
+                let multiplo = 2;
+                
+                for (let i = numero.length - 1; i >= 0; i--) {
+                    suma += parseInt(numero.charAt(i)) * multiplo;
+                    multiplo = multiplo === 7 ? 2 : multiplo + 1;
+                }
+                
+                const resto = suma % 11;
+                const dvCalculado = resto === 0 ? '0' : resto === 1 ? 'K' : (11 - resto).toString();
+                
+                return dv === dvCalculado;
+            }
+
+
+
+            $(document).ready(function () {
+
+                $('#rut').on('input', function () {
+                    let valor = $(this).val();
+                    let limpio = valor.replace(/[^\dkK]/g, '');
+                    if (limpio.length > 9) limpio = limpio.slice(0, 9); // máximo 9 dígitos
+
+                    let formateado = formatearRUT(limpio);
+                    $(this).val(formateado);
+                });
+
+                $('#celular').on('input', function () {
+                    let val = $(this).val().replace(/\D/g, ''); // solo dígitos
+
+                    // Forzar que empiece con 56 (sin +) y 9
+                    if (val.startsWith('569')) {
+                        val = val.slice(3); // remover 569
+                    } else if (val.startsWith('56')) {
+                        val = val.slice(2);
+                    } else if (val.startsWith('9')) {
+                        val = val.slice(1);
+                    }
+
+                    // Limitar a 8 dígitos
+                    val = val.substring(0, 8);
+
+                    // Agrupar en formato 1234 5678
+                    let formatted = val.replace(/(\d{4})(\d{0,4})/, '$1 $2').trim();
+
+                    // Aplicar el formato completo
+                    $(this).val(`+56 9 ${formatted}`);
+                });
+
+            });
+
+
+
+            // Manejo del botón Atrás
+            document.getElementById('btnAtras').addEventListener('click', function() {
+                // Aquí puedes cambiar la URL según tu sistema de rutas
+                window.history.back(); // Opción 1: Volver a la página anterior
+                // window.location.href = '/paso-anterior/'; // Opción 2: URL específica
+            });
+
+            // Manejo de la selección de tipo de denuncia
+            const radioButtons = document.querySelectorAll('input[name="tipo_denuncia"]');
+            const datosPersonales = document.getElementById('datosPersonales');
+            const nombreInput = document.getElementById('nombre_completo');
+            const apellidoInput = document.getElementById('apellidos');
+            const rutInput = document.getElementById('rut');
+            const correoInput = document.getElementById('correo_electronico');
+            const celularInput =  document.getElementById('celular');
+
+
+            radioButtons.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    // Remover selección previa
+                    document.querySelectorAll('.privacy-btn').forEach(btn => {
+                        btn.classList.remove('selected');
                     });
-                </script>
-            
-        <!-- Footer-->
-        {% include './footer/footer.html'%}
+                    
+                    // Agregar selección actual
+                    if (this.checked) {
+                        this.closest('.privacy-btn').classList.add('selected');
+                        
+                        // Mostrar/ocultar datos personales
+                        if (this.value === 'identificado') {
+                            datosPersonales.classList.add('show');
+                            nombreInput.required = true;
+                            apellidoInput.required = true;
+                            correoInput.required = true;
+                            rutInput.required = true;
+                            celularInput.required= true;
+                        } else {
+                            datosPersonales.classList.remove('show');
+                            nombreInput.required = false;
+                            apellidoInput.required = false;
+                            correoInput.required = false;
+                            rutInput.required = false;
+                            celularInput.required= false;
+                            // Limpiar campos cuando se ocultan
+                            nombreInput.value = '';
+                            apellidoInput.value = '';
+                            correoInput.value = '';
+                            rutInput.value = '';
+                            celularInput.required=null;
+                            
+                        }
+                    }
+                });
+            });
 
+            // Manejo del envío del formulario
+            const form = document.getElementById('usuarioForm');
+            const btnEnviar = document.getElementById('btnEnviar');
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                // Validar que se haya seleccionado un tipo de denuncia
+                const tipoSeleccionado = document.querySelector('input[name="tipo_denuncia"]:checked');
+                if (!tipoSeleccionado) {
+                    showError('Por favor, seleccione el tipo de denuncia');
+                    return;
+                }
+
+                // Validar campos requeridos si es denuncia identificada
+                if (tipoSeleccionado.value === 'identificado') {
+                    if (!nombreInput.value.trim()) {
+                        showError('Por favor, ingrese su nombre');
+                        nombreInput.focus();
+                        return;
+                    }
+
+                    // Validar que el nombre no contenga números
+                    const nombreRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
+                    if (!nombreRegex.test(nombreInput.value.trim())) {
+                        showError('El nombre solo puede contener letras y espacios');
+                        nombreInput.focus();
+                        return;
+
+
+                    if (!apellidoInput.value.trim()) {
+                        showError('Por favor, ingrese sus apellidos');
+                        apellidoInput.focus();
+                        return;
+                    }
+
+                    // Validar que apellidos no contengan números
+                    const apellidosRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
+                    if (!apellidosRegex.test(apellidoInput.value.trim())) {
+                        showError('Los apellidos solo pueden contener letras y espacios');
+                        apellidoInput.focus();
+                        return;
+                    }
+
+}
+                    
+                    if (!correoInput.value.trim()) {
+                        showError('Por favor, ingrese su correo electrónico');
+                        correoInput.focus();
+                        return;
+                    }
+
+                    // Validar formato de email
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(correoInput.value.trim())) {
+                        showError('Por favor, ingrese un correo electrónico válido');
+                        correoInput.focus();
+                        return;
+                    }
+
+                    // Validar celular
+                    const celularInput = document.getElementById('celular');
+                    if (!celularInput.value.trim()) {
+                        showError('Por favor, ingrese su número de celular');
+                        celularInput.focus();
+                        return;
+                    }
+
+                    // Validar formato de celular chileno
+                    const celularRegex = /^\+56 9 \d{4} \d{4}$/;
+                    if (!celularRegex.test(celularInput.value.trim())) {
+                        showError('Por favor, ingrese un número de celular válido (formato: +56 9 1234 5678)');
+                        celularInput.focus();
+                        return;
+                    }
+                                    }
+
+                // Mostrar estado de carga
+                const originalText = btnEnviar.innerHTML;
+                btnEnviar.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Enviando...';
+                btnEnviar.disabled = true;
+
+                // Enviar formulario via AJAX
+                $.ajax({
+                    type: 'POST',
+                    url: form.action,
+                    data: $(form).serialize(),
+                    success: function(response) {
+                        if (response.success) {
+                            if (response.redirect_url) {
+                                console.log('Redirigiendo a:', response.redirect_url);
+                                window.location.href = response.redirect_url; // 🚀 REDIRECCIÓN
+                            } else {
+                                console.log('No hay redirect_url, usando fallback');
+                                window.location.href = '/user_register/'; // Fallback
+                            } 
+                            // Mostrar éxito brevemente
+                            btnEnviar.innerHTML = '<i class="fas fa-check me-2"></i>¡Enviado!';
+                            
+                            setTimeout(() => {
+                                if (response.redirect_url) {
+                                    window.location.href = response.redirect_url;
+                                } else {
+                                    // URL de fallback
+                                    window.location.href = '/siguiente-paso/';
+                                }
+                            }, 1000);
+                        } else {
+                            showError(response.message || 'Error al procesar los datos');
+                            // Restaurar botón
+                            btnEnviar.innerHTML = originalText;
+                            btnEnviar.disabled = false;
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error en el envío:', error);
+                        showError('Error al enviar los datos. Por favor, inténtelo nuevamente.');
+                        // Restaurar botón
+                        btnEnviar.innerHTML = originalText;
+                        btnEnviar.disabled = false;
+                    }
+                });
+            });
+
+            function showError(message) {
+                // Remover alertas previas
+                $('.alert-danger').remove();
+                
+                const alert = `<div class="alert alert-danger d-flex justify-content-between align-items-center" role="alert">
+                                <span><i class="fas fa-exclamation-circle me-2"></i>${message}</span>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="$(this).parent().remove()" style="background: none; border: 1px solid #742a2a; color: #742a2a; padding: 0.25rem 0.5rem; border-radius: 4px;">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>`;
+                
+                $('.form-container').prepend(alert);
+                $('html, body').animate({scrollTop: 0}, 300);
+                
+                // Auto-remover después de 5 segundos
+                setTimeout(() => {
+                    $('.alert-danger').fadeOut(300, function() {
+                        $(this).remove();
+                    });
+                }, 5000);
+            }
+
+            // Efectos adicionales
+            document.querySelectorAll('.form-control').forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.classList.add('focused');
+                });
+                
+                input.addEventListener('blur', function() {
+                    this.parentElement.classList.remove('focused');
+                });
+            });
+
+            // Animación del progress bar
+            setTimeout(() => {
+                document.querySelector('.progress-bar').style.width = '65%';
+            }, 500);
+        </script>
     </body>
 </html>
