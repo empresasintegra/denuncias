@@ -59,7 +59,6 @@ def serviceProcessDenuncia(request):
         }
         
         request.session['wizzard_data'] = data
-        print(data)
         # Validar datos
         validation_errors = validate_denuncia_data(data)
         if validation_errors:
@@ -74,16 +73,6 @@ def serviceProcessDenuncia(request):
                 'message': 'Wizzard prcesado correctamente',
                 'redirect_url': '/denuncia/Paso3/'  # O la URL que corresponda
             })
-        
-        
-        # Crear denuncia
-        #denuncia = create_denuncia(data, request)
-        
-        # Limpiar sesión
-        #if 'wizard_data' in request.session:
-        #    del request.session['wizard_data']
-        
-        #return redirect('items')
         
     except Exception as e:
         print(f"Error al procesar denuncia: {str(e)}")  # Para debug
@@ -129,8 +118,6 @@ def validate_denuncia_data(data):
 @require_http_methods(["POST"])
 def serviceUserDenuncia(request):
 
-    
-    print(request.session)
 
     try:
             
@@ -181,10 +168,7 @@ def serviceUserDenuncia(request):
                 usuario=Usuario.objects.get(rut=rut_formateado, anonimo=False)
 
 
-        print("item?")
-        item=Item.objects.get(id=item_id)
-        print("esto es item")
-        print(item)
+        item=Item.objects.get(id=item_id)       
         relacion=RelacionEmpresa.objects.get(id=relacion_id)
         tiempo=Tiempo.objects.get(id=tiempo_id)
 
@@ -197,11 +181,12 @@ def serviceUserDenuncia(request):
         )
 
         denuncia.save()
+
+        request.session['codigo']=denuncia.codigo
+        
             
-            
-            # 3. Aquí ya tienes el usuario, puedes crear la denuncia directamente
-            # O retornar el ID del usuario para el siguiente paso
-        print("EL USUARIO HA SIDO GUARDADO")
+        # 3. Aquí ya tienes el usuario, puedes crear la denuncia directamente
+        # O retornar el ID del usuario para el siguiente paso
 
 
         return JsonResponse({
@@ -210,7 +195,7 @@ def serviceUserDenuncia(request):
                 'denuncia_id': denuncia.codigo,
                 'user_type': 'anonimo' if usuario.anonimo else 'identificado',
                 'message': 'Denuncia procesada satisfactoriamente',
-                #'redirect_url': reverse('crear_denuncia') 
+                'redirect_url': '/denuncia/final/' 
         })
             
     except ValidationError as e:

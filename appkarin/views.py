@@ -54,8 +54,10 @@ def renderCodeDenuncia(request):
 
 
     context = {
-        'code': request.session['user_id'],
+        'code': request.session['codigo'],
     }
-
     
-    return render(request, 'codeIndex.html',context)
+    response = render(request, 'codeIndex.html', context)
+    request.session.flush()  # Elimina TODO y regenera session key
+    
+    return response
