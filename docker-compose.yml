@@ -36,7 +36,7 @@ services:
     environment:
       - DEBUG=1
       - SECRET_KEY=your-secret-key-here-change-in-production
-      - ADMIN_URL=admin/
+      - ADMIN_URL=5sTUWfXtDNg2XAAz/
       - DB_NAME=KarinDenuncias
       - DB_USER=postgres
       - DB_PASSWORD=root

@@ -125,6 +125,7 @@ def serviceUserDenuncia(request):
         relacion_id=request.session['wizzard_data']['denuncia_relacion_id']
         tiempo_id=request.session['wizzard_data']['denuncia_tiempo_id']
         descripcion=request.session['wizzard_data']['denuncia_descripcion']
+        descripcion_relacion=request.session['wizzard_data']['descripcion_relación']
         archivos=request.session['wizzard_data']['denuncia_archivos']
 
             # 1. Obtener tipo de denuncia del POST
@@ -178,6 +179,7 @@ def serviceUserDenuncia(request):
             relacion_empresa=relacion,
             tiempo=tiempo,
             descripcion=descripcion,
+            descripcion_relacion=descripcion_relacion if relacion.rol == 'Otro' else None
         )
 
         denuncia.save()

@@ -227,7 +227,13 @@ class Denuncia(models.Model):
     
     # Contenido
     descripcion = models.TextField(max_length=2000)
-    
+    descripcion_relacion= models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        help_text="Descripción condicional a relacion empresa 'Otro' "
+    )
+
     # Timestamps
     fecha = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)

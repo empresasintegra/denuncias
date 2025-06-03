@@ -1,7 +1,7 @@
 /**
- * APLICACIÓN DE DENUNCIAS - JAVASCRIPT CONSOLIDADO
+ * APLICACIÓN DE DENUNCIAS - JAVASCRIPT CON COLLAPSE
  * Autor: Sistema de Denuncias Integra
- * Versión: 1.2 - Corregido formateo de celular
+ * Versión: 1.3 - Agregado sistema de collapse para categorías
  */
 
 // Namespace principal
@@ -17,7 +17,8 @@ const DenunciaApp = {
     vars: {
         currentStep: 0,
         totalSteps: 4,
-        selectedFiles: []
+        selectedFiles: [],
+        expandedCategories: new Set() // Tracking de categorías expandidas
     },
 
     // Detección de página actual - MEJORADA
@@ -253,13 +254,15 @@ const DenunciaApp = {
     },
 
     // ===========================================
-    // MÓDULO: PÁGINA DE ITEMS/CATEGORÍAS
+    // MÓDULO: PÁGINA DE ITEMS/CATEGORÍAS CON COLLAPSE
     // ===========================================
     itemsPage: {
         init: function() {
-            console.log('📋 Inicializando página de items');
+            console.log('📋 Inicializando página de items con collapse');
             this.setupForm();
             this.setupSelectionEffects();
+            this.setupCollapseSystem();
+            this.initAccessibility();
         },
 
         setupForm: function() {
@@ -319,7 +322,12 @@ const DenunciaApp = {
         setupSelectionEffects: function() {
             document.querySelectorAll('.form-check-input').forEach(radio => {
                 radio.addEventListener('change', function() {
-                    // Remover selección previa
+                    // Remover selección previa de todas las categorías
+                    document.querySelectorAll('.categoria-card').forEach(card => {
+                        card.classList.remove('has-selection');
+                    });
+                    
+                    // Remover selección previa de todos los radio buttons
                     document.querySelectorAll('.form-check-input[name="denuncia_item"]').forEach(r => {
                         r.closest('.form-check-label').classList.remove('selected');
                     });
@@ -327,17 +335,224 @@ const DenunciaApp = {
                     // Agregar selección actual
                     if (this.checked) {
                         this.closest('.form-check-label').classList.add('selected');
+                        
+                        // Marcar la categoría como seleccionada
+                        const categoriaCard = this.closest('.categoria-card');
+                        if (categoriaCard) {
+                            categoriaCard.classList.add('has-selection');
+                        }
+                        
                         console.log('✅ Item seleccionado:', this.value);
+                        console.log('📂 Categoría:', this.dataset.categoria);
                     }
                 });
             });
+        },
+
+        // ===========================================
+        // SISTEMA DE COLLAPSE
+        // ===========================================
+        setupCollapseSystem: function() {
+            console.log('🎯 Configurando sistema de collapse');
+            
+            // Inicializar todas las categorías como colapsadas
+            document.querySelectorAll('.categoria-card').forEach(card => {
+                this.collapseCategory(card, false); // Sin animación inicial
+            });
+
+            // Configurar eventos de teclado para accesibilidad
+            document.querySelectorAll('.categoria-header').forEach(header => {
+                header.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        const categoriaId = header.closest('.categoria-card').dataset.categoriaId;
+                        this.toggleCategoria(parseInt(categoriaId));
+                    }
+                });
+            });
+        },
+
+        toggleCategoria: function(categoriaId) {
+            console.log(`🔄 Toggle categoría: ${categoriaId}`);
+            
+            const card = document.querySelector(`[data-categoria-id="${categoriaId}"]`);
+            if (!card) {
+                console.error(`❌ No se encontró categoría con ID: ${categoriaId}`);
+                return;
+            }
+
+            const isExpanded = DenunciaApp.vars.expandedCategories.has(categoriaId);
+            
+            if (isExpanded) {
+                this.collapseCategory(card);
+                DenunciaApp.vars.expandedCategories.delete(categoriaId);
+                console.log(`📉 Categoría ${categoriaId} colapsada`);
+            } else {
+                this.expandCategory(card);
+                DenunciaApp.vars.expandedCategories.add(categoriaId);
+                console.log(`📈 Categoría ${categoriaId} expandida`);
+            }
+
+            // Actualizar atributos de accesibilidad
+            this.updateAccessibilityAttributes(card, !isExpanded);
+        },
+
+        expandCategory: function(card, withAnimation = true) {
+            const content = card.querySelector('.categoria-content');
+            const toggle = card.querySelector('.categoria-toggle');
+            const icon = toggle.querySelector('i');
+
+            // Aplicar clases CSS
+            card.classList.remove('collapsed');
+            card.classList.add('expanded');
+            toggle.classList.add('expanded');
+            
+            if (withAnimation) {
+                // Animar la expansión
+                content.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+            } else {
+                content.style.transition = 'none';
+            }
+            
+            content.classList.add('expanded');
+            
+            // Cambiar icono
+            icon.className = 'fas fa-chevron-up';
+
+            // Scroll suave hacia la categoría expandida
+            if (withAnimation) {
+                setTimeout(() => {
+                    card.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'nearest' 
+                    });
+                }, 200);
+            }
+        },
+
+        collapseCategory: function(card, withAnimation = true) {
+            const content = card.querySelector('.categoria-content');
+            const toggle = card.querySelector('.categoria-toggle');
+            const icon = toggle.querySelector('i');
+
+            // Aplicar clases CSS
+            card.classList.remove('expanded');
+            card.classList.add('collapsed');
+            toggle.classList.remove('expanded');
+            
+            if (withAnimation) {
+                content.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+            } else {
+                content.style.transition = 'none';
+            }
+            
+            content.classList.remove('expanded');
+            
+            // Cambiar icono
+            icon.className = 'fas fa-chevron-down';
+        },
+
+        updateToggleButtons: function() {
+            const totalCategories = document.querySelectorAll('.categoria-card').length;
+            const expandedCount = DenunciaApp.vars.expandedCategories.size;
+            
+            const expandBtn = document.querySelector('.toggle-all-btn:not(.collapse-all)');
+            const collapseBtn = document.querySelector('.toggle-all-btn.collapse-all');
+            
+            if (expandedCount === 0) {
+                // Todas colapsadas
+                if (expandBtn) {
+                    expandBtn.innerHTML = '<i class="fas fa-expand-arrows-alt"></i> Expandir Todo';
+                    expandBtn.disabled = false;
+                }
+                if (collapseBtn) {
+                    collapseBtn.disabled = true;
+                }
+            } else if (expandedCount === totalCategories) {
+                // Todas expandidas
+                if (expandBtn) {
+                    expandBtn.disabled = true;
+                }
+                if (collapseBtn) {
+                    collapseBtn.innerHTML = '<i class="fas fa-compress-arrows-alt"></i> Contraer Todo';
+                    collapseBtn.disabled = false;
+                }
+            } else {
+                // Estado mixto
+                if (expandBtn) {
+                    expandBtn.innerHTML = `<i class="fas fa-expand-arrows-alt"></i> Expandir Restantes (${totalCategories - expandedCount})`;
+                    expandBtn.disabled = false;
+                }
+                if (collapseBtn) {
+                    collapseBtn.innerHTML = `<i class="fas fa-compress-arrows-alt"></i> Contraer Expandidas (${expandedCount})`;
+                    collapseBtn.disabled = false;
+                }
+            }
+        },
+
+        // ===========================================
+        // ACCESIBILIDAD
+        // ===========================================
+        initAccessibility: function() {
+            console.log('♿ Configurando accesibilidad');
+            
+            // Agregar atributos ARIA
+            document.querySelectorAll('.categoria-header').forEach(header => {
+                header.setAttribute('role', 'button');
+                header.setAttribute('tabindex', '0');
+                header.setAttribute('aria-label', 'Expandir/contraer categoría');
+            });
+
+            document.querySelectorAll('.categoria-content').forEach(content => {
+                content.setAttribute('role', 'region');
+                content.setAttribute('aria-hidden', 'true');
+            });
+
+            // Configurar navegación por teclado
+            document.addEventListener('keydown', (e) => {
+                if (e.target.classList.contains('categoria-header')) {
+                    switch(e.key) {
+                        case 'ArrowDown':
+                            e.preventDefault();
+                            this.focusNextCategory(e.target);
+                            break;
+                        case 'ArrowUp':
+                            e.preventDefault();
+                            this.focusPrevCategory(e.target);
+                            break;
+                    }
+                }
+            });
+        },
+
+        updateAccessibilityAttributes: function(card, isExpanded) {
+            const header = card.querySelector('.categoria-header');
+            const content = card.querySelector('.categoria-content');
+            
+            header.setAttribute('aria-expanded', isExpanded.toString());
+            content.setAttribute('aria-hidden', (!isExpanded).toString());
+        },
+
+        focusNextCategory: function(currentHeader) {
+            const headers = Array.from(document.querySelectorAll('.categoria-header'));
+            const currentIndex = headers.indexOf(currentHeader);
+            const nextIndex = (currentIndex + 1) % headers.length;
+            headers[nextIndex].focus();
+        },
+
+        focusPrevCategory: function(currentHeader) {
+            const headers = Array.from(document.querySelectorAll('.categoria-header'));
+            const currentIndex = headers.indexOf(currentHeader);
+            const prevIndex = currentIndex === 0 ? headers.length - 1 : currentIndex - 1;
+            headers[prevIndex].focus();
         }
     },
 
     // ===========================================
-    // MÓDULO: PÁGINA DEL WIZARD
+    // MÓDULO: PÁGINA DEL WIZARD (sin cambios)
     // ===========================================
     wizardPage: {
+        // ... resto del código del wizard permanece igual
         init: function() {
             console.log('🧙‍♂️ Inicializando wizard');
             
@@ -351,7 +566,40 @@ const DenunciaApp = {
             this.setupSmartWizard();
             this.setupTextareaCounter();
             this.initFileUpload();
+            this.setupRelacionEmpresaHandler();
         },
+
+        setupRelacionEmpresaHandler: function() {
+            console.log('🔧 Configurando handler para relación empresa');
+            
+            // Detectar cambios en los radio buttons de relación empresa
+            $('input[name="denuncia_relacion"]').on('change', function() {
+                const rol = $(this).data('rol');
+                const otroContainer = $('#otro-descripcion-container');
+                const otroInput = $('#descripcion_relacion');
+                
+                console.log(`📌 Relación seleccionada: ${rol}`);
+                
+                if (rol && rol.toLowerCase() === 'otro') {
+                    // Mostrar campo con animación
+                    otroContainer.slideDown(300);
+                    otroInput.prop('required', true);
+                    console.log('✅ Campo "Otro" activado');
+                } else {
+                    // Ocultar campo y limpiar valor
+                    otroContainer.slideUp(300);
+                    otroInput.prop('required', false).val('');
+                    console.log('❌ Campo "Otro" desactivado');
+                }
+            });
+            
+            // Verificar si ya hay una selección al cargar
+            const selectedRadio = $('input[name="denuncia_relacion"]:checked');
+            if (selectedRadio.length > 0) {
+                selectedRadio.trigger('change');
+            }
+        },
+
 
         setupSmartWizard: function() {
             const wizardElement = $('#smartwizard');
@@ -444,56 +692,69 @@ const DenunciaApp = {
         },
 
         // Validación por paso
-        validateStep: function(stepIndex) {
-            let isValid = true;
-            let errorMessage = '';
+       validateStep: function(stepIndex) {
+        let isValid = true;
+        let errorMessage = '';
 
-            console.log(`🔍 Validando paso ${stepIndex + 1}`);
+        console.log(`🔍 Validando paso ${stepIndex + 1}`);
 
-            switch(stepIndex) {
-                case 0:
-                    if (!$('input[name="denuncia_relacion"]:checked').length) {
-                        errorMessage = 'Por favor seleccione su relación con la empresa';
-                        isValid = false;
+        switch(stepIndex) {
+            case 0:
+                // Validar selección de relación
+                const relacionSeleccionada = $('input[name="denuncia_relacion"]:checked');
+                if (!relacionSeleccionada.length) {
+                    errorMessage = 'Por favor seleccione su relación con la empresa';
+                    isValid = false;
+                } else {
+                    // Si seleccionó "Otro", validar el campo de descripción
+                    const rol = relacionSeleccionada.data('rol');
+                    if (rol && rol.toLowerCase() === 'otro') {
+                        const descripcionOtro = $('#descripcion_relacion').val().trim();
+                        if (!descripcionOtro) {
+                            errorMessage = 'Por favor especifique su relación con la empresa';
+                            isValid = false;
+                        } else if (descripcionOtro.length < 3) {
+                            errorMessage = 'La descripción debe tener al menos 3 caracteres';
+                            isValid = false;
+                        }
                     }
-                    break;
-                
-                case 1:
-                    if (!$('select[name="denuncia_tiempo"]').val()) {
-                        errorMessage = 'Por favor seleccione hace cuánto tiempo ocurren los hechos';
-                        isValid = false;
-                    }
-                    break;
-                
-                case 2:
-                    const descripcion = $('textarea[name="descripcion"]').val().trim();
-                    if (!descripcion) {
-                        errorMessage = 'Por favor ingrese una descripción de los hechos';
-                        isValid = false;
-                    } else if (descripcion.length < 50) {
-                        errorMessage = 'La descripción debe tener al menos 50 caracteres';
-                        isValid = false;
-                    }
-                    break;
-                
-                case 3:
-                    isValid = true;
-                    break;
-            }
+                }
+                break;
+            
+            case 1:
+                if (!$('select[name="denuncia_tiempo"]').val()) {
+                    errorMessage = 'Por favor seleccione hace cuánto tiempo ocurren los hechos';
+                    isValid = false;
+                }
+                break;
+            
+            case 2:
+                const descripcion = $('textarea[name="descripcion"]').val().trim();
+                if (!descripcion) {
+                    errorMessage = 'Por favor ingrese una descripción de los hechos';
+                    isValid = false;
+                } else if (descripcion.length < 50) {
+                    errorMessage = 'La descripción debe tener al menos 50 caracteres';
+                    isValid = false;
+                }
+                break;
+            
+            case 3:
+                isValid = true;
+                break;
+        }
 
-            if (!isValid) {
-                console.log(`❌ Validación falló: ${errorMessage}`);
-                DenunciaApp.common.showError(errorMessage);
-            } else {
-                console.log('✅ Validación exitosa');
-            }
+        if (!isValid) {
+            console.log(`❌ Validación falló: ${errorMessage}`);
+            DenunciaApp.common.showError(errorMessage);
+        } else {
+            console.log('✅ Validación exitosa');
+        }
 
-            return isValid;
+        return isValid;
         },
 
-        // ===========================================
-        // SUBMÓDULO: MANEJO DE ARCHIVOS
-        // ===========================================
+        // Archivo upload y demás funciones del wizard
         initFileUpload: function() {
             setTimeout(() => {
                 if (DenunciaApp.vars.currentStep === 3) {
@@ -645,9 +906,20 @@ const DenunciaApp = {
             submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Procesando...');
 
             const formData = new FormData();
+            
+            // Datos básicos
             formData.append('denuncia_relacion', $('input[name="denuncia_relacion"]:checked').val());
             formData.append('denuncia_tiempo', $('select[name="denuncia_tiempo"]').val());
             formData.append('descripcion', $('textarea[name="descripcion"]').val());
+            
+            // NUEVO: Agregar descripción de "Otro" si aplica
+            const relacionSeleccionada = $('input[name="denuncia_relacion"]:checked');
+            const rol = relacionSeleccionada.data('rol');
+            if (rol && rol.toLowerCase() === 'otro') {
+                const descripcionRelacion = $('#descripcion_relacion').val().trim();
+                formData.append('descripcion_relacion', descripcionRelacion);
+                console.log('📝 Descripción "Otro":', descripcionRelacion);
+            }
             
             // Obtener y validar CSRF token
             const csrfToken = DenunciaApp.common.getCSRFToken();
@@ -666,31 +938,27 @@ const DenunciaApp = {
 
             console.log('📊 Datos a enviar:');
             console.log('- Relación:', $('input[name="denuncia_relacion"]:checked').val());
+            console.log('- Rol:', rol);
+            if (rol && rol.toLowerCase() === 'otro') {
+                console.log('- Descripción Otro:', $('#descripcion_relacion').val());
+            }
             console.log('- Tiempo:', $('select[name="denuncia_tiempo"]').val());
             console.log('- Descripción chars:', $('textarea[name="descripcion"]').val().length);
             console.log('- Archivos:', DenunciaApp.vars.selectedFiles.length);
-            console.log('- CSRF Token:', csrfToken ? 'Presente (' + csrfToken.substring(0, 10) + '...)' : 'FALTA');
 
-            // Obtener URL desde diferentes fuentes (en orden de prioridad)
+            // Obtener URL desde diferentes fuentes
             let submitUrl;
             
-            // 1. Variable global del template (RECOMENDADO)
             if (window.WIZARD_SUBMIT_URL) {
                 submitUrl = window.WIZARD_SUBMIT_URL;
                 console.log('🎯 URL desde variable global:', submitUrl);
-            }
-            // 2. Data attribute del smartwizard
-            else if ($('#smartwizard').data('submit-url')) {
+            } else if ($('#smartwizard').data('submit-url')) {
                 submitUrl = $('#smartwizard').data('submit-url');
                 console.log('🎯 URL desde data attribute:', submitUrl);
-            }
-            // 3. Action de formulario padre
-            else if ($('#wizard-form').attr('action')) {
+            } else if ($('#wizard-form').attr('action')) {
                 submitUrl = $('#wizard-form').attr('action');
                 console.log('🎯 URL desde action del form:', submitUrl);
-            }
-            // 4. Fallback con URL real del API
-            else {
+            } else {
                 submitUrl = '/api/post/denuncia/wizzard/';
                 console.log('⚠️ Usando URL fallback:', submitUrl);
             }
@@ -710,7 +978,7 @@ const DenunciaApp = {
                             if (response.redirect_url) {
                                 window.location.href = response.redirect_url;
                             } else {
-                                window.location.href = '/denuncia/Paso3/'; // URL real de usuario
+                                window.location.href = '/denuncia/Paso3/';
                             }
                         }, 1000);
                     } else {
@@ -730,7 +998,7 @@ const DenunciaApp = {
     },
 
     // ===========================================
-    // MÓDULO: PÁGINA DE USUARIO
+    // MÓDULO: PÁGINA DE USUARIO (sin cambios)
     // ===========================================
     usuarioPage: {
         init: function() {
@@ -1046,7 +1314,7 @@ const DenunciaApp = {
     },
 
     // ===========================================
-    // MÓDULO: PÁGINA DE CÓDIGO
+    // MÓDULO: PÁGINA DE CÓDIGO (sin cambios)
     // ===========================================
     codigoPage: {
         init: function() {

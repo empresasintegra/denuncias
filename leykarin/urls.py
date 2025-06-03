@@ -26,8 +26,6 @@ urlpatterns = [
     path('api/post/denuncia/items/', service.serviceItems, name='process_items'),
     path('api/post/denuncia/wizzard/', service.serviceProcessDenuncia, name='process_denuncia'),
     path('api/post/denuncia/user/', service.serviceUserDenuncia, name='process_user'),
-   #path('api/get/denuncia/user/', service.serviceGetDenunciaByUser, name='process_user'),
-   # path('api/get/denuncia/user/', service.serviceGetDenunciaByUser, name='process_user'),
 
 
 
@@ -37,7 +35,7 @@ urlpatterns = [
     path('denuncia/Paso2/',views.renderWizzDenuncia,name='denuncia_wizzard'),
     path('denuncia/Paso3/',views.renderUserDenuncia,name='user_register'),
     path('denuncia/final/',views.renderCodeDenuncia,name='code_view'),
-
+    path('consulta/',views.renderItemsDenuncia,name='items'),
 
 
     #ADMIN URL

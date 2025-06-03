@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -31,6 +32,19 @@
             }
             to {
                 opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                max-height: 500px;
                 transform: translateY(0);
             }
         }
@@ -196,6 +210,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             padding: 4rem 0;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             position: relative;
@@ -220,6 +235,7 @@
             z-index: 2;
             position: relative;
             animation: fadeInUp 1s ease-out 0.6s both;
+            margin-bottom: 2rem;
         }
 
         .btn-modern {
@@ -237,6 +253,9 @@
             overflow: hidden;
             min-width: 220px;
             justify-content: center;
+            border: none;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
         }
 
         .btn-modern::before {
@@ -279,6 +298,184 @@
         .btn-icon {
             font-size: 1.2rem;
             animation: pulse 2s infinite;
+        }
+
+        /* Sección de consulta de código */
+        .codigo-section {
+            background: white;
+            border-radius: 20px;
+            padding: 0;
+            margin: 2rem auto 0;
+            max-width: 1200px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 3;
+        }
+
+        .codigo-section.show {
+            opacity: 1;
+            max-height: 600px;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        .codigo-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+            border-radius: 20px 20px 0 0;
+        }
+
+        .codigo-header {
+            padding: 2rem 2rem 1rem;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+            background: linear-gradient(135deg, #f8fafc, #edf2f7);
+            border-radius: 20px 20px 0 0;
+        }
+
+        .codigo-header h3 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            position: relative;
+            padding-left: 2.5rem;
+        }
+
+        .codigo-header h3::before {
+            content: '🔍';
+            position: absolute;
+            left: 0;
+            top: 0;
+            font-size: 1.5rem;
+        }
+
+        .codigo-header p {
+            color: #718096;
+            font-size: 1rem;
+        }
+
+        .codigo-form {
+            padding: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .codigo-input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+            text-align: center;
+        }
+
+        .codigo-input:focus {
+            outline: none;
+            border-color: #00d2ff;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(0, 210, 255, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .codigo-input::placeholder {
+            color: #a0aec0;
+            font-weight: 400;
+            letter-spacing: normal;
+        }
+
+        .codigo-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .btn-consultar {
+            background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-consultar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(58, 123, 213, 0.4);
+        }
+
+        .btn-cancelar {
+            background: #f7fafc;
+            color: #4a5568;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-cancelar:hover {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+            transform: translateY(-1px);
+        }
+
+        .codigo-info {
+            background: #e6fffa;
+            border: 1px solid #81e6d9;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            border-left: 4px solid #38b2ac;
+        }
+
+        .codigo-info p {
+            color: #2c7a7b;
+            margin: 0;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .codigo-info i {
+            color: #38b2ac;
         }
 
         /* Footer mejorado */
@@ -329,6 +526,23 @@
             .footer-container {
                 padding: 0 1rem;
             }
+
+            .codigo-section {
+                margin: 2rem 1rem 0;
+            }
+
+            .codigo-form {
+                padding: 1.5rem;
+            }
+
+            .codigo-buttons {
+                flex-direction: column;
+            }
+
+            .codigo-header h3 {
+                font-size: 1.5rem;
+                padding-left: 2rem;
+            }
         }
 
         /* Efectos adicionales */
@@ -344,6 +558,50 @@
                 transform: translateY(-10px);
             }
         }
+
+        /* Loading spinner */
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Notificación */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            z-index: 10000;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        }
     </style>
 </head>
 <body>
@@ -352,8 +610,7 @@
         <div class="header-container">
             <div class="logo floating">
                 <div class="logo-text">
-                    <i class="fas fa-building" style="display: block; font-size: 2rem; margin-bottom: 0.5rem; color: #667eea;"></i>
-                    EMPRESAS<br>INTEGRA
+                    <img class="logo" src="{%static 'assets/logo.jpeg' %}" alt="Descripción del logo">
                 </div>
             </div>
         </div>
@@ -383,10 +640,64 @@
                 <i class="fas fa-exclamation-triangle btn-icon"></i>
                 Realizar Denuncia
             </a>
-            <a class="btn-modern btn-success" href="">
+            <button class="btn-modern btn-success" onclick="toggleCodigoSection()">
                 <i class="fas fa-search btn-icon"></i>
                 Ver Estado de Denuncia
-            </a>
+            </button>
+        </div>
+
+        <!-- Sección de consulta de código -->
+        <div class="codigo-section" id="codigoSection">
+            <div class="codigo-header">
+                <h3>Consultar Estado</h3>
+                <p>Ingrese el código de su denuncia para ver el estado actual</p>
+            </div>
+            <div class="codigo-form">
+                <form id="consultaForm" onsubmit="consultarCodigo(event)">
+                    <div class="form-group">
+                        <label for="codigoInput">Código de Denuncia</label>
+                        <input 
+                            type="text" 
+                            id="codigoInput" 
+                            class="codigo-input"
+                            placeholder="DN-12345678 o 1234X"
+                            maxlength="11"
+                            pattern="DN-[A-Z0-9]{8}"
+                            title="Formato: DN-XXXXXXXX o XXXXX"
+                            required 
+                        >
+                    </div>
+                    
+                    <div class="codigo-buttons">
+                        <button type="submit" class="btn-consultar" id="btnConsultar">
+                            <span id="consultarText">
+                                <i class="fas fa-search"></i>
+                                Consultar
+                            </span>
+                            <div class="loading-spinner" id="loadingSpinner"></div>
+                        </button>
+                        <button type="button" class="btn-cancelar" onclick="toggleCodigoSection()">
+                            <i class="fas fa-times"></i>
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+
+                <div class="codigo-info">
+                    <p>
+                        <i class="fas fa-info-circle"></i>
+                        El código de denuncia tiene el formato <strong>DN-XXXXXXXX</strong> si fue denuncia anónima.
+                    </p>
+                </div>
+
+
+                <div class="codigo-info">
+                    <p>
+                        <i class="fas fa-info-circle"></i>
+                        El código de denuncia tiene el formato <strong>XXXXX</strong> si fue denuncia identificada.
+                    </p>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -400,6 +711,133 @@
         </div>
     </footer>
 
+    <!-- Notificación -->
+    <div id="notification" class="notification"></div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <script>
+        // Función para mostrar/ocultar la sección de código
+        function toggleCodigoSection() {
+            const section = document.getElementById('codigoSection');
+            const input = document.getElementById('codigoInput');
+            
+            if (section.classList.contains('show')) {
+                section.classList.remove('show');
+                input.value = '';
+            } else {
+                section.classList.add('show');
+                setTimeout(() => {
+                    input.focus();
+                }, 500);
+            }
+        }
+
+        // Formatear automáticamente el código mientras se escribe
+        document.getElementById('codigoInput').addEventListener('input', function(e) {
+            let value = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '');
+            
+            // Agregar DN- automáticamente si no está presente
+            if (value && !value.startsWith('DN-')) {
+                if (value.startsWith('DN')) {
+                    value = 'DN-' + value.substring(2);
+                } else {
+                    value = 'DN-' + value;
+                }
+            }
+            
+            // Limitar longitud
+            if (value.length > 11) {
+                value = value.substring(0, 11);
+            }
+            
+            e.target.value = value;
+        });
+
+        // Función para consultar código
+        function consultarCodigo(event) {
+            event.preventDefault();
+            
+            const codigo = document.getElementById('codigoInput').value.trim();
+            const btnConsultar = document.getElementById('btnConsultar');
+            const consultarText = document.getElementById('consultarText');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            
+            // Validar formato
+            const codigoRegex = /^DN-[A-Z0-9]{8}$/;
+            if (!codigoRegex.test(codigo)) {
+                mostrarNotificacion('Por favor, ingrese un código válido (formato: DN-XXXXXXXX)', 'error');
+                return;
+            }
+
+            // Mostrar loading
+            btnConsultar.disabled = true;
+            consultarText.style.display = 'none';
+            loadingSpinner.style.display = 'block';
+
+            // Simular consulta (aquí irías a tu API real)
+            setTimeout(() => {
+                // Aquí harías la llamada real a tu API
+                // fetch('/api/consultar-denuncia/' + codigo)
+                
+                // Simulación de respuesta
+                const simulatedResponse = Math.random() > 0.3; // 70% de éxito
+                
+                if (simulatedResponse) {
+                    // Éxito - redirigir a página de estado
+                    mostrarNotificacion('Código encontrado. Redirigiendo...', 'success');
+                    setTimeout(() => {
+                        // Aquí redirigirías a la página de estado real
+                        window.location.href = `/estado-denuncia/${codigo}/`;
+                    }, 1500);
+                } else {
+                    // Error - código no encontrado
+                    mostrarNotificacion('Código no encontrado. Verifique e intente nuevamente.', 'error');
+                    resetButton();
+                }
+            }, 2000);
+        }
+
+        function resetButton() {
+            const btnConsultar = document.getElementById('btnConsultar');
+            const consultarText = document.getElementById('consultarText');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            
+            btnConsultar.disabled = false;
+            consultarText.style.display = 'flex';
+            loadingSpinner.style.display = 'none';
+        }
+
+        function mostrarNotificacion(mensaje, tipo) {
+            const notification = document.getElementById('notification');
+            notification.textContent = mensaje;
+            notification.className = `notification ${tipo}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 4000);
+        }
+
+        // Cerrar sección al presionar Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const section = document.getElementById('codigoSection');
+                if (section.classList.contains('show')) {
+                    toggleCodigoSection();
+                }
+            }
+        });
+
+        // Animación de entrada de los elementos
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                const elements = document.querySelectorAll('.intro-section, .buttons-container');
+                elements.forEach((el, index) => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                });
+            }, 300);
+        });
+    </script>
 </body>
 </html>

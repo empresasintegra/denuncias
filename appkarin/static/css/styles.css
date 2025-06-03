@@ -10881,6 +10881,10 @@ input {
   overflow: visible;
 }
 
+.min-height{
+  min-height: 800px;
+}
+
 .height-full{
   height: 100%;
 }
@@ -10901,4 +10905,3 @@ a:hover {
   flex-direction: row-reverse;
   gap: 10px;
 }
-

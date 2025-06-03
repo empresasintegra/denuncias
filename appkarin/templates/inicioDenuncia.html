@@ -11,28 +11,41 @@
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
-        
         <link rel="stylesheet" href="{% static 'css/denuncia-styles.css' %}" />
+        
+        <!-- Estilos adicionales para collapse -->
     </head>
     <body id="page-top">
 
         <!-- Header -->
         {% include './headers/denuncia_header.html' %}
 
+
         <!-- Formulario -->
         <div class="form-container">
             <form id="denunciaForm" action="{% url 'process_items' %}" method="post">
                 {% csrf_token %}
                 {% for categoria in categorias %}
-                    <div class="categoria-card">
-                        <h3>{{ categoria.nombre }}</h3>
-                        <div class="display-flex-column">
-                            {% for item in categoria.item_set.all %}
-                                <label class="form-check-label">
-                                    <input class="form-check-input" type="radio" name="denuncia_item" value="{{ item.id }}">
-                                    {{ item.enunciado }}
-                                </label>
-                            {% endfor %}
+                    <div class="categoria-card collapsed" data-categoria-id="{{ categoria.id }}">
+                        <div class="categoria-header" onclick="DenunciaApp.itemsPage.toggleCategoria('{{ categoria.id }}')">
+                            <div style="display: flex; align-items: center;">
+                                <h3>{{ categoria.nombre }}</h3>
+                                <span class="categoria-counter">{{ categoria.item_set.all|length }} opciones</span>
+                            </div>
+                            <button type="button" class="categoria-toggle" aria-label="Expandir categoría">
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="categoria-content">
+                            <div class="display-flex-column">
+                                {% for item in categoria.item_set.all %}
+                                    <label class="form-check-label">
+                                        <input class="form-check-input" type="radio" name="denuncia_item" value="{{ item.id }}" data-categoria="{{ categoria.id }}">
+                                        {{ item.enunciado }}
+                                    </label>
+                                {% endfor %}
+                            </div>
                         </div>
                     </div>
                 {% endfor %}

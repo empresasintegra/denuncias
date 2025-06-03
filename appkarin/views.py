@@ -61,3 +61,17 @@ def renderCodeDenuncia(request):
     request.session.flush()  # Elimina TODO y regenera session key
     
     return response
+
+
+
+def renderConsultaDenuncia(request):
+
+
+    context = {
+        'code': request.session['codigo'],
+    }
+    
+    response = render(request, 'codeIndex.html', context)
+    request.session.flush()  # Elimina TODO y regenera session key
+    
+    return response
