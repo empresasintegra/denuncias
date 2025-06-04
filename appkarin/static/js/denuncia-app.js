@@ -1,7 +1,7 @@
 /**
  * APLICACIÓN DE DENUNCIAS - JAVASCRIPT CON COLLAPSE
  * Autor: Sistema de Denuncias Integra
- * Versión: 1.3 - Agregado sistema de collapse para categorías
+ * Versión: 1.4 - Corregido sistema de errores por paso
  */
 
 // Namespace principal
@@ -139,42 +139,77 @@ const DenunciaApp = {
             return cookieValue;
         },
 
-        // Mostrar errores - Función universal
+        // ⭐ FUNCIÓN SIMPLE: Insertar error DENTRO de .tab-content como primer hijo + scroll arriba
         showError: function(message, container = null) {
-            // Remover alertas previas
-            $('.alert-danger').remove();
+            console.log('🚨 Mostrando error:', message);
             
-            const alert = `<div class="alert alert-danger d-flex justify-content-between align-items-center" role="alert">
-                            <span><i class="fas fa-exclamation-circle me-2"></i>${message}</span>
-                            <button type="button" class="btn btn-sm btn-outline-red" onclick="DenunciaApp.common.removeAlert(this)">
-                                <i class="fas fa-times"></i>
-                            </button>
+            // Remover alertas previas
+            $('.alert-danger, .emergency-alert').remove();
+            
+            const alert = `<div class="alert alert-danger alert-dismissible mb-3" role="alert" style="margin: 15px 0; z-index: 1000; background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; border-radius: 0.375rem; padding: 0.75rem 1rem;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-exclamation-circle me-2"></i>${message}</span>
+                                <button type="button" class="btn btn-sm ms-2" onclick="DenunciaApp.common.removeAlert(this)" style="border: none; background: none; color: inherit; font-size: 1.2em; padding: 0;">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
                         </div>`;
             
-            // Buscar contenedor específico o usar uno por defecto
-            let targetContainer;
-            if (container) {
-                targetContainer = $(container);
+            // ⭐ ESTRATEGIA SIMPLE: Buscar .tab-content e insertar DENTRO como primer hijo
+            const tabContent = document.querySelector('.tab-content');
+            if (tabContent) {
+                console.log('✅ Encontrado .tab-content, insertando como primer hijo...');
+                $(tabContent).prepend(alert);
+                console.log('✅ Error insertado dentro de .tab-content');
+                
+                // ⭐ SCROLL SIMPLE: Ir hasta arriba
+                setTimeout(() => {
+                    $('html, body').animate({scrollTop: 0}, 600);
+                    console.log('✅ Scroll hacia arriba completado');
+                }, 100);
+                
             } else {
-                // Buscar contenedores en orden de prioridad
-                targetContainer = $('.form-container').first();
-                if (targetContainer.length === 0) {
-                    targetContainer = $('.container.px-5').first();
+                // Fallback simple
+                console.log('❌ No se encontró .tab-content, usando fallback');
+                if (container) {
+                    $(container).prepend(alert);
+                } else {
+                    $('body').prepend(`<div class="emergency-alert" style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; background: #dc3545; color: white; padding: 12px 20px; border-radius: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-weight: 500;"><i class="fas fa-exclamation-triangle me-2"></i>${message}</div>`);
                 }
-                if (targetContainer.length === 0) {
-                    targetContainer = $('body');
-                }
+                // Scroll hacia arriba también en fallbacks
+                $('html, body').animate({scrollTop: 0}, 600);
             }
             
-            targetContainer.prepend(alert);
-            $('html, body').animate({scrollTop: 0}, 300);
-            
-            // Auto-remover después de 5 segundos
+            // Auto-remover después de 8 segundos
             setTimeout(() => {
-                $('.alert-danger').fadeOut(300, function() {
+                $('.alert-danger, .emergency-alert').fadeOut(300, function() {
                     $(this).remove();
                 });
-            }, 5000);
+            }, 8000);
+            
+            console.log('✅ showError completado');
+        },
+        
+        // Nueva función auxiliar para manejar el scroll
+        handleErrorScroll: function(targetContainer, strategy) {
+            if (document.getElementById('smartwizard')) {
+                // En el wizard, hacer scroll al paso activo
+                const currentStepElement = document.getElementById(`step-${DenunciaApp.vars.currentStep + 1}`);
+                if (currentStepElement) {
+                    setTimeout(() => {
+                        currentStepElement.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'start',
+                            inline: 'nearest'
+                        });
+                    }, 100);
+                }
+            } else {
+                // En otras páginas, scroll al contenedor
+                if (targetContainer && targetContainer.offset) {
+                    $('html, body').animate({scrollTop: targetContainer.offset().top - 20}, 300);
+                }
+            }
         },
 
         // Remover alerta
@@ -549,10 +584,9 @@ const DenunciaApp = {
     },
 
     // ===========================================
-    // MÓDULO: PÁGINA DEL WIZARD (sin cambios)
+    // MÓDULO: PÁGINA DEL WIZARD ⭐ MEJORADO
     // ===========================================
     wizardPage: {
-        // ... resto del código del wizard permanece igual
         init: function() {
             console.log('🧙‍♂️ Inicializando wizard');
             
@@ -600,7 +634,6 @@ const DenunciaApp = {
             }
         },
 
-
         setupSmartWizard: function() {
             const wizardElement = $('#smartwizard');
             if (wizardElement.length === 0) {
@@ -640,6 +673,11 @@ const DenunciaApp = {
                 DenunciaApp.vars.currentStep = stepIndex;
                 console.log(`📍 Mostrando paso: ${stepIndex + 1}`);
                 this.updateNavigation();
+                
+                // ⭐ NUEVO: Limpiar errores previos al cambiar de paso
+                $('.alert-danger').fadeOut(300, function() {
+                    $(this).remove();
+                });
                 
                 if (stepIndex === 3) {
                     setTimeout(() => {
@@ -691,67 +729,68 @@ const DenunciaApp = {
             }
         },
 
-        // Validación por paso
-       validateStep: function(stepIndex) {
-        let isValid = true;
-        let errorMessage = '';
+        // ⭐ FUNCIÓN MEJORADA: Validación por paso con mejor manejo de errores
+        validateStep: function(stepIndex) {
+            let isValid = true;
+            let errorMessage = '';
 
-        console.log(`🔍 Validando paso ${stepIndex + 1}`);
+            console.log(`🔍 Validando paso ${stepIndex + 1}`);
 
-        switch(stepIndex) {
-            case 0:
-                // Validar selección de relación
-                const relacionSeleccionada = $('input[name="denuncia_relacion"]:checked');
-                if (!relacionSeleccionada.length) {
-                    errorMessage = 'Por favor seleccione su relación con la empresa';
-                    isValid = false;
-                } else {
-                    // Si seleccionó "Otro", validar el campo de descripción
-                    const rol = relacionSeleccionada.data('rol');
-                    if (rol && rol.toLowerCase() === 'otro') {
-                        const descripcionOtro = $('#descripcion_relacion').val().trim();
-                        if (!descripcionOtro) {
-                            errorMessage = 'Por favor especifique su relación con la empresa';
-                            isValid = false;
-                        } else if (descripcionOtro.length < 3) {
-                            errorMessage = 'La descripción debe tener al menos 3 caracteres';
-                            isValid = false;
+            switch(stepIndex) {
+                case 0:
+                    // Validar selección de relación
+                    const relacionSeleccionada = $('input[name="denuncia_relacion"]:checked');
+                    if (!relacionSeleccionada.length) {
+                        errorMessage = 'Por favor seleccione su relación con la empresa';
+                        isValid = false;
+                    } else {
+                        // Si seleccionó "Otro", validar el campo de descripción
+                        const rol = relacionSeleccionada.data('rol');
+                        if (rol && rol.toLowerCase() === 'otro') {
+                            const descripcionOtro = $('#descripcion_relacion').val().trim();
+                            if (!descripcionOtro) {
+                                errorMessage = 'Por favor especifique su relación con la empresa';
+                                isValid = false;
+                            } else if (descripcionOtro.length < 3) {
+                                errorMessage = 'La descripción debe tener al menos 3 caracteres';
+                                isValid = false;
+                            }
                         }
                     }
-                }
-                break;
-            
-            case 1:
-                if (!$('select[name="denuncia_tiempo"]').val()) {
-                    errorMessage = 'Por favor seleccione hace cuánto tiempo ocurren los hechos';
-                    isValid = false;
-                }
-                break;
-            
-            case 2:
-                const descripcion = $('textarea[name="descripcion"]').val().trim();
-                if (!descripcion) {
-                    errorMessage = 'Por favor ingrese una descripción de los hechos';
-                    isValid = false;
-                } else if (descripcion.length < 50) {
-                    errorMessage = 'La descripción debe tener al menos 50 caracteres';
-                    isValid = false;
-                }
-                break;
-            
-            case 3:
-                isValid = true;
-                break;
-        }
+                    break;
+                
+                case 1:
+                    if (!$('select[name="denuncia_tiempo"]').val()) {
+                        errorMessage = 'Por favor seleccione hace cuánto tiempo ocurren los hechos';
+                        isValid = false;
+                    }
+                    break;
+                
+                case 2:
+                    const descripcion = $('textarea[name="descripcion"]').val().trim();
+                    if (!descripcion) {
+                        errorMessage = 'Por favor ingrese una descripción de los hechos';
+                        isValid = false;
+                    } else if (descripcion.length < 50) {
+                        errorMessage = 'La descripción debe tener al menos 50 caracteres';
+                        isValid = false;
+                    }
+                    break;
+                
+                case 3:
+                    isValid = true;
+                    break;
+            }
 
-        if (!isValid) {
-            console.log(`❌ Validación falló: ${errorMessage}`);
-            DenunciaApp.common.showError(errorMessage);
-        } else {
-            console.log('✅ Validación exitosa');
-        }
+            if (!isValid) {
+                console.log(`❌ Validación falló en paso ${stepIndex + 1}: ${errorMessage}`);
+                // ⭐ MEJORADO: Usar la función de error mejorada que detecta el paso activo
+                DenunciaApp.common.showError(errorMessage);
+            } else {
+                console.log(`✅ Validación exitosa en paso ${stepIndex + 1}`);
+            }
 
-        return isValid;
+            return isValid;
         },
 
         // Archivo upload y demás funciones del wizard

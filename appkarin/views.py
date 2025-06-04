@@ -66,12 +66,53 @@ def renderCodeDenuncia(request):
 
 def renderConsultaDenuncia(request):
 
+    REGEX_DN = re.compile(r'^DN-')
+    denuncias_data=[]
+
+
+    if not request.session.get('admin'):
+        if request.method == 'POST':
+            codigo=request.POST.get('codigo')
+
+            if bool(REGEX_DN.match(codigo)):
+                denuncia = Denuncia.objects.select_related(
+                    'usuario',
+                    'item',
+                    'item__categoria',
+                    'relacion_empresa',
+                    'tiempo'
+                ).filter(codigo=codigo).first()
+                denuncias_data.append(denuncia)
+            else:
+                denuncias = Denuncia.objects.select_related(
+                    'usuario',
+                    'item',
+                    'item__categoria',
+                    'relacion_empresa',
+                    'tiempo'
+                ).filter(usuario_id=codigo).first()
+
+                for denuncia in denuncias:
+                    denuncias_data.append(denuncia)
+
+    else:
+        denuncias = Denuncia.objects.select_related(
+                'usuario',
+                'item',
+                'item__categoria',
+                'relacion_empresa',
+                'tiempo'
+        ).all()
+
+        for denuncia in denuncias:
+            denuncias_data.append(denuncia)
+
 
     context = {
-        'code': request.session['codigo'],
+        'denuncias_data': denuncias_data,
+        'total_denuncias': len(denuncias_data),
+        'admin': False,
     }
     
-    response = render(request, 'codeIndex.html', context)
-    request.session.flush()  # Elimina TODO y regenera session key
     
-    return response
+    return render(request, 'consultaDenuncia.html',context)

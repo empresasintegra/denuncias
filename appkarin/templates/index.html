@@ -70,12 +70,12 @@
             }
         }
 
-        /* Header mejorado */
+        /* Header con Navbar */
         .header {
             background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c);
             background-size: 400% 400%;
             animation: gradient 15s ease infinite;
-            padding: 2rem 0;
+            padding: 0;
             position: relative;
             overflow: hidden;
         }
@@ -91,38 +91,237 @@
             backdrop-filter: blur(10px);
         }
 
-        .header-container {
+        /* Navbar */
+        .navbar {
+            position: relative;
+            z-index: 10;
+            padding: 1.5rem 0;
+        }
+
+        .navbar-container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 2rem;
-            position: relative;
-            z-index: 2;
-            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+            color: white;
         }
 
         .logo {
-            width: 180px;
-            height: 120px;
+            width: 60px;
+            height: 60px;
             background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            display: inline-flex;
+            border-radius: 12px;
+            display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
             backdrop-filter: blur(10px);
-            animation: fadeInUp 1s ease-out;
             transition: transform 0.3s ease;
         }
 
         .logo:hover {
-            transform: translateY(-5px);
+            transform: translateY(-2px) scale(1.05);
         }
 
-        .logo-text {
-            color: #4a5568;
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 12px;
+        }
+
+        .brand-text {
+            color: white;
             font-weight: 700;
-            font-size: 1.2rem;
-            text-align: center;
+            font-size: 1.3rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .brand-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.85rem;
+            font-weight: 400;
+            margin-top: -2px;
+        }
+
+        /* Botones del navbar */
+        .navbar-buttons {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn-login {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-login::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-login:hover::before {
+            left: 100%;
+        }
+
+        .btn-login:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            color: white;
+            text-decoration: none;
+        }
+
+        .btn-emergency {
+            background: linear-gradient(135deg, #ff4757, #ff3742);
+            border: none;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
+        }
+
+        .btn-emergency:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 71, 87, 0.6);
+            color: white;
+            text-decoration: none;
+        }
+
+        /* Menu hamburguesa para móviles */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+        }
+
+        .mobile-menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .mobile-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .mobile-menu.show {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .mobile-menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .mobile-menu .btn-login {
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            border-color: #667eea;
+            width: 100%;
+            max-width: 250px;
+            justify-content: center;
+        }
+
+        .mobile-menu .btn-emergency {
+            width: 100%;
+            max-width: 250px;
+            justify-content: center;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar-container {
+                padding: 0 1rem;
+            }
+
+            .brand-text {
+                font-size: 1.1rem;
+            }
+
+            .brand-subtitle {
+                font-size: 0.8rem;
+            }
+
+            .navbar-buttons {
+                display: none;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .logo {
+                width: 50px;
+                height: 50px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .navbar-container {
+                gap: 0.5rem;
+            }
+
+            .brand-text {
+                font-size: 1rem;
+            }
+
+            .brand-subtitle {
+                display: none;
+            }
         }
 
         /* Sección principal mejorada */
@@ -605,15 +804,53 @@
     </style>
 </head>
 <body>
-    <!-- Header -->
+    <!-- Header con Navbar -->
     <header class="header">
-        <div class="header-container">
-            <div class="logo floating">
-                <div class="logo-text">
-                    <img class="logo" src="{%static 'assets/logo.jpeg' %}" alt="Descripción del logo">
+        <nav class="navbar">
+            <div class="navbar-container">
+                <!-- Brand/Logo -->
+                <a href="/" class="navbar-brand">
+                    <div class="logo">
+                        <img src="{% static 'assets/logo.jpeg' %}" alt="Logo Empresas Integra">
+                    </div>
+                    <div>
+                        <div class="brand-text">Empresas Integra</div>
+                        <div class="brand-subtitle">Portal de Denuncias</div>
+                    </div>
+                </a>
+
+                <!-- Botones Desktop -->
+                <div class="navbar-buttons">
+                    <a href="/admin/login/" class="btn-login">
+                        <i class="fas fa-user-shield"></i>
+                        Ingreso Admin
+                    </a>
+                    <a href="/denuncia/Paso1" class="btn-emergency">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Denunciar Ahora
+                    </a>
+                </div>
+
+                <!-- Botón menú móvil -->
+                <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+
+            <!-- Menú móvil -->
+            <div class="mobile-menu" id="mobileMenu">
+                <div class="mobile-menu-buttons">
+                    <a href="/admin/login/" class="btn-login">
+                        <i class="fas fa-user-shield"></i>
+                        Ingreso Admin
+                    </a>
+                    <a href="/denuncia/Paso1" class="btn-emergency">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Denunciar Ahora
+                    </a>
                 </div>
             </div>
-        </div>
+        </nav>
     </header>
 
     <!-- Sección principal -->
@@ -654,6 +891,7 @@
             </div>
             <div class="codigo-form">
                 <form id="consultaForm" onsubmit="consultarCodigo(event)">
+                    {% csrf_token %}
                     <div class="form-group">
                         <label for="codigoInput">Código de Denuncia</label>
                         <input 
@@ -662,7 +900,6 @@
                             class="codigo-input"
                             placeholder="DN-12345678 o 1234X"
                             maxlength="11"
-                            pattern="DN-[A-Z0-9]{8}"
                             title="Formato: DN-XXXXXXXX o XXXXX"
                             required 
                         >
@@ -690,7 +927,6 @@
                     </p>
                 </div>
 
-
                 <div class="codigo-info">
                     <p>
                         <i class="fas fa-info-circle"></i>
@@ -716,6 +952,34 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
     <script>
+        // Función para mostrar/ocultar menú móvil
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            const toggleBtn = document.querySelector('.mobile-menu-toggle i');
+            
+            if (mobileMenu.classList.contains('show')) {
+                mobileMenu.classList.remove('show');
+                toggleBtn.classList.remove('fa-times');
+                toggleBtn.classList.add('fa-bars');
+            } else {
+                mobileMenu.classList.add('show');
+                toggleBtn.classList.remove('fa-bars');
+                toggleBtn.classList.add('fa-times');
+            }
+        }
+
+        // Cerrar menú móvil al hacer clic fuera
+        document.addEventListener('click', function(e) {
+            const mobileMenu = document.getElementById('mobileMenu');
+            const toggleBtn = document.querySelector('.mobile-menu-toggle');
+            
+            if (!toggleBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
+                mobileMenu.classList.remove('show');
+                document.querySelector('.mobile-menu-toggle i').classList.remove('fa-times');
+                document.querySelector('.mobile-menu-toggle i').classList.add('fa-bars');
+            }
+        });
+
         // Función para mostrar/ocultar la sección de código
         function toggleCodigoSection() {
             const section = document.getElementById('codigoSection');
@@ -736,16 +1000,7 @@
         document.getElementById('codigoInput').addEventListener('input', function(e) {
             let value = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '');
             
-            // Agregar DN- automáticamente si no está presente
-            if (value && !value.startsWith('DN-')) {
-                if (value.startsWith('DN')) {
-                    value = 'DN-' + value.substring(2);
-                } else {
-                    value = 'DN-' + value;
-                }
-            }
-            
-            // Limitar longitud
+            // Limitar longitud máxima
             if (value.length > 11) {
                 value = value.substring(0, 11);
             }
@@ -762,10 +1017,9 @@
             const consultarText = document.getElementById('consultarText');
             const loadingSpinner = document.getElementById('loadingSpinner');
             
-            // Validar formato
-            const codigoRegex = /^DN-[A-Z0-9]{8}$/;
-            if (!codigoRegex.test(codigo)) {
-                mostrarNotificacion('Por favor, ingrese un código válido (formato: DN-XXXXXXXX)', 'error');
+            // Validar que no esté vacío
+            if (!codigo) {
+                mostrarNotificacion('Por favor, ingrese un código', 'error');
                 return;
             }
 
@@ -774,37 +1028,32 @@
             consultarText.style.display = 'none';
             loadingSpinner.style.display = 'block';
 
-            // Simular consulta (aquí irías a tu API real)
-            setTimeout(() => {
-                // Aquí harías la llamada real a tu API
-                // fetch('/api/consultar-denuncia/' + codigo)
-                
-                // Simulación de respuesta
-                const simulatedResponse = Math.random() > 0.3; // 70% de éxito
-                
-                if (simulatedResponse) {
-                    // Éxito - redirigir a página de estado
-                    mostrarNotificacion('Código encontrado. Redirigiendo...', 'success');
-                    setTimeout(() => {
-                        // Aquí redirigirías a la página de estado real
-                        window.location.href = `/estado-denuncia/${codigo}/`;
-                    }, 1500);
-                } else {
-                    // Error - código no encontrado
-                    mostrarNotificacion('Código no encontrado. Verifique e intente nuevamente.', 'error');
-                    resetButton();
-                }
-            }, 2000);
-        }
+            // Crear formulario para envío POST
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/consulta_denuncias/';
+            form.style.display = 'none';
 
-        function resetButton() {
-            const btnConsultar = document.getElementById('btnConsultar');
-            const consultarText = document.getElementById('consultarText');
-            const loadingSpinner = document.getElementById('loadingSpinner');
-            
-            btnConsultar.disabled = false;
-            consultarText.style.display = 'flex';
-            loadingSpinner.style.display = 'none';
+            // Agregar CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (csrfToken) {
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = csrfToken.value;
+                form.appendChild(csrfInput);
+            }
+
+            // Agregar código
+            const codigoInput = document.createElement('input');
+            codigoInput.type = 'hidden';
+            codigoInput.name = 'codigo';
+            codigoInput.value = codigo;
+            form.appendChild(codigoInput);
+
+            // Enviar formulario
+            document.body.appendChild(form);
+            form.submit();
         }
 
         function mostrarNotificacion(mensaje, tipo) {
@@ -824,6 +1073,12 @@
                 const section = document.getElementById('codigoSection');
                 if (section.classList.contains('show')) {
                     toggleCodigoSection();
+                }
+                
+                // También cerrar menú móvil
+                const mobileMenu = document.getElementById('mobileMenu');
+                if (mobileMenu.classList.contains('show')) {
+                    toggleMobileMenu();
                 }
             }
         });

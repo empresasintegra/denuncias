@@ -8,7 +8,7 @@ ENV PYTHONUNBUFFERED=1
 # Establecer directorio de trabajo
 WORKDIR /app
 
-# Instalar dependencias del sistema necesarias para PostgreSQL
+# Instalar dependencias del sistema necesarias para PostgreSQL y LibreOffice
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         postgresql-client \
@@ -16,6 +16,7 @@ RUN apt-get update \
         libpq-dev \
         git \
         curl \
+        libreoffice     \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiar archivos de requirements primero (para aprovechar el cache de Docker)

@@ -7,6 +7,23 @@ from django.core.validators import RegexValidator
 
 
 
+
+def validate_admin_password(password):
+    """Validador de contraseña estricto para admins"""
+    if len(password) < 8:
+        raise ValidationError('La contraseña debe tener al menos 8 caracteres')
+    
+    if not re.search(r'[A-Z]', password):
+        raise ValidationError('La contraseña debe tener al menos una letra mayúscula')
+    
+    if not re.search(r'[0-9]', password):
+        raise ValidationError('La contraseña debe tener al menos un número')
+    
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
+        raise ValidationError('La contraseña debe tener al menos un símbolo (!@#$%^&*(),.?":{}|<>)')
+
+
+
 def generate_user_id():
     """Genera un ID único de 5 caracteres alfanuméricos"""
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
@@ -272,8 +289,39 @@ class Archivo(models.Model):
     url=models.URLField(max_length=500)
 
     class Meta:
-        verbose_name = "archivo"
-        verbose_name_plural = "archivos"
+        verbose_name = "Archivo"
+        verbose_name_plural = "Archivos"
+
+
+class Admin(models.Model):
+   
+    rut = models.CharField(max_length=12, unique=True, blank=True, null=True, validators=[validate_rut])
+    nombre = models.CharField(max_length=250)
+    apellidos = models.CharField(max_length=250)
+    correo = models.EmailField(max_length=250, unique=True)
+    contraseña = models.CharField(max_length=250, validators=[validate_admin_password])
+
+
+    class Meta:
+        verbose_name = "Administrador"
+        verbose_name_plural = "Administradores"
+
+
+class Foro(models.Model):
+    denuncia=models.ForeignKey(Denuncia, on_delete=models.CASCADE)
+    admin = models.ForeignKey(
+        Admin,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="Administrador que escribió el mensaje (null si fue el usuario)"
+    )
+    mensaje=models.TextField(max_length=2000)
+
+    class Meta:
+        verbose_name = "Foro"
+        verbose_name_plural = "Foros"
+
 
 class DenunciaEstado(models.Model):
     

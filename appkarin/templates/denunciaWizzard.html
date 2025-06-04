@@ -57,7 +57,6 @@
 
             <!-- Contenido de los pasos -->
             <div class="tab-content">
-
                 <!-- PASO 1: Relación con Empresa -->
                 <div id="step-1" class="tab-pane step-content" role="tabpanel">
                     <section>
@@ -243,74 +242,6 @@
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/smartwizard@6/dist/js/jquery.smartWizard.min.js"></script>
         <script src="{% static 'js/denuncia-app.js' %}"></script>
-
-        <script>
-            function diagnosticarAlturas() {
-                console.log('🔍 DIAGNÓSTICO DE ALTURAS');
-                console.log('=======================');
-                
-                // Step-1
-                const step1 = document.getElementById('step-1');
-                if (step1) {
-                    console.log('📋 STEP-1:');
-                    console.log('- offsetHeight:', step1.offsetHeight);
-                    console.log('- clientHeight:', step1.clientHeight);
-                    console.log('- scrollHeight:', step1.scrollHeight);
-                    console.log('- style.height:', step1.style.height);
-                    console.log('- computed height:', window.getComputedStyle(step1).height);
-                    console.log('- computed max-height:', window.getComputedStyle(step1).maxHeight);
-                    console.log('- computed overflow:', window.getComputedStyle(step1).overflow);
-                    console.log('- computed position:', window.getComputedStyle(step1).position);
-                    console.log('- classList:', Array.from(step1.classList));
-                }
-                
-                // Tab content
-                const tabContent = document.querySelector('.tab-content');
-                if (tabContent) {
-                    console.log('\n📋 TAB-CONTENT:');
-                    console.log('- offsetHeight:', tabContent.offsetHeight);
-                    console.log('- style.height:', tabContent.style.height);
-                    console.log('- computed height:', window.getComputedStyle(tabContent).height);
-                }
-                
-                // SmartWizard
-                const smartwizard = document.getElementById('smartwizard');
-                if (smartwizard) {
-                    console.log('\n📋 SMARTWIZARD:');
-                    console.log('- offsetHeight:', smartwizard.offsetHeight);
-                    console.log('- style.height:', smartwizard.style.height);
-                    console.log('- computed height:', window.getComputedStyle(smartwizard).height);
-                }
-                
-                // Campo Otro
-                const otroContainer = document.getElementById('otro-descripcion-container');
-                if (otroContainer) {
-                    console.log('\n📋 CAMPO OTRO:');
-                    console.log('- display:', window.getComputedStyle(otroContainer).display);
-                    console.log('- visibility:', window.getComputedStyle(otroContainer).visibility);
-                    console.log('- offsetHeight:', otroContainer.offsetHeight);
-                    console.log('- está visible?:', $(otroContainer).is(':visible'));
-                }
-                
-                // Buscar elementos con overflow hidden
-                console.log('\n⚠️ ELEMENTOS CON OVERFLOW HIDDEN:');
-                $('#step-1').parents().each(function() {
-                    const overflow = window.getComputedStyle(this).overflow;
-                    if (overflow === 'hidden') {
-                        console.log('- ', this.tagName, this.className, 'tiene overflow:', overflow);
-                    }
-                });
-                
-                // Revisar si hay transforms o position absolute
-                console.log('\n⚠️ ELEMENTOS CON POSITION ABSOLUTE:');
-                $('#step-1').parents().each(function() {
-                    const position = window.getComputedStyle(this).position;
-                    if (position === 'absolute' || position === 'fixed') {
-                        console.log('- ', this.tagName, this.className, 'tiene position:', position);
-                    }
-                });
-}
-        </script>
         
     </body>
 </html>

@@ -4,614 +4,211 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <meta name="description" content="Buscador de Usuarios - Empresas Integra" />
+        <meta name="description" content="Consulta de Denuncias - Empresas Integra" />
         <meta name="author" content="Empresas Integra" />
-        <title>Buscador de Usuarios - Integra</title>
+        <title>Consulta Denuncias Integra</title>
         <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
-        
-        <!-- Fuentes y estilos -->
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
         <link rel="stylesheet" href="{% static 'css/denuncia-styles.css' %}" />
         
         <style>
-            .buscador-container {
-                max-width: 1200px;
-                margin: 0 auto;
-                padding: 2rem;
-            }
-
-            .search-card {
-                background: white;
-                border-radius: 20px;
-                padding: 2.5rem;
-                margin-bottom: 2rem;
-                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                position: relative;
-                overflow: hidden;
-            }
-
-            .search-card::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                height: 5px;
-                background: linear-gradient(135deg, #667eea, #764ba2);
-                border-radius: 20px 20px 0 0;
-            }
-
-            .search-header {
-                text-align: center;
-                margin-bottom: 2rem;
-            }
-
-            .search-header h1 {
-                font-size: 2.2rem;
-                font-weight: 600;
-                color: #2d3748;
-                margin-bottom: 0.5rem;
-                position: relative;
-                padding-left: 3rem;
-            }
-
-            .search-header h1::before {
-                content: '🔍';
-                position: absolute;
-                left: 0;
-                top: 0;
-                font-size: 2rem;
-            }
-
             .search-box {
-                position: relative;
-                max-width: 600px;
-                margin: 0 auto 2rem;
+                margin: 2rem auto;
+                max-width: 500px;
+                padding: 0 1rem;
             }
-
+            
             .search-input {
                 width: 100%;
-                padding: 1rem 1.5rem 1rem 4rem;
-                border: 2px solid #e2e8f0;
-                border-radius: 50px;
-                font-size: 1.1rem;
-                background: #f8fafc;
-                transition: all 0.3s ease;
-                font-family: 'Inter', sans-serif;
-            }
-
-            .search-input:focus {
+                padding: 12px 20px;
+                border: 2px solid #e9ecef;
+                border-radius: 25px;
+                font-size: 16px;
                 outline: none;
+                transition: border-color 0.3s;
+            }
+            
+            .search-input:focus {
                 border-color: #667eea;
-                background: white;
                 box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
             }
-
-            .search-icon {
-                position: absolute;
-                left: 1.5rem;
-                top: 50%;
-                transform: translateY(-50%);
-                color: #718096;
-                font-size: 1.2rem;
-            }
-
-            .search-filters {
-                display: flex;
-                justify-content: center;
-                gap: 1rem;
-                margin-bottom: 2rem;
-                flex-wrap: wrap;
-            }
-
-            .filter-btn {
-                padding: 0.6rem 1.5rem;
-                border: 2px solid #e2e8f0;
-                border-radius: 25px;
-                background: #f8fafc;
-                color: #4a5568;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                font-weight: 500;
-                text-decoration: none;
-            }
-
-            .filter-btn:hover,
-            .filter-btn.active {
-                background: linear-gradient(135deg, #667eea, #764ba2);
-                color: white;
-                border-color: #667eea;
-                transform: translateY(-1px);
-                text-decoration: none;
-            }
-
-            .stats-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                gap: 1.5rem;
-                margin-bottom: 2rem;
-            }
-
-            .stat-card {
+            
+            .table-container {
+                margin: 2rem auto;
+                max-width: 95%;
                 background: white;
                 border-radius: 15px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                height: 50vh;
+                overflow: hidden;
+            }
+            
+            .table-header {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
                 padding: 1.5rem;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-                border: 1px solid #e2e8f0;
                 text-align: center;
-                transition: all 0.3s ease;
-                position: relative;
-                overflow: hidden;
             }
-
-            .stat-card::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                height: 3px;
-                background: linear-gradient(135deg, #667eea, #764ba2);
+            
+            .denuncias-table {
+                width: 100%;
+                border-collapse: collapse;
             }
-
-            .stat-card:hover {
-                transform: translateY(-3px);
-                box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+            
+            .denuncias-table th {
+                background: #f8f9fa;
+                padding: 12px 8px;
+                text-align: left;
+                font-weight: 600;
+                color: #495057;
+                border-bottom: 2px solid #dee2e6;
             }
-
-            .stat-number {
-                font-size: 2.5rem;
-                font-weight: 700;
+            
+            .denuncias-table td {
+                padding: 12px 8px;
+                border-bottom: 1px solid #e9ecef;
+                vertical-align: top;
+            }
+            
+            .denuncias-table tr:nth-child(even) {
+                background-color: #f8f9fa;
+            }
+            
+            .denuncias-table tr:hover {
+                background-color: #e3f2fd;
+            }
+            
+            .codigo-cell {
+                font-family: 'Courier New', monospace;
+                font-weight: bold;
                 color: #667eea;
-                margin-bottom: 0.5rem;
+                min-width: 120px;
             }
-
-            .stat-label {
-                color: #718096;
-                font-size: 0.9rem;
-                font-weight: 500;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-            }
-
-            .results-container {
-                background: white;
-                border-radius: 20px;
-                overflow: hidden;
-                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                margin-top: 2rem;
-                display: none;
-            }
-
-            .results-header {
-                padding: 1.5rem 2rem;
-                background: linear-gradient(135deg, #f8fafc, #edf2f7);
-                border-bottom: 1px solid #e2e8f0;
-            }
-
-            .results-title {
-                font-size: 1.3rem;
-                font-weight: 600;
-                color: #2d3748;
-                margin: 0;
-            }
-
-            .user-item {
-                padding: 1.5rem 2rem;
-                border-bottom: 1px solid #e2e8f0;
-                transition: all 0.3s ease;
-                cursor: pointer;
-            }
-
-            .user-item:hover {
-                background: #f8fafc;
-                transform: translateX(5px);
-            }
-
-            .user-item:last-child {
-                border-bottom: none;
-            }
-
-            .user-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: flex-start;
-                margin-bottom: 0.5rem;
-            }
-
-            .user-name {
-                font-size: 1.1rem;
-                font-weight: 600;
-                color: #2d3748;
-                margin: 0;
-            }
-
-            .user-type {
-                padding: 0.3rem 0.8rem;
-                border-radius: 15px;
-                font-size: 0.75rem;
+            
+            .estado-badge {
+                padding: 4px 8px;
+                border-radius: 12px;
+                font-size: 0.8rem;
                 font-weight: 600;
                 text-transform: uppercase;
-                letter-spacing: 0.5px;
             }
-
-            .type-anonimo {
-                background: linear-gradient(135deg, #fbb6ce, #f687b3);
-                color: #742a2a;
+            
+            .estado-pendiente {
+                background-color: #fff3cd;
+                color: #856404;
             }
-
-            .type-identificado {
-                background: linear-gradient(135deg, #90cdf4, #63b3ed);
-                color: #2a4365;
+            
+            .estado-en_revision {
+                background-color: #d1ecf1;
+                color: #0c5460;
             }
-
-            .user-details {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 1rem;
-                color: #718096;
-                font-size: 0.9rem;
+            
+            .estado-resuelto {
+                background-color: #d4edda;
+                color: #155724;
             }
-
-            .user-detail {
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
+            
+            .descripcion-cell {
+                max-width: 200px;
+                word-wrap: break-word;
             }
-
-            .user-actions {
-                margin-top: 1rem;
-                display: flex;
-                gap: 0.5rem;
-            }
-
-            .btn-consultar {
-                background: linear-gradient(135deg, #667eea, #764ba2);
-                color: white;
-                border: none;
-                border-radius: 8px;
-                padding: 0.5rem 1rem;
-                font-size: 0.85rem;
-                font-weight: 500;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                text-decoration: none;
-                display: inline-flex;
-                align-items: center;
-                gap: 0.3rem;
-            }
-
-            .btn-consultar:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-                color: white;
-                text-decoration: none;
-            }
-
-            .loading {
-                text-align: center;
-                padding: 2rem;
-                color: #718096;
-            }
-
+            
             .no-results {
                 text-align: center;
-                padding: 3rem;
-                color: #718096;
-            }
-
-            .recent-users {
-                margin-top: 2rem;
-            }
-
-            .recent-header {
-                font-size: 1.3rem;
-                font-weight: 600;
-                color: #2d3748;
-                margin-bottom: 1rem;
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-            }
-
-            .recent-header::before {
-                content: '⏰';
-                font-size: 1.2rem;
-            }
-
-            @media (max-width: 768px) {
-                .buscador-container {
-                    padding: 1rem;
-                }
-
-                .search-card {
-                    padding: 1.5rem;
-                }
-
-                .search-header h1 {
-                    font-size: 1.8rem;
-                    padding-left: 2.5rem;
-                }
-
-                .search-filters {
-                    flex-direction: column;
-                    align-items: center;
-                }
-
-                .stats-grid {
-                    grid-template-columns: repeat(2, 1fr);
-                }
-
-                .user-details {
-                    grid-template-columns: 1fr;
-                }
-
-                .user-header {
-                    flex-direction: column;
-                    gap: 0.5rem;
-                    align-items: flex-start;
-                }
+                padding: 2rem;
+                color: #6c757d;
+                font-style: italic;
             }
         </style>
     </head>
     <body id="page-top">
-        <div class="progress-indicator">
-            <div class="progress-bar" style="width: 50%;"></div>
-        </div>
 
         <!-- Header -->
-        {% include './headers/denuncia_header.html' %}
+        {% include './headers/consulta_header.html' %}
 
-        <!-- Contenido principal -->
-        <div class="buscador-container">
-            <!-- Card de búsqueda -->
-            <div class="search-card">
-                <div class="search-header">
-                    <h1>Buscador de Usuarios</h1>
-                    <p>Encuentra usuarios y consulta sus denuncias</p>
-                </div>
+        <!-- Buscador -->
+        {% if total_denuncias != 1 %}
+        <div class="search-box">
+            <input type="text" 
+                   id="searchInput" 
+                   class="search-input" 
+                   placeholder="🔍 Buscar en denuncias (código, usuario, categoría, descripción...)">
+        </div>
+        {% endif %}
 
-                <!-- Buscador -->
-                <div class="search-box">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" class="search-input" id="searchInput" 
-                           placeholder="Buscar por ID, nombre, RUT o correo...">
-                </div>
+        <!-- Tabla de denuncias -->
+        {% if denuncias_data %}
+        <div class="table-container">
 
-                <!-- Filtros -->
-                <div class="search-filters">
-                    <button class="filter-btn active" data-tipo="all">Todos los usuarios</button>
-                    <button class="filter-btn" data-tipo="identificado">Usuarios Identificados</button>
-                    <button class="filter-btn" data-tipo="anonimo">Usuarios Anónimos</button>
-                </div>
-
-                <!-- Estadísticas -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-number">{{ stats.total_usuarios }}</div>
-                        <div class="stat-label">Total Usuarios</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">{{ stats.usuarios_identificados }}</div>
-                        <div class="stat-label">Identificados</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">{{ stats.usuarios_anonimos }}</div>
-                        <div class="stat-label">Anónimos</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">{{ stats.total_denuncias }}</div>
-                        <div class="stat-label">Total Denuncias</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Resultados de búsqueda -->
-            <div class="results-container" id="resultsContainer">
-                <div class="results-header">
-                    <h3 class="results-title">Resultados de búsqueda</h3>
-                </div>
-                <div id="resultsContent">
-                    <!-- Contenido dinámico -->
-                </div>
-            </div>
-
-            <!-- Usuarios recientes -->
-            <div class="search-card recent-users">
-                <h3 class="recent-header">Usuarios Recientes</h3>
-                <div id="recentUsers">
-                    {% for usuario in usuarios_recientes %}
-                    <div class="user-item" onclick="window.location.href='/consulta/denuncias/{{ usuario.id }}/'">
-                        <div class="user-header">
-                            <h4 class="user-name">{{ usuario.nombre_completo }}</h4>
-                            <span class="user-type type-{{ usuario.anonimo|yesno:'anonimo,identificado' }}">
-                                {{ usuario.anonimo|yesno:'Anónimo,Identificado' }}
+            
+            <table class="denuncias-table" id="denunciasTable">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Caso</th>
+                        <th>Relación Empresa</th>
+                        <th>Tiempo</th>
+                        <th>Estado</th>
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for denuncia in denuncias_data %}
+                    <tr>
+                        <td class="codigo-cell">{{ denuncia.codigo }}</td>
+                        <td>{{ denuncia.item.enunciado }}</td>
+                        <td>{{ denuncia.relacion_empresa.rol }}</td>
+                        <td>{{ denuncia.tiempo.intervalo }}</td>
+                        <td>
+                            <span class="estado-badge estado-{{ denuncia.estado_actual|lower }}">
+                                {{ denuncia.estado_actual }}
                             </span>
-                        </div>
-                        <div class="user-details">
-                            <div class="user-detail">
-                                <i class="fas fa-id-card"></i>
-                                <span>ID: {{ usuario.id }}</span>
-                            </div>
-                            {% if not usuario.anonimo and usuario.rut %}
-                            <div class="user-detail">
-                                <i class="fas fa-user"></i>
-                                <span>{{ usuario.rut }}</span>
-                            </div>
-                            {% endif %}
-                            <div class="user-detail">
-                                <i class="fas fa-calendar"></i>
-                                <span>{{ usuario.fecha_creacion|date:"d/m/Y" }}</span>
-                            </div>
-                            <div class="user-detail">
-                                <i class="fas fa-file-alt"></i>
-                                <span>{{ usuario.total_denuncias }} denuncias</span>
-                            </div>
-                        </div>
-                        <div class="user-actions">
-                            <a href="/consulta/denuncias/{{ usuario.id }}/" class="btn-consultar">
-                                <i class="fas fa-eye"></i>
-                                Ver Denuncias
-                            </a>
-                        </div>
-                    </div>
+                        </td>
+                        <td>{{ denuncia.fecha|date:"d/m/Y H:i" }}</td>
+                    </tr>
                     {% endfor %}
-                </div>
+                </tbody>
+            </table>
+            
+            <div class="no-results" id="noResults" style="display: none;">
+                No se encontraron resultados para tu búsqueda
             </div>
         </div>
+        {% endif %}
 
         <!-- Footer -->
         {% include './footer/footer.html' %}
 
-        <!-- Scripts -->
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script>
-            $(document).ready(function() {
-                let searchTimeout;
-                let currentFilter = 'all';
-
-                // Búsqueda en tiempo real
-                $('#searchInput').on('input', function() {
-                    clearTimeout(searchTimeout);
-                    const query = $(this).val().trim();
+            // Buscador simple
+            document.getElementById('searchInput').addEventListener('input', function() {
+                const searchText = this.value.toLowerCase();
+                const table = document.getElementById('denunciasTable');
+                const rows = table.getElementsByTagName('tr');
+                const noResults = document.getElementById('noResults');
+                let visibleRows = 0;
+                
+                // Empezar desde 1 para saltar el header
+                for (let i = 1; i < rows.length; i++) {
+                    const row = rows[i];
+                    const text = row.textContent.toLowerCase();
                     
-                    if (query.length >= 2) {
-                        searchTimeout = setTimeout(() => {
-                            realizarBusqueda(query, currentFilter);
-                        }, 500);
+                    if (text.includes(searchText)) {
+                        row.style.display = '';
+                        visibleRows++;
                     } else {
-                        $('#resultsContainer').hide();
+                        row.style.display = 'none';
                     }
-                });
-
-                // Filtros
-                $('.filter-btn').on('click', function() {
-                    $('.filter-btn').removeClass('active');
-                    $(this).addClass('active');
-                    currentFilter = $(this).data('tipo');
-                    
-                    const query = $('#searchInput').val().trim();
-                    if (query.length >= 2) {
-                        realizarBusqueda(query, currentFilter);
-                    }
-                });
-
-                function realizarBusqueda(query, tipo) {
-                    mostrarCargando();
-                    
-                    $.ajax({
-                        url: '/api/usuarios/buscar/',
-                        method: 'GET',
-                        data: {
-                            q: query,
-                            tipo: tipo,
-                            limit: 20
-                        },
-                        success: function(response) {
-                            if (response.success) {
-                                mostrarResultados(response.usuarios);
-                            } else {
-                                mostrarError(response.message);
-                            }
-                        },
-                        error: function() {
-                            mostrarError('Error en la búsqueda. Intente nuevamente.');
-                        }
-                    });
                 }
-
-                function mostrarCargando() {
-                    $('#resultsContent').html(`
-                        <div class="loading">
-                            <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #667eea;"></i>
-                            <p style="margin-top: 1rem;">Buscando usuarios...</p>
-                        </div>
-                    `);
-                    $('#resultsContainer').show();
+                
+                // Mostrar/ocultar mensaje "no results"
+                if (visibleRows === 0 && searchText !== '') {
+                    noResults.style.display = 'block';
+                } else {
+                    noResults.style.display = 'none';
                 }
-
-                function mostrarResultados(usuarios) {
-                    if (usuarios.length === 0) {
-                        $('#resultsContent').html(`
-                            <div class="no-results">
-                                <i class="fas fa-search" style="font-size: 3rem; color: #cbd5e0; margin-bottom: 1rem;"></i>
-                                <h3>No se encontraron usuarios</h3>
-                                <p>Intente con otros términos de búsqueda</p>
-                            </div>
-                        `);
-                        return;
-                    }
-
-                    let html = '';
-                    usuarios.forEach(usuario => {
-                        const tipoClass = usuario.tipo === 'Anónimo' ? 'type-anonimo' : 'type-identificado';
-                        
-                        html += `
-                            <div class="user-item" onclick="window.location.href='${usuario.url_consulta}'">
-                                <div class="user-header">
-                                    <h4 class="user-name">${usuario.nombre_completo}</h4>
-                                    <span class="user-type ${tipoClass}">${usuario.tipo}</span>
-                                </div>
-                                <div class="user-details">
-                                    <div class="user-detail">
-                                        <i class="fas fa-id-card"></i>
-                                        <span>ID: ${usuario.id}</span>
-                                    </div>
-                                    ${usuario.rut ? `
-                                        <div class="user-detail">
-                                            <i class="fas fa-user"></i>
-                                            <span>${usuario.rut}</span>
-                                        </div>
-                                    ` : ''}
-                                    ${usuario.correo ? `
-                                        <div class="user-detail">
-                                            <i class="fas fa-envelope"></i>
-                                            <span>${usuario.correo}</span>
-                                        </div>
-                                    ` : ''}
-                                    <div class="user-detail">
-                                        <i class="fas fa-calendar"></i>
-                                        <span>${usuario.fecha_creacion}</span>
-                                    </div>
-                                    <div class="user-detail">
-                                        <i class="fas fa-file-alt"></i>
-                                        <span>${usuario.total_denuncias} denuncias</span>
-                                    </div>
-                                </div>
-                                <div class="user-actions">
-                                    <a href="${usuario.url_consulta}" class="btn-consultar">
-                                        <i class="fas fa-eye"></i>
-                                        Ver Denuncias
-                                    </a>
-                                </div>
-                            </div>
-                        `;
-                    });
-
-                    $('#resultsContent').html(html);
-                }
-
-                function mostrarError(mensaje) {
-                    $('#resultsContent').html(`
-                        <div class="no-results">
-                            <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #e53e3e; margin-bottom: 1rem;"></i>
-                            <h3>Error en la búsqueda</h3>
-                            <p>${mensaje}</p>
-                        </div>
-                    `);
-                }
-
-                // Animación de entrada
-                setTimeout(() => {
-                    $('.search-card').css({
-                        'opacity': '1',
-                        'transform': 'translateY(0)'
-                    });
-                }, 100);
             });
         </script>
     </body>

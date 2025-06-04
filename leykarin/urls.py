@@ -23,9 +23,12 @@ from appkarin import views, service
 urlpatterns = [
     
     #APIS
-    path('api/post/denuncia/items/', service.serviceItems, name='process_items'),
-    path('api/post/denuncia/wizzard/', service.serviceProcessDenuncia, name='process_denuncia'),
-    path('api/post/denuncia/user/', service.serviceUserDenuncia, name='process_user'),
+    path('api/create/denuncia/items/', service.serviceItems, name='process_items'),
+    path('api/create/denuncia/wizzard/', service.serviceProcessDenuncia, name='process_denuncia'),
+    path('api/create/denuncia/user/', service.serviceUserDenuncia, name='process_user'),
+
+    #path('api/query/denunciaByCode', service.serviceUserDenuncia, name='query_denuncia'),
+    #path('api/query/denunciasByUser:', service.serviceUserDenuncia, name='query_denuncia_by_user'),
 
 
 
@@ -35,7 +38,9 @@ urlpatterns = [
     path('denuncia/Paso2/',views.renderWizzDenuncia,name='denuncia_wizzard'),
     path('denuncia/Paso3/',views.renderUserDenuncia,name='user_register'),
     path('denuncia/final/',views.renderCodeDenuncia,name='code_view'),
-    path('consulta/',views.renderItemsDenuncia,name='items'),
+    path('admin/login/',views.renderCodeDenuncia,name='login'),
+    path('admin/consulta_denuncias/',views.renderConsultaDenuncia,name='denuncias_admin'),
+    path('consulta_denuncias/',views.renderConsultaDenuncia,name='denuncias'),
 
 
     #ADMIN URL
