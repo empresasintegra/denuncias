@@ -1,215 +1,553 @@
-{% load static %}
+
 <!DOCTYPE html>
 <html lang="es">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <meta name="description" content="Consulta de Denuncias - Empresas Integra" />
-        <meta name="author" content="Empresas Integra" />
-        <title>Consulta Denuncias Integra</title>
-        <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
-        <link rel="stylesheet" href="{% static 'css/denuncia-styles.css' %}" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataTable Dinámico de Denuncias</title>
+    
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        .dataTables_wrapper {
+            padding: 20px 0;
+        }
         
-        <style>
-            .search-box {
-                margin: 2rem auto;
-                max-width: 500px;
-                padding: 0 1rem;
-            }
-            
-            .search-input {
-                width: 100%;
-                padding: 12px 20px;
-                border: 2px solid #e9ecef;
-                border-radius: 25px;
-                font-size: 16px;
-                outline: none;
-                transition: border-color 0.3s;
-            }
-            
-            .search-input:focus {
-                border-color: #667eea;
-                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            }
-            
-            .table-container {
-                margin: 2rem auto;
-                max-width: 95%;
-                background: white;
-                border-radius: 15px;
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-                height: 50vh;
-                overflow: hidden;
-            }
-            
-            .table-header {
-                background: linear-gradient(135deg, #667eea, #764ba2);
-                color: white;
-                padding: 1.5rem;
-                text-align: center;
-            }
-            
-            .denuncias-table {
-                width: 100%;
-                border-collapse: collapse;
-            }
-            
-            .denuncias-table th {
-                background: #f8f9fa;
-                padding: 12px 8px;
-                text-align: left;
-                font-weight: 600;
-                color: #495057;
-                border-bottom: 2px solid #dee2e6;
-            }
-            
-            .denuncias-table td {
-                padding: 12px 8px;
-                border-bottom: 1px solid #e9ecef;
-                vertical-align: top;
-            }
-            
-            .denuncias-table tr:nth-child(even) {
-                background-color: #f8f9fa;
-            }
-            
-            .denuncias-table tr:hover {
-                background-color: #e3f2fd;
-            }
-            
-            .codigo-cell {
-                font-family: 'Courier New', monospace;
-                font-weight: bold;
-                color: #667eea;
-                min-width: 120px;
-            }
-            
-            .estado-badge {
-                padding: 4px 8px;
-                border-radius: 12px;
-                font-size: 0.8rem;
-                font-weight: 600;
-                text-transform: uppercase;
-            }
-            
-            .estado-pendiente {
-                background-color: #fff3cd;
-                color: #856404;
-            }
-            
-            .estado-en_revision {
-                background-color: #d1ecf1;
-                color: #0c5460;
-            }
-            
-            .estado-resuelto {
-                background-color: #d4edda;
-                color: #155724;
-            }
-            
-            .descripcion-cell {
-                max-width: 200px;
-                word-wrap: break-word;
-            }
-            
-            .no-results {
-                text-align: center;
-                padding: 2rem;
-                color: #6c757d;
-                font-style: italic;
-            }
-        </style>
-    </head>
-    <body id="page-top">
-
+        .dt-buttons {
+            margin-bottom: 15px;
+        }
+        
+        .badge-warning { background-color: #ffc107; }
+        .badge-info { background-color: #17a2b8; }
+        .badge-success { background-color: #28a745; }
+        
+        .filter-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .stats-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .stats-card h5 {
+            color: #495057;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .stats-card .number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        #denunciasTable tbody tr {
+            cursor: pointer;
+        }
+        
+        #denunciasTable tbody tr:hover {
+            background-color: #f1f3f4;
+        }
+        
+        .column-toggle {
+            margin-bottom: 20px;
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid mt-4">
         <!-- Header -->
-        {% include './headers/consulta_header.html' %}
-
-        <!-- Buscador -->
-        {% if total_denuncias != 1 %}
-        <div class="search-box">
-            <input type="text" 
-                   id="searchInput" 
-                   class="search-input" 
-                   placeholder="🔍 Buscar en denuncias (código, usuario, categoría, descripción...)">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="h3">
+                    <i class="fas fa-table"></i> DataTable Dinámico de Denuncias
+                </h1>
+            </div>
         </div>
-        {% endif %}
-
-        <!-- Tabla de denuncias -->
-        {% if denuncias_data %}
-        <div class="table-container">
-
-            
-            <table class="denuncias-table" id="denunciasTable">
+        
+        <!-- Estadísticas Rápidas -->
+        <div class="row" id="statsContainer">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <h5>Total Denuncias</h5>
+                    <div class="number" id="statTotal">-</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <h5>Pendientes</h5>
+                    <div class="number text-warning" id="statPendientes">-</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <h5>En Revisión</h5>
+                    <div class="number text-info" id="statRevision">-</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <h5>Resueltas</h5>
+                    <div class="number text-success" id="statResueltas">-</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Filtros Avanzados -->
+        <div class="filter-section">
+            <h5><i class="fas fa-filter"></i> Filtros Avanzados</h5>
+            <div class="row">
+                <div class="col-md-3">
+                    <label>Fecha Desde:</label>
+                    <input type="date" class="form-control" id="filterFechaDesde">
+                </div>
+                <div class="col-md-3">
+                    <label>Fecha Hasta:</label>
+                    <input type="date" class="form-control" id="filterFechaHasta">
+                </div>
+                <div class="col-md-3">
+                    <label>Estado:</label>
+                    <select class="form-select" id="filterEstado" multiple>
+                        <option value="PENDIENTE">Pendiente</option>
+                        <option value="EN_REVISION">En Revisión</option>
+                        <option value="RESUELTO">Resuelto</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label>Tipo Usuario:</label>
+                    <select class="form-select" id="filterTipoUsuario">
+                        <option value="todos">Todos</option>
+                        <option value="anonimo">Anónimo</option>
+                        <option value="identificado">Identificado</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-4">
+                    <label>Categoría:</label>
+                    <select class="form-select" id="filterCategoria">
+                        <option value="">Todas</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label>Contiene en descripción:</label>
+                    <input type="text" class="form-control" id="filterDescripcion" placeholder="Buscar texto...">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button class="btn btn-primary me-2" onclick="applyFilters()">
+                        <i class="fas fa-search"></i> Aplicar Filtros
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearFilters()">
+                        <i class="fas fa-times"></i> Limpiar
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Selector de Columnas -->
+        <div class="column-toggle">
+            <button class="btn btn-sm btn-outline-secondary" onclick="toggleColumnVisibility()">
+                <i class="fas fa-columns"></i> Mostrar/Ocultar Columnas
+            </button>
+            <div class="btn-group ms-2" role="group">
+                <button class="btn btn-sm btn-outline-primary" onclick="loadTableConfig('basic')">Vista Básica</button>
+                <button class="btn btn-sm btn-outline-primary" onclick="loadTableConfig('detailed')">Vista Detallada</button>
+                <button class="btn btn-sm btn-outline-primary" onclick="loadTableConfig('admin')">Vista Admin</button>
+            </div>
+        </div>
+        
+        <!-- Tabla Principal -->
+        <div class="table-responsive">
+            <table id="denunciasTable" class="table table-striped table-hover" style="width:100%">
                 <thead>
                     <tr>
                         <th>Código</th>
-                        <th>Caso</th>
-                        <th>Relación Empresa</th>
-                        <th>Tiempo</th>
-                        <th>Estado</th>
                         <th>Fecha</th>
+                        <th>Categoría</th>
+                        <th>Tipo Denuncia</th>
+                        <th>Usuario</th>
+                        <th>Estado</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for denuncia in denuncias_data %}
-                    <tr>
-                        <td class="codigo-cell">{{ denuncia.codigo }}</td>
-                        <td>{{ denuncia.item.enunciado }}</td>
-                        <td>{{ denuncia.relacion_empresa.rol }}</td>
-                        <td>{{ denuncia.tiempo.intervalo }}</td>
-                        <td>
-                            <span class="estado-badge estado-{{ denuncia.estado_actual|lower }}">
-                                {{ denuncia.estado_actual }}
-                            </span>
-                        </td>
-                        <td>{{ denuncia.fecha|date:"d/m/Y H:i" }}</td>
-                    </tr>
-                    {% endfor %}
                 </tbody>
             </table>
-            
-            <div class="no-results" id="noResults" style="display: none;">
-                No se encontraron resultados para tu búsqueda
+        </div>
+    </div>
+    
+    <!-- Modal de Detalles -->
+    <div class="modal fade" id="detalleModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Detalles de Denuncia</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalContent">
+                    <!-- Contenido dinámico -->
+                </div>
             </div>
         </div>
-        {% endif %}
-
-        <!-- Footer -->
-        {% include './footer/footer.html' %}
-
-        <script>
-            // Buscador simple
-            document.getElementById('searchInput').addEventListener('input', function() {
-                const searchText = this.value.toLowerCase();
-                const table = document.getElementById('denunciasTable');
-                const rows = table.getElementsByTagName('tr');
-                const noResults = document.getElementById('noResults');
-                let visibleRows = 0;
-                
-                // Empezar desde 1 para saltar el header
-                for (let i = 1; i < rows.length; i++) {
-                    const row = rows[i];
-                    const text = row.textContent.toLowerCase();
-                    
-                    if (text.includes(searchText)) {
-                        row.style.display = '';
-                        visibleRows++;
-                    } else {
-                        row.style.display = 'none';
-                    }
-                }
-                
-                // Mostrar/ocultar mensaje "no results"
-                if (visibleRows === 0 && searchText !== '') {
-                    noResults.style.display = 'block';
-                } else {
-                    noResults.style.display = 'none';
+    </div>
+    
+    <!-- Loading Overlay -->
+    <div class="loading-overlay">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+    </div>
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    
+    <!-- Bootstrap 5 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- DataTables -->
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+    
+    <script>
+        // Variables globales
+        let dataTable;
+        let currentFilters = {};
+        let tableConfig = 'basic';
+        
+        // Inicialización
+        $(document).ready(function() {
+            loadStats();
+            loadCategories();
+            initializeDataTable();
+        });
+        
+        // Cargar estadísticas
+        function loadStats() {
+            $.get('/api/datatable/denuncias/stats/', function(response) {
+                if (response.success) {
+                    $('#statTotal').text(response.stats.totales.total_denuncias);
+                    $('#statPendientes').text(response.stats.totales.pendientes);
+                    $('#statRevision').text(response.stats.totales.en_revision);
+                    $('#statResueltas').text(response.stats.totales.resueltas);
                 }
             });
-        </script>
-    </body>
+        }
+        
+        // Cargar categorías para filtro
+        function loadCategories() {
+            // Aquí deberías cargar las categorías desde tu API
+            // Por ahora uso datos de ejemplo
+            const categorias = ['Laboral', 'Seguridad', 'Ética', 'Ambiental'];
+            const select = $('#filterCategoria');
+            categorias.forEach(cat => {
+                select.append(`<option value="${cat}">${cat}</option>`);
+            });
+        }
+        
+        // Inicializar DataTable
+        function initializeDataTable() {
+            // Primero obtener la configuración
+            $.get(`/api/datatable/denuncias/config/?type=${tableConfig}`, function(response) {
+                if (response.success) {
+                    const config = response.config;
+                    
+                    // Crear columnas dinámicamente
+                    const columns = config.columns.map(col => ({
+                        data: col.field,
+                        title: col.title,
+                        className: col.className || '',
+                        width: col.width || null,
+                        orderable: col.orderable !== false,
+                        searchable: col.searchable !== false,
+                        visible: col.visible !== false,
+                        render: getColumnRenderer(col.field)
+                    }));
+                    
+                    // Inicializar DataTable
+                    dataTable = $('#denunciasTable').DataTable({
+                        processing: true,
+                        serverSide: true,
+                        responsive: true,
+                        ajax: {
+                            url: '/api/datatable/denuncias/',
+                            type: 'POST',
+                            data: function(d) {
+                                // Agregar filtros personalizados
+                                d.filters = currentFilters;
+                                d.fields = config.columns.map(c => c.field);
+                                return JSON.stringify(d);
+                            },
+                            contentType: 'application/json',
+                            beforeSend: function() {
+                                $('.loading-overlay').show();
+                            },
+                            complete: function() {
+                                $('.loading-overlay').hide();
+                            }
+                        },
+                        columns: columns,
+                        order: config.default_order,
+                        pageLength: config.page_length,
+                        lengthMenu: config.length_menu,
+                        language: {
+                            url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+                        },
+                        dom: 'Bfrtip',
+                        buttons: [
+                            {
+                                extend: 'excel',
+                                text: '<i class="fas fa-file-excel"></i> Excel',
+                                className: 'btn btn-success btn-sm',
+                                action: function() {
+                                    exportData('excel');
+                                }
+                            },
+                            {
+                                extend: 'csv',
+                                text: '<i class="fas fa-file-csv"></i> CSV',
+                                className: 'btn btn-info btn-sm',
+                                action: function() {
+                                    exportData('csv');
+                                }
+                            },
+                            {
+                                extend: 'print',
+                                text: '<i class="fas fa-print"></i> Imprimir',
+                                className: 'btn btn-secondary btn-sm'
+                            }
+                        ]
+                    });
+                    
+                    // Click en filas
+                    $('#denunciasTable tbody').on('click', 'tr', function() {
+                        const data = dataTable.row(this).data();
+                        if (data) {
+                            showDetails(data);
+                        }
+                    });
+                }
+            });
+        }
+        
+        // Renderizadores de columnas
+        function getColumnRenderer(field) {
+            const renderers = {
+                'codigo': function(data) {
+                    return `<span class="font-monospace fw-bold text-primary">${data}</span>`;
+                },
+                'estado_display': function(data, type, row) {
+                    const badgeClass = row.estado_badge_class || 'badge-secondary';
+                    return `<span class="badge ${badgeClass}">${data}</span>`;
+                },
+                'fecha_formato_corto': function(data) {
+                    return `<small>${data}</small>`;
+                },
+                'descripcion_resumen': function(data) {
+                    return `<span title="${data}">${data}</span>`;
+                },
+                'total_archivos': function(data) {
+                    if (data > 0) {
+                        return `<span class="badge bg-info">${data} 📎</span>`;
+                    }
+                    return '-';
+                },
+                'total_mensajes_foro': function(data) {
+                    if (data > 0) {
+                        return `<span class="badge bg-warning">${data} 💬</span>`;
+                    }
+                    return '-';
+                },
+                'usuario_tipo': function(data) {
+                    const icon = data === 'Anónimo' ? '👤' : '👥';
+                    return `${icon} ${data}`;
+                }
+            };
+            
+            return renderers[field] || null;
+        }
+        
+        // Aplicar filtros
+        function applyFilters() {
+            currentFilters = {
+                fecha_desde: $('#filterFechaDesde').val(),
+                fecha_hasta: $('#filterFechaHasta').val(),
+                estado_actual: $('#filterEstado').val(),
+                usuario_tipo: $('#filterTipoUsuario').val(),
+                categoria_nombre: $('#filterCategoria').val(),
+                descripcion_contiene: $('#filterDescripcion').val()
+            };
+            
+            // Limpiar filtros vacíos
+            Object.keys(currentFilters).forEach(key => {
+                if (!currentFilters[key] || currentFilters[key].length === 0) {
+                    delete currentFilters[key];
+                }
+            });
+            
+            // Recargar tabla
+            dataTable.ajax.reload();
+            
+            // Actualizar estadísticas
+            loadStats();
+        }
+        
+        // Limpiar filtros
+        function clearFilters() {
+            $('#filterFechaDesde').val('');
+            $('#filterFechaHasta').val('');
+            $('#filterEstado').val([]);
+            $('#filterTipoUsuario').val('todos');
+            $('#filterCategoria').val('');
+            $('#filterDescripcion').val('');
+            
+            currentFilters = {};
+            dataTable.ajax.reload();
+            loadStats();
+        }
+        
+        // Cambiar configuración de tabla
+        function loadTableConfig(type) {
+            tableConfig = type;
+            
+            // Destruir tabla actual
+            if (dataTable) {
+                dataTable.destroy();
+                $('#denunciasTable').empty();
+            }
+            
+            // Reinicializar con nueva configuración
+            initializeDataTable();
+        }
+        
+        // Mostrar/Ocultar columnas
+        function toggleColumnVisibility() {
+            // Implementar selector de columnas
+            alert('Función de mostrar/ocultar columnas');
+        }
+        
+        // Exportar datos
+        function exportData(format) {
+            const data = {
+                format: format,
+                filters: currentFilters
+            };
+            
+            // Crear form temporal para descarga
+            const form = $('<form>', {
+                method: 'POST',
+                action: '/api/datatable/denuncias/export/'
+            });
+            
+            form.append($('<input>', {
+                type: 'hidden',
+                name: 'data',
+                value: JSON.stringify(data)
+            }));
+            
+            form.appendTo('body').submit().remove();
+        }
+        
+        // Mostrar detalles
+        function showDetails(data) {
+            const modal = new bootstrap.Modal(document.getElementById('detalleModal'));
+            
+            const content = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Información General</h6>
+                        <dl class="row">
+                            <dt class="col-sm-4">Código:</dt>
+                            <dd class="col-sm-8">${data.codigo}</dd>
+                            
+                            <dt class="col-sm-4">Fecha:</dt>
+                            <dd class="col-sm-8">${data.fecha_formato_largo || data.fecha}</dd>
+                            
+                            <dt class="col-sm-4">Estado:</dt>
+                            <dd class="col-sm-8"><span class="badge ${data.estado_badge_class}">${data.estado_display}</span></dd>
+                            
+                            <dt class="col-sm-4">Categoría:</dt>
+                            <dd class="col-sm-8">${data.categoria_nombre}</dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Usuario</h6>
+                        <dl class="row">
+                            <dt class="col-sm-4">ID:</dt>
+                            <dd class="col-sm-8">${data.usuario_id}</dd>
+                            
+                            <dt class="col-sm-4">Tipo:</dt>
+                            <dd class="col-sm-8">${data.usuario_tipo}</dd>
+                            
+                            <dt class="col-sm-4">Nombre:</dt>
+                            <dd class="col-sm-8">${data.usuario_nombre}</dd>
+                            
+                            ${data.usuario_correo ? `
+                            <dt class="col-sm-4">Correo:</dt>
+                            <dd class="col-sm-8">${data.usuario_correo}</dd>
+                            ` : ''}
+                        </dl>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-12">
+                        <h6>Descripción</h6>
+                        <p>${data.descripcion || 'Sin descripción'}</p>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-4 text-center">
+                        <i class="fas fa-paperclip fa-2x text-muted"></i>
+                        <p class="mb-0">${data.total_archivos || 0} Archivos</p>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <i class="fas fa-comments fa-2x text-muted"></i>
+                        <p class="mb-0">${data.total_mensajes_foro || 0} Mensajes</p>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <i class="fas fa-clock fa-2x text-muted"></i>
+                        <p class="mb-0">${data.dias_desde_creacion || 0} días</p>
+                    </div>
+                </div>
+            `;
+            
+            $('#modalContent').html(content);
+            modal.show();
+        }
+    </script>
+</body>
 </html>

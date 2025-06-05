@@ -52,6 +52,27 @@ class DenunciaEstadoSerializer(serializers.ModelSerializer):
 # SERIALIZERS DE USUARIO (Con validaciones complejas)
 # =================================================================
 
+class RutValidationSerializer(serializers.Serializer):
+    """Serializer específico para validación de RUT"""
+    
+    rut = serializers.CharField(
+        max_length=12,
+        help_text="RUT en formato 12345678-9"
+    )
+    
+    def validate_rut(self, value):
+        """Validar formato de RUT"""
+        if not value or not value.strip():
+            raise serializers.ValidationError("RUT es requerido")
+        
+        try:
+            validate_rut(value.strip())
+            return value.strip()
+        except Exception as e:
+            raise serializers.ValidationError(str(e))
+
+
+
 class UsuarioCreateSerializer(serializers.ModelSerializer):
     """Serializer para crear usuarios (anónimos o identificados)"""
     
@@ -217,7 +238,9 @@ class DenunciaCreateSerializer(serializers.Serializer):
     def validate(self, data):
         """Validación cruzada"""
         # Validar descripción_relacion si es necesaria
+        print("validate")
         relacion_id = data.get('denuncia_relacion')
+        print(relacion_id)
         if relacion_id:
             try:
                 relacion = RelacionEmpresa.objects.get(id=relacion_id)
@@ -335,6 +358,8 @@ class ArchivoCreateSerializer(serializers.ModelSerializer):
 class AdminSerializer(serializers.ModelSerializer):
     """Serializer para administradores"""
     
+    categoria_nombre = serializers.CharField(source='rol_categoria.nombre', read_only=True)
+
     contraseña = serializers.CharField(
         write_only=True,
         style={'input_type': 'password'},
@@ -343,10 +368,17 @@ class AdminSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Admin
-        fields = ['id', 'rut', 'nombre', 'apellidos', 'correo', 'contraseña']
+        fields = [
+            'id', 'rut', 'nombre', 'apellidos', 'correo', 
+            'rol_categoria', 'categoria_nombre', 'nombre_completo'
+        ]
+
         extra_kwargs = {
             'contraseña': {'write_only': True}
         }
+
+    def get_nombre_completo(self, obj):
+        return f"{obj.nombre} {obj.apellidos}".strip()
     
     def validate_rut(self, value):
         """Validar RUT de admin"""
@@ -369,6 +401,11 @@ class AdminSerializer(serializers.ModelSerializer):
         """Crear admin con contraseña hasheada"""
         # Nota: Aquí deberías hashear la contraseña si no lo haces en el modelo
         return Admin.objects.create(**validated_data)
+    
+    def update_password(self,administrador,new_password):
+        """Crear admin con contraseña hasheada"""
+        # Nota: Aquí deberías hashear la contraseña si no lo haces en el modelo
+        return administrador.update(contraseña=new_password)
 
 
 # =================================================================

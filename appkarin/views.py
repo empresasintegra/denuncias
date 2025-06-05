@@ -44,33 +44,12 @@ def renderCodeDenuncia(request):
     request.session.flush()
     return response
 
-def renderConsultaDenuncia(request):
+def renderDataTableDenuncias(request):
     REGEX_DN = re.compile(r'^DN-')
-    denuncias_data = []
+    
+    return render(request, 'consultaDenuncia.html')
 
-    if not request.session.get('admin'):
-        if request.method == 'POST':
-            codigo = request.POST.get('codigo')
-            if bool(REGEX_DN.match(codigo)):
-                denuncia = Denuncia.objects.select_related(
-                    'usuario', 'item', 'item__categoria', 'relacion_empresa', 'tiempo'
-                ).filter(codigo=codigo).first()
-                if denuncia:
-                    denuncias_data.append(denuncia)
-            else:
-                denuncias = Denuncia.objects.select_related(
-                    'usuario', 'item', 'item__categoria', 'relacion_empresa', 'tiempo'
-                ).filter(usuario_id=codigo)
-                denuncias_data.extend(denuncias)
-    else:
-        denuncias = Denuncia.objects.select_related(
-            'usuario', 'item', 'item__categoria', 'relacion_empresa', 'tiempo'
-        ).all()
-        denuncias_data.extend(denuncias)
 
-    context = {
-        'denuncias_data': denuncias_data,
-        'total_denuncias': len(denuncias_data),
-        'admin': request.session.get('admin', False),
-    }
-    return render(request, 'consultaDenuncia.html', context)
+def renderLoginAdmin(request):
+
+    return render(request, 'login.html')

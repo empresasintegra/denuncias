@@ -303,7 +303,7 @@ class Admin(models.Model):
     apellidos = models.CharField(max_length=250)
     correo = models.EmailField(max_length=250, unique=True)
     contraseña = models.CharField(max_length=250, validators=[validate_admin_password])
-
+    rol_categoria=models.ForeignKey(Categoria, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = "Administrador"

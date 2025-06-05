@@ -1,0 +1,531 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="Iniciar Sesión - Empresas Integra" />
+        <meta name="author" content="Empresas Integra" />
+        <title>Iniciar Sesión - Empresas Integra</title>
+        <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
+        <link rel="stylesheet" href="{% static 'css/denuncia-styles.css' %}" />
+        
+        <!-- Estilos adicionales para login -->
+        <style>
+            .login-container {
+                max-width: 450px;
+                margin: 2rem auto;
+                padding: 0 1rem;
+            }
+            
+            .login-card {
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                padding: 2.5rem;
+                margin-bottom: 2rem;
+            }
+            
+            .login-header {
+                text-align: center;
+                margin-bottom: 2rem;
+            }
+            
+            .login-header h2 {
+                color: #1a365d;
+                font-weight: 600;
+                margin-bottom: 0.5rem;
+            }
+            
+            .login-header p {
+                color: #64748b;
+                font-size: 0.95rem;
+            }
+            
+            .form-group {
+                margin-bottom: 1.5rem;
+            }
+            
+            .form-label {
+                display: block;
+                font-weight: 500;
+                color: #374151;
+                margin-bottom: 0.5rem;
+                font-size: 0.95rem;
+            }
+            
+            .form-control {
+                width: 100%;
+                padding: 0.75rem 1rem;
+                border: 2px solid #e5e7eb;
+                border-radius: 8px;
+                font-size: 1rem;
+                transition: all 0.2s ease;
+                font-family: 'Inter', sans-serif;
+            }
+            
+            .form-control:focus {
+                outline: none;
+                border-color: #3b82f6;
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            }
+            
+            .input-icon {
+                position: relative;
+            }
+            
+            .input-icon i {
+                position: absolute;
+                left: 1rem;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #9ca3af;
+            }
+            
+            .input-icon .form-control {
+                padding-left: 2.75rem;
+            }
+            
+            .btn-login {
+                width: 100%;
+                background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+                color: white;
+                border: none;
+                padding: 0.875rem 1.5rem;
+                border-radius: 8px;
+                font-size: 1rem;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                margin-top: 1rem;
+            }
+            
+            .btn-login:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            }
+            
+            .btn-login:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none;
+            }
+            
+            .alert {
+                padding: 0.75rem 1rem;
+                border-radius: 6px;
+                margin-bottom: 1rem;
+                font-size: 0.9rem;
+            }
+            
+            .alert-error {
+                background-color: #fef2f2;
+                border: 1px solid #fecaca;
+                color: #dc2626;
+            }
+            
+            .alert-success {
+                background-color: #f0fdf4;
+                border: 1px solid #bbf7d0;
+                color: #16a34a;
+            }
+            
+            .forgot-password {
+                text-align: center;
+                margin-top: 1.5rem;
+            }
+            
+            .forgot-password a {
+                color: #3b82f6;
+                text-decoration: none;
+                font-size: 0.9rem;
+            }
+            
+            .forgot-password a:hover {
+                text-decoration: underline;
+            }
+            
+            .loading-spinner {
+                width: 20px;
+                height: 20px;
+                border: 2px solid transparent;
+                border-top: 2px solid currentColor;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin-right: 0.5rem;
+            }
+            
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        </style>
+    </head>
+    <body id="page-top">
+
+        <!-- Header -->
+        {% include './headers/login_header.html' %}
+
+        <!-- Formulario de Login -->
+        <div class="login-container">
+            <!-- Login Form -->
+            <div id="loginCard" class="login-card">
+                <div class="login-header">
+                    <h2>Iniciar Sesión</h2>
+                    <p>Ingresa tus credenciales para acceder al sistema</p>
+                </div>
+                
+                <!-- Mensajes de alerta -->
+                <div id="alertContainer" style="display: none;">
+                    <div id="alertMessage" class="alert"></div>
+                </div>
+                
+                <form id="loginForm">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label for="username" class="form-label">
+                            <i class="fas fa-user"></i> Usuario o Email
+                        </label>
+                        <div class="input-icon">
+                            <i class="fas fa-user"></i>
+                            <input 
+                                type="text" 
+                                id="username" 
+                                name="username" 
+                                class="form-control" 
+                                placeholder="Ingresa tu usuario o email"
+                                required
+                                autocomplete="username"
+                            >
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password" class="form-label">
+                            <i class="fas fa-lock"></i> Contraseña
+                        </label>
+                        <div class="input-icon">
+                            <i class="fas fa-lock"></i>
+                            <input 
+                                type="password" 
+                                id="password" 
+                                name="password" 
+                                class="form-control" 
+                                placeholder="Ingresa tu contraseña"
+                                required
+                                autocomplete="current-password"
+                            >
+                        </div>
+                    </div>
+                    
+                    <button type="submit" id="loginBtn" class="btn-login">
+                        <span id="loginText">Iniciar Sesión</span>
+                        <div id="loginSpinner" class="loading-spinner" style="display: none;"></div>
+                    </button>
+                </form>
+                
+                <div class="forgot-password">
+                    <a href="#" onclick="LoginApp.showForgotPassword()">¿Olvidaste tu contraseña?</a>
+                </div>
+            </div>
+
+            <!-- Reset Password Form -->
+            <div id="resetCard" class="login-card" style="display: none;">
+                <div class="login-header">
+                    <h2>Crear Nueva Contraseña</h2>
+                    <p>Ingresa tu email para recibir instrucciones de recuperación</p>
+                </div>
+                
+                <!-- Mensajes de alerta para reset -->
+                <div id="resetAlertContainer" style="display: none;">
+                    <div id="resetAlertMessage" class="alert"></div>
+                </div>
+                
+                <form id="resetForm">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label for="reset-email" class="form-label">
+                            <i class="fas fa-envelope"></i> Email
+                        </label>
+                        <div class="input-icon">
+                            <i class="fas fa-envelope"></i>
+                            <input 
+                                type="email" 
+                                id="reset-email" 
+                                name="email" 
+                                class="form-control" 
+                                placeholder="Ingresa tu email registrado"
+                                required
+                                autocomplete="email"
+                            >
+                        </div>
+                    </div>
+                    
+                    <button type="submit" id="resetBtn" class="btn-login">
+                        <span id="resetText">Enviar Instrucciones</span>
+                        <div id="resetSpinner" class="loading-spinner" style="display: none;"></div>
+                    </button>
+                </form>
+                
+                <div class="forgot-password">
+                    <a href="#" onclick="LoginApp.showLogin()">← Volver al inicio de sesión</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer original -->
+        {% include './footer/footer.html' %}
+
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script>
+            // Objeto para manejar el login y reset de contraseña
+            const LoginApp = {
+                init: function() {
+                    this.bindEvents();
+                },
+                
+                bindEvents: function() {
+                    $('#loginForm').on('submit', this.handleLogin.bind(this));
+                    $('#resetForm').on('submit', this.handleReset.bind(this));
+                },
+                
+                // Navegación entre formularios
+                showForgotPassword: function() {
+                    $('#loginCard').hide();
+                    $('#resetCard').show();
+                    this.hideAlert();
+                    this.hideResetAlert();
+                    // Limpiar formulario de login
+                    $('#loginForm')[0].reset();
+                },
+                
+                showLogin: function() {
+                    $('#resetCard').hide();
+                    $('#loginCard').show();
+                    this.hideAlert();
+                    this.hideResetAlert();
+                    // Limpiar formulario de reset
+                    $('#resetForm')[0].reset();
+                },
+                
+                // Manejo del login
+                handleLogin: function(e) {
+                    e.preventDefault();
+                    
+                    const username = $('#username').val().trim();
+                    const password = $('#password').val();
+                    
+                    // Validaciones básicas
+                    if (!username || !password) {
+                        this.showAlert('Por favor, completa todos los campos', 'error');
+                        return;
+                    }
+                    
+                    this.submitLogin(username, password);
+                },
+                
+                submitLogin: function(username, password) {
+                    const csrfToken = $('[name=csrfmiddlewaretoken]').val();
+                    
+                    // Mostrar estado de carga
+                    this.setLoadingState(true, 'login');
+                    this.hideAlert();
+                    
+                    $.ajax({
+                        url: '{% url "login" %}', // Asegúrate de que esta URL coincida con tu URL de login
+                        type: 'POST',
+                        data: {
+                            'username': username,
+                            'password': password,
+                            'csrfmiddlewaretoken': csrfToken
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                this.showAlert('Inicio de sesión exitoso. Redirigiendo...', 'success');
+                                
+                                // Redirigir después de 1.5 segundos
+                                setTimeout(function() {
+                                    window.location.href = response.redirect_url || '{% url "dashboard_admin" %}';
+                                }, 1500);
+                            } else {
+                                this.showAlert(response.message || 'Error en las credenciales', 'error');
+                                this.setLoadingState(false, 'login');
+                            }
+                        }.bind(this),
+                        error: function(xhr, status, error) {
+                            console.error('Error en login:', error);
+                            
+                            let errorMessage = 'Error de conexión. Intenta nuevamente.';
+                            
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMessage = xhr.responseJSON.message;
+                            } else if (xhr.status === 400) {
+                                errorMessage = 'Credenciales inválidas';
+                            } else if (xhr.status === 500) {
+                                errorMessage = 'Error del servidor. Contacta al administrador.';
+                            }
+                            
+                            this.showAlert(errorMessage, 'error');
+                            this.setLoadingState(false, 'login');
+                        }.bind(this)
+                    });
+                },
+                
+                // Manejo del reset de contraseña
+                handleReset: function(e) {
+                    e.preventDefault();
+                    
+                    const email = $('#reset-email').val().trim();
+                    
+                    // Validaciones básicas
+                    if (!email) {
+                        this.showResetAlert('Por favor, ingresa tu email', 'error');
+                        return;
+                    }
+                    
+                    // Validar formato de email
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(email)) {
+                        this.showResetAlert('Por favor, ingresa un email válido', 'error');
+                        return;
+                    }
+                    
+                    this.submitReset(email);
+                },
+                
+                submitReset: function(email) {
+                    const csrfToken = $('[name=csrfmiddlewaretoken]').val();
+                    
+                    // Mostrar estado de carga
+                    this.setLoadingState(true, 'reset');
+                    this.hideResetAlert();
+                    
+                    $.ajax({
+                        url: '{% url "password_reset" %}', // Asegúrate de que esta URL coincida con tu URL de reset
+                        type: 'POST',
+                        data: {
+                            'email': email,
+                            'csrfmiddlewaretoken': csrfToken
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                this.showResetAlert('Se han enviado las instrucciones a tu email. Revisa tu bandeja de entrada.', 'success');
+                                
+                                // Volver al login después de 3 segundos
+                                setTimeout(() => {
+                                    this.showLogin();
+                                }, 3000);
+                            } else {
+                                this.showResetAlert(response.message || 'Error al procesar la solicitud', 'error');
+                                this.setLoadingState(false, 'reset');
+                            }
+                        }.bind(this),
+                        error: function(xhr, status, error) {
+                            console.error('Error en reset:', error);
+                            
+                            let errorMessage = 'Error de conexión. Intenta nuevamente.';
+                            
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMessage = xhr.responseJSON.message;
+                            } else if (xhr.status === 404) {
+                                errorMessage = 'Email no encontrado en el sistema';
+                            } else if (xhr.status === 500) {
+                                errorMessage = 'Error del servidor. Contacta al administrador.';
+                            }
+                            
+                            this.showResetAlert(errorMessage, 'error');
+                            this.setLoadingState(false, 'reset');
+                        }.bind(this)
+                    });
+                },
+                
+                // Estados de carga
+                setLoadingState: function(loading, type) {
+                    if (type === 'login') {
+                        const btn = $('#loginBtn');
+                        const text = $('#loginText');
+                        const spinner = $('#loginSpinner');
+                        
+                        if (loading) {
+                            btn.prop('disabled', true);
+                            text.text('Iniciando sesión...');
+                            spinner.show();
+                        } else {
+                            btn.prop('disabled', false);
+                            text.text('Iniciar Sesión');
+                            spinner.hide();
+                        }
+                    } else if (type === 'reset') {
+                        const btn = $('#resetBtn');
+                        const text = $('#resetText');
+                        const spinner = $('#resetSpinner');
+                        
+                        if (loading) {
+                            btn.prop('disabled', true);
+                            text.text('Enviando...');
+                            spinner.show();
+                        } else {
+                            btn.prop('disabled', false);
+                            text.text('Enviar Instrucciones');
+                            spinner.hide();
+                        }
+                    }
+                },
+                
+                // Manejo de alertas para login
+                showAlert: function(message, type) {
+                    const container = $('#alertContainer');
+                    const alert = $('#alertMessage');
+                    
+                    alert.removeClass('alert-error alert-success');
+                    alert.addClass(type === 'error' ? 'alert-error' : 'alert-success');
+                    alert.text(message);
+                    container.show();
+                    
+                    // Auto-hide para mensajes de éxito
+                    if (type === 'success') {
+                        setTimeout(() => {
+                            this.hideAlert();
+                        }, 3000);
+                    }
+                },
+                
+                hideAlert: function() {
+                    $('#alertContainer').hide();
+                },
+                
+                // Manejo de alertas para reset
+                showResetAlert: function(message, type) {
+                    const container = $('#resetAlertContainer');
+                    const alert = $('#resetAlertMessage');
+                    
+                    alert.removeClass('alert-error alert-success');
+                    alert.addClass(type === 'error' ? 'alert-error' : 'alert-success');
+                    alert.text(message);
+                    container.show();
+                    
+                    // Auto-hide para mensajes de éxito
+                    if (type === 'success') {
+                        setTimeout(() => {
+                            this.hideResetAlert();
+                        }, 5000);
+                    }
+                },
+                
+                hideResetAlert: function() {
+                    $('#resetAlertContainer').hide();
+                }
+            };
+            
+            // Inicializar la aplicación cuando el documento esté listo
+            $(document).ready(function() {
+                LoginApp.init();
+            });
+        </script>
+    </body>
+</html>
