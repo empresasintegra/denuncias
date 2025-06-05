@@ -17,32 +17,46 @@ Including another URLconf
 from django.conf import settings
 from django.contrib import admin
 from django.urls import path
-from appkarin import views, service
-
+from appkarin import views
+from appkarin.views import (
+    ServiceItemsAPIView,
+    ServiceProcessDenunciaAPIView,
+    ServiceUserDenunciaAPIView
+)
 
 urlpatterns = [
+    # =================================================================
+    # APIs CON LAS MISMAS URLs EXACTAS (No romper JavaScript)
+    # =================================================================
     
-    #APIS
-    path('api/create/denuncia/items/', service.serviceItems, name='process_items'),
-    path('api/create/denuncia/wizzard/', service.serviceProcessDenuncia, name='process_denuncia'),
-    path('api/create/denuncia/user/', service.serviceUserDenuncia, name='process_user'),
+    # ✅ URLs EXACTAS del service.py original - Solo cambian las views a APIView
+    path('api/create/denuncia/items/', ServiceItemsAPIView.as_view(), name='process_items'),
+    path('api/create/denuncia/wizzard/', ServiceProcessDenunciaAPIView.as_view(), name='process_denuncia'),
+    path('api/create/denuncia/user/', ServiceUserDenunciaAPIView.as_view(), name='process_user'),
 
-    #path('api/query/denunciaByCode', service.serviceUserDenuncia, name='query_denuncia'),
-    #path('api/query/denunciasByUser:', service.serviceUserDenuncia, name='query_denuncia_by_user'),
+    # ⚠️ URLs comentadas del service.py original que no estaban implementadas
+    # path('api/auth/admin/', service.serviceAdminAuth, name='auth'),
+    # path('api/query/denunciaByCode', service.serviceDenunciaByCode, name='query_denuncia'),
+    # path('api/query/denunciasByUser:', service.serviceDenunciaByUser, name='query_denuncia_by_user'),
 
+    # =================================================================
+    # VISTAS PARA RENDERIZAR TEMPLATES (Sin cambios)
+    # =================================================================
+    
+    # Páginas principales
+    path('', views.renderHome, name='home'),
+    path('denuncia/Paso1/', views.renderItemsDenuncia, name='items'),
+    path('denuncia/Paso2/', views.renderWizzDenuncia, name='denuncia_wizzard'),
+    path('denuncia/Paso3/', views.renderUserDenuncia, name='user_register'),
+    path('denuncia/final/', views.renderCodeDenuncia, name='code_view'),
+    
+    # Admin y consultas
+    path('admin/login/', views.renderCodeDenuncia, name='login'),
+    path('admin/consulta_denuncias/', views.renderConsultaDenuncia, name='denuncias_admin'),
+    path('consulta_denuncias/', views.renderConsultaDenuncia, name='denuncias'),
 
-
-    #RENDER VIEWS
-    path('',views.renderHome,name='home'),
-    path('denuncia/Paso1/',views.renderItemsDenuncia,name='items'),
-    path('denuncia/Paso2/',views.renderWizzDenuncia,name='denuncia_wizzard'),
-    path('denuncia/Paso3/',views.renderUserDenuncia,name='user_register'),
-    path('denuncia/final/',views.renderCodeDenuncia,name='code_view'),
-    path('admin/login/',views.renderCodeDenuncia,name='login'),
-    path('admin/consulta_denuncias/',views.renderConsultaDenuncia,name='denuncias_admin'),
-    path('consulta_denuncias/',views.renderConsultaDenuncia,name='denuncias'),
-
-
-    #ADMIN URL
+    # =================================================================
+    # DJANGO ADMIN
+    # =================================================================
     path(settings.ADMIN_URL, admin.site.urls),
 ]

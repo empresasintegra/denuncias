@@ -287,6 +287,9 @@ class Denuncia(models.Model):
 class Archivo(models.Model):
     denuncia=models.ForeignKey(Denuncia, on_delete=models.CASCADE)
     url=models.URLField(max_length=500)
+    nombre=models.CharField(max_length=250)
+    descripción=models.CharField(max_length=250)
+    Peso=models.IntegerField()
 
     class Meta:
         verbose_name = "Archivo"
