@@ -227,54 +227,7 @@
                         <div id="loginSpinner" class="loading-spinner" style="display: none;"></div>
                     </button>
                 </form>
-                
-                <div class="forgot-password">
-                    <a href="#" onclick="LoginApp.showForgotPassword()">¿Olvidaste tu contraseña?</a>
-                </div>
-            </div>
 
-            <!-- Reset Password Form -->
-            <div id="resetCard" class="login-card" style="display: none;">
-                <div class="login-header">
-                    <h2>Crear Nueva Contraseña</h2>
-                    <p>Ingresa tu email para recibir instrucciones de recuperación</p>
-                </div>
-                
-                <!-- Mensajes de alerta para reset -->
-                <div id="resetAlertContainer" style="display: none;">
-                    <div id="resetAlertMessage" class="alert"></div>
-                </div>
-                
-                <form id="resetForm">
-                    {% csrf_token %}
-                    
-                    <div class="form-group">
-                        <label for="reset-email" class="form-label">
-                            <i class="fas fa-envelope"></i> Email
-                        </label>
-                        <div class="input-icon">
-                            <i class="fas fa-envelope"></i>
-                            <input 
-                                type="email" 
-                                id="reset-email" 
-                                name="email" 
-                                class="form-control" 
-                                placeholder="Ingresa tu email registrado"
-                                required
-                                autocomplete="email"
-                            >
-                        </div>
-                    </div>
-                    
-                    <button type="submit" id="resetBtn" class="btn-login">
-                        <span id="resetText">Enviar Instrucciones</span>
-                        <div id="resetSpinner" class="loading-spinner" style="display: none;"></div>
-                    </button>
-                </form>
-                
-                <div class="forgot-password">
-                    <a href="#" onclick="LoginApp.showLogin()">← Volver al inicio de sesión</a>
-                </div>
             </div>
         </div>
 
@@ -283,37 +236,43 @@
 
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script>
-            // Objeto para manejar el login y reset de contraseña
-            const LoginApp = {
+            // Objeto para manejar el login de administradores
+            const AdminLoginApp = {
                 init: function() {
                     this.bindEvents();
+                    this.checkAuthOnLoad();
                 },
                 
                 bindEvents: function() {
                     $('#loginForm').on('submit', this.handleLogin.bind(this));
-                    $('#resetForm').on('submit', this.handleReset.bind(this));
+                    
+                    // Verificar auth cuando la página carga
+                    $(window).on('beforeunload', this.clearSensitiveData.bind(this));
                 },
                 
-                // Navegación entre formularios
-                showForgotPassword: function() {
-                    $('#loginCard').hide();
-                    $('#resetCard').show();
-                    this.hideAlert();
-                    this.hideResetAlert();
-                    // Limpiar formulario de login
-                    $('#loginForm')[0].reset();
+                checkAuthOnLoad: function() {
+                    // Verificar si ya está autenticado
+                    $.ajax({
+                        url: '{% url "admin_check_auth_api" %}',
+                        type: 'GET',
+                        success: function(response) {
+                            if (response.success && response.authenticated) {
+                                console.log('👤 Usuario ya autenticado:', response.user_info.username);
+                                this.showAlert('Ya tiene una sesión activa. Redirigiendo...', 'success');
+                                
+                                setTimeout(() => {
+                                    window.location.href = '/admin/dashboard/';
+                                }, 1500);
+                            }
+                        }.bind(this),
+                        error: function(xhr) {
+                            console.log('🔍 Verificando estado de autenticación...');
+                            // No mostrar error, es normal no estar autenticado
+                        }
+                    });
                 },
                 
-                showLogin: function() {
-                    $('#resetCard').hide();
-                    $('#loginCard').show();
-                    this.hideAlert();
-                    this.hideResetAlert();
-                    // Limpiar formulario de reset
-                    $('#resetForm')[0].reset();
-                },
-                
-                // Manejo del login
+                // Manejo del login principal
                 handleLogin: function(e) {
                     e.preventDefault();
                     
@@ -326,6 +285,17 @@
                         return;
                     }
                     
+                    // Validaciones adicionales
+                    if (username.length < 3) {
+                        this.showAlert('El usuario debe tener al menos 3 caracteres', 'error');
+                        return;
+                    }
+                    
+                    if (password.length < 6) {
+                        this.showAlert('La contraseña debe tener al menos 6 caracteres', 'error');
+                        return;
+                    }
+                    
                     this.submitLogin(username, password);
                 },
                 
@@ -333,151 +303,145 @@
                     const csrfToken = $('[name=csrfmiddlewaretoken]').val();
                     
                     // Mostrar estado de carga
-                    this.setLoadingState(true, 'login');
+                    this.setLoadingState(true);
                     this.hideAlert();
                     
+                    console.log('🔐 Enviando credenciales para:', username);
+                    
                     $.ajax({
-                        url: '{% url "login" %}', // Asegúrate de que esta URL coincida con tu URL de login
+                        url: '{% url "admin_login_api" %}',  // ✅ NUEVA URL DE LA API
                         type: 'POST',
-                        data: {
-                            'username': username,
-                            'password': password,
-                            'csrfmiddlewaretoken': csrfToken
+                        headers: {
+                            'X-CSRFToken': csrfToken,
+                            'Content-Type': 'application/json',
                         },
+                        data: JSON.stringify({
+                            'username': username,
+                            'password': password
+                        }),
                         success: function(response) {
+                            console.log('✅ Respuesta del servidor:', response);
+                            
                             if (response.success) {
-                                this.showAlert('Inicio de sesión exitoso. Redirigiendo...', 'success');
+                                // ✅ LOGIN EXITOSO
+                                this.showAlert(response.message || 'Inicio de sesión exitoso', 'success');
+                                
+                                // Mostrar información del usuario
+                                if (response.user_info) {
+                                    console.log('👤 Usuario autenticado:', {
+                                        username: response.user_info.username,
+                                        categoria: response.user_info.categoria?.nombre,
+                                        is_staff: response.user_info.is_staff,
+                                        is_superuser: response.user_info.is_superuser
+                                    });
+                                }
+                                
+                                // Limpiar formulario por seguridad
+                                this.clearFormData();
                                 
                                 // Redirigir después de 1.5 segundos
-                                setTimeout(function() {
-                                    window.location.href = response.redirect_url || '{% url "dashboard_admin" %}';
-                                }, 1500);
-                            } else {
-                                this.showAlert(response.message || 'Error en las credenciales', 'error');
-                                this.setLoadingState(false, 'login');
-                            }
-                        }.bind(this),
-                        error: function(xhr, status, error) {
-                            console.error('Error en login:', error);
-                            
-                            let errorMessage = 'Error de conexión. Intenta nuevamente.';
-                            
-                            if (xhr.responseJSON && xhr.responseJSON.message) {
-                                errorMessage = xhr.responseJSON.message;
-                            } else if (xhr.status === 400) {
-                                errorMessage = 'Credenciales inválidas';
-                            } else if (xhr.status === 500) {
-                                errorMessage = 'Error del servidor. Contacta al administrador.';
-                            }
-                            
-                            this.showAlert(errorMessage, 'error');
-                            this.setLoadingState(false, 'login');
-                        }.bind(this)
-                    });
-                },
-                
-                // Manejo del reset de contraseña
-                handleReset: function(e) {
-                    e.preventDefault();
-                    
-                    const email = $('#reset-email').val().trim();
-                    
-                    // Validaciones básicas
-                    if (!email) {
-                        this.showResetAlert('Por favor, ingresa tu email', 'error');
-                        return;
-                    }
-                    
-                    // Validar formato de email
-                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                    if (!emailRegex.test(email)) {
-                        this.showResetAlert('Por favor, ingresa un email válido', 'error');
-                        return;
-                    }
-                    
-                    this.submitReset(email);
-                },
-                
-                submitReset: function(email) {
-                    const csrfToken = $('[name=csrfmiddlewaretoken]').val();
-                    
-                    // Mostrar estado de carga
-                    this.setLoadingState(true, 'reset');
-                    this.hideResetAlert();
-                    
-                    $.ajax({
-                        url: '{% url "password_reset" %}', // Asegúrate de que esta URL coincida con tu URL de reset
-                        type: 'POST',
-                        data: {
-                            'email': email,
-                            'csrfmiddlewaretoken': csrfToken
-                        },
-                        success: function(response) {
-                            if (response.success) {
-                                this.showResetAlert('Se han enviado las instrucciones a tu email. Revisa tu bandeja de entrada.', 'success');
-                                
-                                // Volver al login después de 3 segundos
                                 setTimeout(() => {
-                                    this.showLogin();
-                                }, 3000);
+                                    window.location.href = response.redirect_url || '/admin/dashboard/';
+                                }, 1500);
+                                
                             } else {
-                                this.showResetAlert(response.message || 'Error al procesar la solicitud', 'error');
-                                this.setLoadingState(false, 'reset');
+                                // ❌ LOGIN FALLIDO
+                                this.handleLoginError(response);
                             }
                         }.bind(this),
                         error: function(xhr, status, error) {
-                            console.error('Error en reset:', error);
+                            console.error('❌ Error en login:', error);
+                            console.error('📊 Respuesta completa:', xhr.responseText);
                             
-                            let errorMessage = 'Error de conexión. Intenta nuevamente.';
-                            
-                            if (xhr.responseJSON && xhr.responseJSON.message) {
-                                errorMessage = xhr.responseJSON.message;
-                            } else if (xhr.status === 404) {
-                                errorMessage = 'Email no encontrado en el sistema';
-                            } else if (xhr.status === 500) {
-                                errorMessage = 'Error del servidor. Contacta al administrador.';
-                            }
-                            
-                            this.showResetAlert(errorMessage, 'error');
-                            this.setLoadingState(false, 'reset');
+                            this.handleAjaxError(xhr, status, error);
                         }.bind(this)
                     });
                 },
                 
-                // Estados de carga
-                setLoadingState: function(loading, type) {
-                    if (type === 'login') {
-                        const btn = $('#loginBtn');
-                        const text = $('#loginText');
-                        const spinner = $('#loginSpinner');
-                        
-                        if (loading) {
-                            btn.prop('disabled', true);
-                            text.text('Iniciando sesión...');
-                            spinner.show();
-                        } else {
-                            btn.prop('disabled', false);
-                            text.text('Iniciar Sesión');
-                            spinner.hide();
+                handleLoginError: function(response) {
+                    let errorMessage = response.message || 'Error en las credenciales';
+                    
+                    // Personalizar mensajes según el código de error
+                    switch(response.error_code) {
+                        case 'MISSING_CREDENTIALS':
+                            errorMessage = 'Usuario y contraseña son requeridos';
+                            break;
+                        case 'INVALID_CREDENTIALS':
+                            errorMessage = 'Usuario o contraseña incorrectos';
+                            break;
+                        case 'NOT_ADMIN':
+                            errorMessage = 'No tiene permisos de administrador';
+                            break;
+                        case 'USER_INACTIVE':
+                            errorMessage = 'Su cuenta está desactivada. Contacte al administrador.';
+                            break;
+                        default:
+                            errorMessage = response.message || 'Error en el inicio de sesión';
+                    }
+                    
+                    this.showAlert(errorMessage, 'error');
+                    this.setLoadingState(false);
+                    
+                    // Limpiar contraseña por seguridad
+                    $('#password').val('');
+                },
+                
+                handleAjaxError: function(xhr, status, error) {
+                    let errorMessage = 'Error de conexión. Intenta nuevamente.';
+                    
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.message) {
+                            errorMessage = response.message;
                         }
-                    } else if (type === 'reset') {
-                        const btn = $('#resetBtn');
-                        const text = $('#resetText');
-                        const spinner = $('#resetSpinner');
-                        
-                        if (loading) {
-                            btn.prop('disabled', true);
-                            text.text('Enviando...');
-                            spinner.show();
-                        } else {
-                            btn.prop('disabled', false);
-                            text.text('Enviar Instrucciones');
-                            spinner.hide();
-                        }
+                    } catch (e) {
+                        // Si no se puede parsear, usar mensaje por defecto
+                    }
+                    
+                    // Personalizar según código de estado HTTP
+                    switch(xhr.status) {
+                        case 400:
+                            errorMessage = 'Datos inválidos enviados';
+                            break;
+                        case 401:
+                            errorMessage = 'Credenciales incorrectas';
+                            break;
+                        case 403:
+                            errorMessage = 'No tiene permisos de acceso';
+                            break;
+                        case 500:
+                            errorMessage = 'Error del servidor. Contacte al administrador.';
+                            break;
+                        case 0:
+                            errorMessage = 'Sin conexión al servidor. Verifique su internet.';
+                            break;
+                    }
+                    
+                    this.showAlert(errorMessage, 'error');
+                    this.setLoadingState(false);
+                },
+                
+                // Estados de carga mejorados
+                setLoadingState: function(loading) {
+                    const btn = $('#loginBtn');
+                    const text = $('#loginText');
+                    const spinner = $('#loginSpinner');
+                    const form = $('#loginForm');
+                    
+                    if (loading) {
+                        btn.prop('disabled', true);
+                        text.text('Verificando credenciales...');
+                        spinner.show();
+                        form.find('input').prop('disabled', true);
+                    } else {
+                        btn.prop('disabled', false);
+                        text.text('Iniciar Sesión');
+                        spinner.hide();
+                        form.find('input').prop('disabled', false);
                     }
                 },
                 
-                // Manejo de alertas para login
+                // Manejo de alertas mejorado
                 showAlert: function(message, type) {
                     const container = $('#alertContainer');
                     const alert = $('#alertMessage');
@@ -491,40 +455,61 @@
                     if (type === 'success') {
                         setTimeout(() => {
                             this.hideAlert();
-                        }, 3000);
+                        }, 5000);
                     }
+                    
+                    // Scroll hasta la alerta si es necesario
+                    container[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 },
                 
                 hideAlert: function() {
                     $('#alertContainer').hide();
                 },
                 
-                // Manejo de alertas para reset
-                showResetAlert: function(message, type) {
-                    const container = $('#resetAlertContainer');
-                    const alert = $('#resetAlertMessage');
-                    
-                    alert.removeClass('alert-error alert-success');
-                    alert.addClass(type === 'error' ? 'alert-error' : 'alert-success');
-                    alert.text(message);
-                    container.show();
-                    
-                    // Auto-hide para mensajes de éxito
-                    if (type === 'success') {
-                        setTimeout(() => {
-                            this.hideResetAlert();
-                        }, 5000);
-                    }
+                // Seguridad: limpiar datos sensibles
+                clearFormData: function() {
+                    $('#password').val('');
                 },
                 
-                hideResetAlert: function() {
-                    $('#resetAlertContainer').hide();
+                clearSensitiveData: function() {
+                    // Limpiar datos sensibles cuando se sale de la página
+                    $('#password').val('');
+                },
+                
+                // Función para logout (si se necesita)
+                logout: function() {
+                    $.ajax({
+                        url: '{% url "admin_logout_api" %}',
+                        type: 'POST',
+                        headers: {
+                            'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val(),
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                window.location.href = response.redirect_url || '/login/';
+                            }
+                        },
+                        error: function() {
+                            // Forzar redirección incluso si hay error
+                            window.location.href = '/login/';
+                        }
+                    });
                 }
             };
             
             // Inicializar la aplicación cuando el documento esté listo
             $(document).ready(function() {
-                LoginApp.init();
+                AdminLoginApp.init();
+                
+                // Agregar manejo de errores globales
+                $(document).ajaxError(function(event, xhr, settings, thrownError) {
+                    if (xhr.status === 403 && xhr.responseJSON && xhr.responseJSON.error_code === 'CSRF_TOKEN_MISSING') {
+                        console.error('❌ Error CSRF - Recargando página...');
+                        location.reload();
+                    }
+                });
+                
+                console.log('🎯 AdminLoginApp inicializado correctamente');
             });
         </script>
     </body>

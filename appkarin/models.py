@@ -1,71 +1,14 @@
 from django.db import models
-import random
-import string
-import re
-from django.core.exceptions import ValidationError
+from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
+from django.core.exceptions import ValidationError
+from .utils import (
+                    validate_admin_password, validate_rut,generate_user_id, 
+                    generate_denuncia_code,validate_rut,
+                    )
+import re
 
 
-
-
-def validate_admin_password(password):
-    """Validador de contraseña estricto para admins"""
-    if len(password) < 8:
-        raise ValidationError('La contraseña debe tener al menos 8 caracteres')
-    
-    if not re.search(r'[A-Z]', password):
-        raise ValidationError('La contraseña debe tener al menos una letra mayúscula')
-    
-    if not re.search(r'[0-9]', password):
-        raise ValidationError('La contraseña debe tener al menos un número')
-    
-    if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
-        raise ValidationError('La contraseña debe tener al menos un símbolo (!@#$%^&*(),.?":{}|<>)')
-
-
-
-def generate_user_id():
-    """Genera un ID único de 5 caracteres alfanuméricos"""
-    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
-
-def generate_denuncia_code():
-    """Genera código de denuncia único"""
-    return f"DN-{''.join(random.choices(string.ascii_uppercase + string.digits, k=8))}"
-
-def validate_rut(rut):
-    """Validador de RUT chileno"""
-    # Remover puntos y guión para validación
-    clean_rut = re.sub(r'[.-]', '', rut)
-    
-    if len(clean_rut) < 8 or len(clean_rut) > 9:
-        raise ValidationError('RUT debe tener entre 8 y 9 dígitos')
-    
-    # Extraer número y dígito verificador
-    numero = clean_rut[:-1]
-    dv = clean_rut[-1].upper()
-    
-    # Calcular dígito verificador
-    suma = 0
-    multiplo = 2
-    
-    for digit in reversed(numero):
-        suma += int(digit) * multiplo
-        multiplo += 1
-        if multiplo == 8:
-            multiplo = 2
-    
-    resto = suma % 11
-    dv_calculado = 11 - resto
-    
-    if dv_calculado == 11:
-        dv_calculado = '0'
-    elif dv_calculado == 10:
-        dv_calculado = 'K'
-    else:
-        dv_calculado = str(dv_calculado)
-    
-    if dv != dv_calculado:
-        raise ValidationError('RUT inválido')
 
 
 class Tiempo(models.Model):
@@ -289,31 +232,30 @@ class Archivo(models.Model):
     url=models.URLField(max_length=500)
     nombre=models.CharField(max_length=250)
     descripción=models.CharField(max_length=250)
-    Peso=models.IntegerField()
+    Peso = models.IntegerField(
+        default=0,  # Valor por defecto para archivos existentes
+        help_text="Peso del archivo en bytes"
+    )
 
     class Meta:
         verbose_name = "Archivo"
         verbose_name_plural = "Archivos"
 
 
-class Admin(models.Model):
+class AdminDenuncias(AbstractUser):
    
     rut = models.CharField(max_length=12, unique=True, blank=True, null=True, validators=[validate_rut])
-    nombre = models.CharField(max_length=250)
-    apellidos = models.CharField(max_length=250)
-    correo = models.EmailField(max_length=250, unique=True)
-    contraseña = models.CharField(max_length=250, validators=[validate_admin_password])
     rol_categoria=models.ForeignKey(Categoria, on_delete=models.CASCADE)
 
     class Meta:
-        verbose_name = "Administrador"
-        verbose_name_plural = "Administradores"
+        verbose_name = "Administrador de Denuncias"
+        verbose_name_plural = "Administradores de Denuncias"
 
 
 class Foro(models.Model):
     denuncia=models.ForeignKey(Denuncia, on_delete=models.CASCADE)
     admin = models.ForeignKey(
-        Admin,
+        AdminDenuncias,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,

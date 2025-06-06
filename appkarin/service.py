@@ -1,21 +1,325 @@
 from django.shortcuts import render, redirect
 from .models import *
 from django.http import HttpResponse, JsonResponse
-from django.contrib import messages
 from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
 from .serializers import (
     DenunciaCreateSerializer, UsuarioCreateSerializer, 
     CategoriaWithItemsSerializer, DenunciaWizardDataSerializer,
     ConsultaDenunciaSerializer, DenunciaListSerializer,
-    ItemSelectionSerializer,AdminSerializer
+    ItemSelectionSerializer
 )
-import re
-import json
+
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 import time
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_http_methods
+from django.contrib.sessions.models import Session
+from django.utils import timezone
+import logging
+
+
+
+# Configurar logger
+logger = logging.getLogger(__name__)
+
+# =================================================================
+# 🔐 AUTENTICACIÓN DE ADMINISTRADORES
+# =================================================================
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ServiceLoginAdminAPIView(APIView):
+    """
+    🎯 API REST para autenticación de AdminDenuncias
+    
+    Maneja el login de administradores que heredan de AbstractUser
+    """
+    
+    def post(self, request, *args, **kwargs):
+        """
+        Autenticar administrador de denuncias
+        
+        Entrada:
+        - username: String - Usuario o email del administrador
+        - password: String - Contraseña del administrador
+        
+        Salida:
+        - success: Boolean - Si el login fue exitoso
+        - message: String - Mensaje descriptivo
+        - redirect_url: String - URL de redirección
+        - user_info: Object - Información del usuario autenticado
+        """
+        try:
+            # ✅ OBTENER CREDENCIALES
+            username = request.data.get('username', '').strip()
+            password = request.data.get('password', '')
+            
+            print(f"🔐 Intento de login para: {username}")
+            
+            # ✅ VALIDACIONES BÁSICAS
+            if not username or not password:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Usuario y contraseña son requeridos',
+                    'error_code': 'MISSING_CREDENTIALS'
+                }, status=400, json_dumps_params={'ensure_ascii': False})
+            
+            # ✅ AUTENTICAR USUARIO
+            # Django automáticamente busca en el modelo de usuario configurado
+            # que en este caso incluye AdminDenuncias
+            user = authenticate(request, username=username, password=password)
+            
+            if user is not None:
+                # ✅ VERIFICAR QUE SEA ADMIN DE DENUNCIAS
+                try:
+                    admin_denuncias = AdminDenuncias.objects.get(id=user.id)
+                    print(f"✅ Admin encontrado: {admin_denuncias.username}")
+                except AdminDenuncias.DoesNotExist:
+                    print(f"❌ Usuario no es AdminDenuncias: {user.username}")
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'No tiene permisos de administrador',
+                        'error_code': 'NOT_ADMIN'
+                    }, status=403, json_dumps_params={'ensure_ascii': False})
+                
+                # ✅ VERIFICAR QUE EL USUARIO ESTÉ ACTIVO
+                if not user.is_active:
+                    print(f"❌ Usuario inactivo: {user.username}")
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Cuenta desactivada. Contacte al administrador.',
+                        'error_code': 'USER_INACTIVE'
+                    }, status=403, json_dumps_params={'ensure_ascii': False})
+                
+                # ✅ REALIZAR LOGIN
+                login(request, user)
+                
+                # ✅ ACTUALIZAR ÚLTIMO LOGIN
+                user.last_login = timezone.now()
+                user.save(update_fields=['last_login'])
+                
+                # ✅ LIMPIAR SESIONES PREVIAS (opcional, para seguridad)
+                self._clear_user_sessions(user)
+                
+                # ✅ PREPARAR INFORMACIÓN DEL USUARIO
+                user_info = {
+                    'id': admin_denuncias.id,
+                    'username': admin_denuncias.username,
+                    'first_name': admin_denuncias.first_name,
+                    'last_name': admin_denuncias.last_name,
+                    'email': admin_denuncias.email,
+                    'rut': admin_denuncias.rut,
+                    'categoria': {
+                        'id': admin_denuncias.rol_categoria.id,
+                        'nombre': admin_denuncias.rol_categoria.nombre
+                    } if admin_denuncias.rol_categoria else None,
+                    'is_staff': admin_denuncias.is_staff,
+                    'is_superuser': admin_denuncias.is_superuser,
+                    'last_login': admin_denuncias.last_login.isoformat() if admin_denuncias.last_login else None,
+                    'date_joined': admin_denuncias.date_joined.isoformat()
+                }
+                
+                # ✅ DETERMINAR URL DE REDIRECCIÓN
+                redirect_url = self._get_redirect_url(admin_denuncias, request)
+                
+                print(f"✅ Login exitoso para: {admin_denuncias.username}")
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Bienvenido, {admin_denuncias.first_name or admin_denuncias.username}',
+                    'redirect_url': redirect_url,
+                    'user_info': user_info,
+                    'session_data': {
+                        'session_key': request.session.session_key,
+                        'expires': request.session.get_expiry_date().isoformat()
+                    }
+                }, status=200, json_dumps_params={'ensure_ascii': False})
+                
+            else:
+                print(f"❌ Credenciales inválidas para: {username}")
+                
+                # ✅ LOG DE SEGURIDAD
+                logger.warning(f"Intento de login fallido para usuario: {username} desde IP: {self._get_client_ip(request)}")
+                
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Usuario o contraseña incorrectos',
+                    'error_code': 'INVALID_CREDENTIALS'
+                }, status=401, json_dumps_params={'ensure_ascii': False})
+                
+        except Exception as e:
+            print(f"❌ Error en ServiceLoginAdminAPIView: {str(e)}")
+            logger.error(f"Error en login admin: {str(e)}")
+            
+            return JsonResponse({
+                'success': False,
+                'message': 'Error interno del servidor',
+                'error_code': 'INTERNAL_SERVER_ERROR'
+            }, status=500, json_dumps_params={'ensure_ascii': False})
+    
+    def _get_redirect_url(self, admin_user, request):
+        """Determinar URL de redirección basada en el rol del usuario"""
+        try:
+            # URL por defecto
+            default_url = '/admin/dashboard/'
+            
+            # Verificar si hay una URL solicitada en la sesión
+            next_url = request.GET.get('next') or request.session.get('next_url')
+            
+            if next_url:
+                # Validar que la URL sea segura
+                if self._is_safe_url(next_url):
+                    return next_url
+            
+            # Redirección basada en el tipo de usuario
+            if admin_user.is_superuser:
+                return '/admin/dashboard/super/'
+            elif admin_user.is_staff:
+                return '/admin/dashboard/staff/'
+            elif admin_user.rol_categoria:
+                # Redirección basada en la categoría
+                categoria = admin_user.rol_categoria.nombre.lower()
+                return f'/admin/dashboard/{categoria}/'
+            
+            return default_url
+            
+        except Exception as e:
+            print(f"❌ Error determinando URL de redirección: {str(e)}")
+            return '/admin/dashboard/'
+    
+    def _is_safe_url(self, url):
+        """Validar que la URL sea segura para redirección"""
+        try:
+            # URLs que empiecen con / son seguras (relativas)
+            if url.startswith('/') and not url.startswith('//'):
+                return True
+            
+            # Rechazar URLs externas o maliciosas
+            return False
+            
+        except Exception:
+            return False
+    
+    def _clear_user_sessions(self, user):
+        """Limpiar sesiones anteriores del usuario (opcional)"""
+        try:
+            # Obtener todas las sesiones activas
+            active_sessions = Session.objects.filter(expire_date__gte=timezone.now())
+            
+            for session in active_sessions:
+                session_data = session.get_decoded()
+                if session_data.get('_auth_user_id') == str(user.id):
+                    session.delete()
+                    
+            print(f"🧹 Sesiones anteriores limpiadas para usuario: {user.username}")
+            
+        except Exception as e:
+            print(f"⚠️ Error limpiando sesiones: {str(e)}")
+            # No es crítico, continuar sin interrumpir el login
+    
+    def _get_client_ip(self, request):
+        """Obtener IP del cliente para logs de seguridad"""
+        try:
+            x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+            if x_forwarded_for:
+                ip = x_forwarded_for.split(',')[0]
+            else:
+                ip = request.META.get('REMOTE_ADDR')
+            return ip
+        except Exception:
+            return 'unknown'
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ServiceLogoutAdminAPIView(APIView):
+    """
+    🎯 API REST para cerrar sesión de AdminDenuncias
+    """
+    
+    def post(self, request, *args, **kwargs):
+        """Cerrar sesión del administrador"""
+        try:
+            if request.user.is_authenticated:
+                username = request.user.username
+                print(f"🚪 Cerrando sesión para: {username}")
+                
+                # Cerrar sesión
+                logout(request)
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Sesión cerrada correctamente',
+                    'redirect_url': '/login/'
+                }, status=200, json_dumps_params={'ensure_ascii': False})
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'No hay sesión activa',
+                    'redirect_url': '/login/'
+                }, status=400, json_dumps_params={'ensure_ascii': False})
+                
+        except Exception as e:
+            print(f"❌ Error en logout: {str(e)}")
+            return JsonResponse({
+                'success': False,
+                'message': 'Error al cerrar sesión',
+                'redirect_url': '/login/'
+            }, status=500, json_dumps_params={'ensure_ascii': False})
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ServiceCheckAuthAdminAPIView(APIView):
+    """
+    🎯 API REST para verificar autenticación de AdminDenuncias
+    """
+    
+    def get(self, request, *args, **kwargs):
+        """Verificar si el usuario está autenticado"""
+        try:
+            if request.user.is_authenticated:
+                try:
+                    # Verificar que sea AdminDenuncias
+                    admin_denuncias = AdminDenuncias.objects.get(id=request.user.id)
+                    
+                    return JsonResponse({
+                        'success': True,
+                        'authenticated': True,
+                        'user_info': {
+                            'id': admin_denuncias.id,
+                            'username': admin_denuncias.username,
+                            'first_name': admin_denuncias.first_name,
+                            'last_name': admin_denuncias.last_name,
+                            'email': admin_denuncias.email,
+                            'categoria': admin_denuncias.rol_categoria.nombre if admin_denuncias.rol_categoria else None,
+                            'is_staff': admin_denuncias.is_staff,
+                            'is_superuser': admin_denuncias.is_superuser
+                        }
+                    }, status=200, json_dumps_params={'ensure_ascii': False})
+                    
+                except AdminDenuncias.DoesNotExist:
+                    # Usuario autenticado pero no es AdminDenuncias
+                    logout(request)
+                    return JsonResponse({
+                        'success': False,
+                        'authenticated': False,
+                        'message': 'Usuario no autorizado'
+                    }, status=403, json_dumps_params={'ensure_ascii': False})
+            else:
+                return JsonResponse({
+                    'success': True,
+                    'authenticated': False,
+                    'message': 'Usuario no autenticado'
+                }, status=200, json_dumps_params={'ensure_ascii': False})
+                
+        except Exception as e:
+            print(f"❌ Error verificando autenticación: {str(e)}")
+            return JsonResponse({
+                'success': False,
+                'authenticated': False,
+                'message': 'Error verificando autenticación'
+            }, status=500, json_dumps_params={'ensure_ascii': False})
+
 
 
 
@@ -188,137 +492,6 @@ class ValidateRutAPIView(APIView):
                 'message': 'Error interno del servidor',
                 'error_type': 'server_error'
             }, status=500, json_dumps_params={'ensure_ascii': False})
-
-
-class ServiceAdminResetPassword(APIView):
-
-    """
-    🎯 API REST para generar el reset password
-    """
-
-    def post(self, request, *args, **kwargs):
-        try:
-            print(f"📥 Datos recibidos en items: {request.data}")
-            print(f"📥 Content type: {request.content_type}")
-            
-            # 🚀 USAR SERIALIZER COMPLETO para validación automática
-            serializer = AdminSerializer(data=request.data)
-            
-            if serializer.is_valid():
-                # ✅ Datos automáticamente validados por el serializer
-                item_id = serializer.validated_data['denuncia_item']
-                validated_item = serializer.get_validated_item()
-                
-                # ✅ RESPUESTA JSON CORRECTA con encoding UTF-8
-                response_data = {
-                    'success': True,
-                    'message': 'Item procesado correctamente',
-                    'redirect_url': '/denuncia/Paso2/',
-                    'data': {
-                        'selected_item': {
-                            'id': validated_item.id,
-                            'enunciado': validated_item.enunciado,
-                            'categoria': {
-                                'id': validated_item.categoria.id,
-                                'nombre': validated_item.categoria.nombre
-                            }
-                        }
-                    }
-                }
-                
-                # ✅ RETORNAR JsonResponse con encoding correcto
-                return JsonResponse(
-                    response_data, 
-                    status=200,
-                    json_dumps_params={'ensure_ascii': False}  # ✅ Para caracteres especiales
-                )
-            else:
-                print(f"❌ Errores de validación: {serializer.errors}")
-                # ✅ ERRORES AUTOMÁTICOS del serializer
-                return JsonResponse({
-                    'success': False,
-                    'message': 'Debe seleccionar el tipo de denuncia',
-                    'errors': serializer.errors
-                }, status=400, json_dumps_params={'ensure_ascii': False})
-                
-        except Exception as e:
-            print(f"❌ Error en ServiceItemsAPIView: {str(e)}")
-            return JsonResponse({
-                'success': False,
-                'message': 'Error interno del servidor',
-                'error': str(e)
-            }, status=500, json_dumps_params={'ensure_ascii': False})
-
-
-
-
-class ServiceLoginAdminAPIView(APIView):
-
-    """
-    🎯 API REST para generar el login de Admin
-    """
-
-    def post(self, request, *args, **kwargs):
-        try:
-            print(f"📥 Datos recibidos en items: {request.data}")
-            print(f"📥 Content type: {request.content_type}")
-            
-            # 🚀 USAR SERIALIZER COMPLETO para validación automática
-            serializer = ItemSelectionSerializer(data=request.data)
-            
-            if serializer.is_valid():
-                # ✅ Datos automáticamente validados por el serializer
-                item_id = serializer.validated_data['denuncia_item']
-                validated_item = serializer.get_validated_item()
-                
-                # ⭐ GUARDAR EN SESIÓN CORRECTAMENTE
-                request.session['item_id'] = str(item_id)
-                request.session.save()  # ✅ Forzar guardado inmediato
-                
-                print(f"✅ Item guardado en sesión: {item_id}")
-                print(f"🔍 Sesión actual: {dict(request.session)}")
-                
-                # ✅ RESPUESTA JSON CORRECTA con encoding UTF-8
-                response_data = {
-                    'success': True,
-                    'message': 'Item procesado correctamente',
-                    'redirect_url': '/denuncia/Paso2/',
-                    'data': {
-                        'selected_item': {
-                            'id': validated_item.id,
-                            'enunciado': validated_item.enunciado,
-                            'categoria': {
-                                'id': validated_item.categoria.id,
-                                'nombre': validated_item.categoria.nombre
-                            }
-                        }
-                    }
-                }
-                
-                # ✅ RETORNAR JsonResponse con encoding correcto
-                return JsonResponse(
-                    response_data, 
-                    status=200,
-                    json_dumps_params={'ensure_ascii': False}  # ✅ Para caracteres especiales
-                )
-            else:
-                print(f"❌ Errores de validación: {serializer.errors}")
-                # ✅ ERRORES AUTOMÁTICOS del serializer
-                return JsonResponse({
-                    'success': False,
-                    'message': 'Debe seleccionar el tipo de denuncia',
-                    'errors': serializer.errors
-                }, status=400, json_dumps_params={'ensure_ascii': False})
-                
-        except Exception as e:
-            print(f"❌ Error en ServiceItemsAPIView: {str(e)}")
-            return JsonResponse({
-                'success': False,
-                'message': 'Error interno del servidor',
-                'error': str(e)
-            }, status=500, json_dumps_params={'ensure_ascii': False})
-
-
 
 
 

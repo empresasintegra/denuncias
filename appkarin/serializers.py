@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (
     Tiempo, Categoria, Item, RelacionEmpresa, Usuario, Denuncia, 
-    Archivo, Admin, Foro, DenunciaEstado, EstadosDenuncia,
+    Archivo, Foro, AdminDenuncias,DenunciaEstado, EstadosDenuncia,
     validate_rut, validate_admin_password
 )
 import re
@@ -351,61 +351,6 @@ class ArchivoCreateSerializer(serializers.ModelSerializer):
         return value
 
 
-# =================================================================
-# SERIALIZERS DE ADMIN
-# =================================================================
-
-class AdminSerializer(serializers.ModelSerializer):
-    """Serializer para administradores"""
-    
-    categoria_nombre = serializers.CharField(source='rol_categoria.nombre', read_only=True)
-
-    contraseña = serializers.CharField(
-        write_only=True,
-        style={'input_type': 'password'},
-        help_text="Mínimo 8 caracteres, una mayúscula, un número y un símbolo"
-    )
-    
-    class Meta:
-        model = Admin
-        fields = [
-            'id', 'rut', 'nombre', 'apellidos', 'correo', 
-            'rol_categoria', 'categoria_nombre', 'nombre_completo'
-        ]
-
-        extra_kwargs = {
-            'contraseña': {'write_only': True}
-        }
-
-    def get_nombre_completo(self, obj):
-        return f"{obj.nombre} {obj.apellidos}".strip()
-    
-    def validate_rut(self, value):
-        """Validar RUT de admin"""
-        if value:
-            try:
-                validate_rut(value)
-            except Exception as e:
-                raise serializers.ValidationError(str(e))
-        return value
-    
-    def validate_contraseña(self, value):
-        """Validar contraseña de admin"""
-        try:
-            validate_admin_password(value)
-        except Exception as e:
-            raise serializers.ValidationError(str(e))
-        return value
-    
-    def create(self, validated_data):
-        """Crear admin con contraseña hasheada"""
-        # Nota: Aquí deberías hashear la contraseña si no lo haces en el modelo
-        return Admin.objects.create(**validated_data)
-    
-    def update_password(self,administrador,new_password):
-        """Crear admin con contraseña hasheada"""
-        # Nota: Aquí deberías hashear la contraseña si no lo haces en el modelo
-        return administrador.update(contraseña=new_password)
 
 
 # =================================================================

@@ -7,23 +7,33 @@ from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
 from appkarin import views
 from appkarin.service import (
+    ServiceLoginAdminAPIView,
+    ServiceLogoutAdminAPIView, 
+    ServiceCheckAuthAdminAPIView,
     ServiceItemsAPIView,
     ServiceProcessDenunciaAPIView,
     ServiceUserDenunciaAPIView,
-    ServiceAdminResetPassword,
     DenunciaWizardDataAPIView,
     ConsultaDenunciaAPIView,
     ValidateRutAPIView,              # ⭐ NUEVA API
     AutocompleteUserDataAPIView      # ⭐ NUEVA API
 )
+
 from appkarin.service_datatable import (
-    DenunciaDataTableAPIView,
-    DenunciaDataTableConfigAPIView,
-    DenunciaExportAPIView,
-    DenunciaDataTableStatsAPIView
+    SimpleDenunciaDataTableAPIView,
 )
 
+
 urlpatterns = [
+    
+    # 🔐 RUTAS DE AUTENTICACIÓN ADMIN
+    path('api/admin/login/', ServiceLoginAdminAPIView.as_view(), name='admin_login_api'),
+    path('api/admin/logout/', ServiceLogoutAdminAPIView.as_view(), name='admin_logout_api'),
+    path('api/admin/check-auth/', ServiceCheckAuthAdminAPIView.as_view(), name='admin_check_auth_api'),
+
+
+
+
     # =================================================================
     # APIs CON LAS MISMAS URLs EXACTAS (Corregidas para evitar 404)
     # =================================================================
@@ -64,10 +74,6 @@ urlpatterns = [
          csrf_exempt(ConsultaDenunciaAPIView.as_view()), 
          name='consulta_denuncia'),
 
-    path('api/update/admin/password/', 
-         csrf_exempt(ServiceAdminResetPassword.as_view()), 
-         name='update_password'),
-
 
     # =================================================================
     # VISTAS PARA RENDERIZAR TEMPLATES (Sin cambios)
@@ -86,35 +92,13 @@ urlpatterns = [
     # =================================================================
     # VISTAS PARA RENDERIZAR Y GENERAR DATATABLES (Sin cambios)
     # =================================================================
-
-
-    path('api/datatable/denuncias/', 
-         csrf_exempt(DenunciaDataTableAPIView.as_view()), 
-         name='datatable_denuncias'),
-    
-    # API de configuración de columnas
-    path('api/datatable/denuncias/config/', 
-         DenunciaDataTableConfigAPIView.as_view(), 
-         name='datatable_config'),
-    
-    # API de exportación
-    path('api/datatable/denuncias/export/', 
-         csrf_exempt(DenunciaExportAPIView.as_view()), 
-         name='datatable_export'),
-    
-    # API de estadísticas
-    path('api/datatable/denuncias/stats/', 
-         DenunciaDataTableStatsAPIView.as_view(), 
-         name='datatable_stats'),
-    
-    # Vista para renderizar el DataTable
-    path('admin/denuncias/datatable/', 
-         views.renderDataTableDenuncias, 
-         name='datatable_view'),
-    
-    path('denuncias/consulta/', 
-         views.renderDataTableDenuncias, 
-         name='datatable_view'),
+     path('api/datatable/denuncias/simple/', 
+         csrf_exempt(SimpleDenunciaDataTableAPIView.as_view()), 
+         name='datatable_simple'),
+     
+     path('denuncias/consulta/', 
+         views.renderConsultaDenuncia, 
+         name='consulta_denuncias'),
 
 
     # =================================================================
