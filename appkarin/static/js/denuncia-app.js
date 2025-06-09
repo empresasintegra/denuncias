@@ -333,21 +333,688 @@ const DenunciaApp = {
         },
 
         // ... resto de funciones del itemsPage se mantienen igual ...
-        setupSelectionEffects: function() { /* código existente */ },
-        setupCollapseSystem: function() { /* código existente */ },
-        // etc...
+       setupSelectionEffects: function() {
+            document.querySelectorAll('.form-check-input').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    // Remover selección previa de todas las categorías
+                    document.querySelectorAll('.categoria-card').forEach(card => {
+                        card.classList.remove('has-selection');
+                    });
+                    
+                    // Remover selección previa de todos los radio buttons
+                    document.querySelectorAll('.form-check-input[name="denuncia_item"]').forEach(r => {
+                        r.closest('.form-check-label').classList.remove('selected');
+                    });
+                    
+                    // Agregar selección actual
+                    if (this.checked) {
+                        this.closest('.form-check-label').classList.add('selected');
+                        
+                        // Marcar la categoría como seleccionada
+                        const categoriaCard = this.closest('.categoria-card');
+                        if (categoriaCard) {
+                            categoriaCard.classList.add('has-selection');
+                        }
+                        
+                        console.log('✅ Item seleccionado:', this.value);
+                        console.log('📂 Categoría:', this.dataset.categoria);
+                    }
+                });
+            });
+        },
+
+        // ===========================================
+        // SISTEMA DE COLLAPSE
+        // ===========================================
+        setupCollapseSystem: function() {
+            console.log('🎯 Configurando sistema de collapse');
+            
+            // Inicializar todas las categorías como colapsadas
+            document.querySelectorAll('.categoria-card').forEach(card => {
+                this.collapseCategory(card, false); // Sin animación inicial
+            });
+
+            // Configurar eventos de teclado para accesibilidad
+            document.querySelectorAll('.categoria-header').forEach(header => {
+                header.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        const categoriaId = header.closest('.categoria-card').dataset.categoriaId;
+                        this.toggleCategoria(parseInt(categoriaId));
+                    }
+                });
+            });
+        },
+
+        toggleCategoria: function(categoriaId) {
+            console.log(`🔄 Toggle categoría: ${categoriaId}`);
+            
+            const card = document.querySelector(`[data-categoria-id="${categoriaId}"]`);
+            if (!card) {
+                console.error(`❌ No se encontró categoría con ID: ${categoriaId}`);
+                return;
+            }
+
+            const isExpanded = DenunciaApp.vars.expandedCategories.has(categoriaId);
+            
+            if (isExpanded) {
+                this.collapseCategory(card);
+                DenunciaApp.vars.expandedCategories.delete(categoriaId);
+                console.log(`📉 Categoría ${categoriaId} colapsada`);
+            } else {
+                this.expandCategory(card);
+                DenunciaApp.vars.expandedCategories.add(categoriaId);
+                console.log(`📈 Categoría ${categoriaId} expandida`);
+            }
+
+            // Actualizar atributos de accesibilidad
+            this.updateAccessibilityAttributes(card, !isExpanded);
+        },
+
+        expandCategory: function(card, withAnimation = true) {
+            const content = card.querySelector('.categoria-content');
+            const toggle = card.querySelector('.categoria-toggle');
+            const icon = toggle.querySelector('i');
+
+            // Aplicar clases CSS
+            card.classList.remove('collapsed');
+            card.classList.add('expanded');
+            toggle.classList.add('expanded');
+            
+            if (withAnimation) {
+                // Animar la expansión
+                content.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+            } else {
+                content.style.transition = 'none';
+            }
+            
+            content.classList.add('expanded');
+            
+            // Cambiar icono
+            icon.className = 'fas fa-chevron-up';
+
+            // Scroll suave hacia la categoría expandida
+            if (withAnimation) {
+                setTimeout(() => {
+                    card.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'nearest' 
+                    });
+                }, 200);
+            }
+        },
+
+        collapseCategory: function(card, withAnimation = true) {
+            const content = card.querySelector('.categoria-content');
+            const toggle = card.querySelector('.categoria-toggle');
+            const icon = toggle.querySelector('i');
+
+            // Aplicar clases CSS
+            card.classList.remove('expanded');
+            card.classList.add('collapsed');
+            toggle.classList.remove('expanded');
+            
+            if (withAnimation) {
+                content.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+            } else {
+                content.style.transition = 'none';
+            }
+            
+            content.classList.remove('expanded');
+            
+            // Cambiar icono
+            icon.className = 'fas fa-chevron-down';
+        },
+
+        updateToggleButtons: function() {
+            const totalCategories = document.querySelectorAll('.categoria-card').length;
+            const expandedCount = DenunciaApp.vars.expandedCategories.size;
+            
+            const expandBtn = document.querySelector('.toggle-all-btn:not(.collapse-all)');
+            const collapseBtn = document.querySelector('.toggle-all-btn.collapse-all');
+            
+            if (expandedCount === 0) {
+                // Todas colapsadas
+                if (expandBtn) {
+                    expandBtn.innerHTML = '<i class="fas fa-expand-arrows-alt"></i> Expandir Todo';
+                    expandBtn.disabled = false;
+                }
+                if (collapseBtn) {
+                    collapseBtn.disabled = true;
+                }
+            } else if (expandedCount === totalCategories) {
+                // Todas expandidas
+                if (expandBtn) {
+                    expandBtn.disabled = true;
+                }
+                if (collapseBtn) {
+                    collapseBtn.innerHTML = '<i class="fas fa-compress-arrows-alt"></i> Contraer Todo';
+                    collapseBtn.disabled = false;
+                }
+            } else {
+                // Estado mixto
+                if (expandBtn) {
+                    expandBtn.innerHTML = `<i class="fas fa-expand-arrows-alt"></i> Expandir Restantes (${totalCategories - expandedCount})`;
+                    expandBtn.disabled = false;
+                }
+                if (collapseBtn) {
+                    collapseBtn.innerHTML = `<i class="fas fa-compress-arrows-alt"></i> Contraer Expandidas (${expandedCount})`;
+                    collapseBtn.disabled = false;
+                }
+            }
+        },
+
+        // ===========================================
+        // ACCESIBILIDAD
+        // ===========================================
+        initAccessibility: function() {
+            console.log('♿ Configurando accesibilidad');
+            
+            // Agregar atributos ARIA
+            document.querySelectorAll('.categoria-header').forEach(header => {
+                header.setAttribute('role', 'button');
+                header.setAttribute('tabindex', '0');
+                header.setAttribute('aria-label', 'Expandir/contraer categoría');
+            });
+
+            document.querySelectorAll('.categoria-content').forEach(content => {
+                content.setAttribute('role', 'region');
+                content.setAttribute('aria-hidden', 'true');
+            });
+
+            // Configurar navegación por teclado
+            document.addEventListener('keydown', (e) => {
+                if (e.target.classList.contains('categoria-header')) {
+                    switch(e.key) {
+                        case 'ArrowDown':
+                            e.preventDefault();
+                            this.focusNextCategory(e.target);
+                            break;
+                        case 'ArrowUp':
+                            e.preventDefault();
+                            this.focusPrevCategory(e.target);
+                            break;
+                    }
+                }
+            });
+        },
+
+        updateAccessibilityAttributes: function(card, isExpanded) {
+            const header = card.querySelector('.categoria-header');
+            const content = card.querySelector('.categoria-content');
+            
+            header.setAttribute('aria-expanded', isExpanded.toString());
+            content.setAttribute('aria-hidden', (!isExpanded).toString());
+        },
+
+        focusNextCategory: function(currentHeader) {
+            const headers = Array.from(document.querySelectorAll('.categoria-header'));
+            const currentIndex = headers.indexOf(currentHeader);
+            const nextIndex = (currentIndex + 1) % headers.length;
+            headers[nextIndex].focus();
+        },
+
+        focusPrevCategory: function(currentHeader) {
+            const headers = Array.from(document.querySelectorAll('.categoria-header'));
+            const currentIndex = headers.indexOf(currentHeader);
+            const prevIndex = currentIndex === 0 ? headers.length - 1 : currentIndex - 1;
+            headers[prevIndex].focus();
+        }
     },
+       
 
     // ===========================================
     // MÓDULO: PÁGINA DEL WIZARD (sin cambios)
     // ===========================================
     wizardPage: {
-        // ... todo el código del wizard se mantiene igual ...
-        init: function() { /* código existente */ },
-        setupSmartWizard: function() { /* código existente */ },
-        // etc...
-    },
+        init: function() {
+            console.log('🧙‍♂️ Inicializando wizard');
+            
+            // Esperar a que jQuery y SmartWizard estén listos
+            if (typeof $ === 'undefined') {
+                console.log('⏳ Esperando jQuery...');
+                setTimeout(() => this.init(), 100);
+                return;
+            }
 
+            this.setupSmartWizard();
+            this.setupTextareaCounter();
+            this.initFileUpload();
+            this.setupRelacionEmpresaHandler();
+        },
+
+        setupRelacionEmpresaHandler: function() {
+            console.log('🔧 Configurando handler para relación empresa');
+            
+            // Detectar cambios en los radio buttons de relación empresa
+            $('input[name="denuncia_relacion"]').on('change', function() {
+                const rol = $(this).data('rol');
+                const otroContainer = $('#otro-descripcion-container');
+                const otroInput = $('#descripcion_relacion');
+                
+                console.log(`📌 Relación seleccionada: ${rol}`);
+                
+                if (rol && rol.toLowerCase() === 'otro') {
+                    // Mostrar campo con animación
+                    otroContainer.slideDown(300);
+                    otroInput.prop('required', true);
+                    console.log('✅ Campo "Otro" activado');
+                } else {
+                    // Ocultar campo y limpiar valor
+                    otroContainer.slideUp(300);
+                    otroInput.prop('required', false).val('');
+                    console.log('❌ Campo "Otro" desactivado');
+                }
+            });
+            
+            // Verificar si ya hay una selección al cargar
+            const selectedRadio = $('input[name="denuncia_relacion"]:checked');
+            if (selectedRadio.length > 0) {
+                selectedRadio.trigger('change');
+            }
+        },
+
+        setupSmartWizard: function() {
+            const wizardElement = $('#smartwizard');
+            if (wizardElement.length === 0) {
+                console.log('❌ No se encontró #smartwizard');
+                return;
+            }
+
+            console.log('✅ Configurando SmartWizard');
+
+            wizardElement.smartWizard({
+                selected: 0,
+                theme: 'default',
+                justified: true,
+                autoAdjustHeight: true,
+                backButtonSupport: false,
+                enableUrlHash: false,
+                transition: {
+                    animation: 'slideHorizontal',
+                    speed: '200'
+                },
+                toolbar: {
+                    showNextButton: false,
+                    showPreviousButton: false
+                }
+            });
+
+            this.showStep(0);
+
+            wizardElement.on("leaveStep", (e, anchorObject, currentStepIndex, nextStepIndex, stepDirection) => {
+                if (stepDirection === 'forward') {
+                    return this.validateStep(currentStepIndex);
+                }
+                return true;
+            });
+
+            wizardElement.on("showStep", (e, anchorObject, stepIndex, stepDirection, stepPosition) => {
+                DenunciaApp.vars.currentStep = stepIndex;
+                console.log(`📍 Mostrando paso: ${stepIndex + 1}`);
+                this.updateNavigation();
+                
+                // ⭐ NUEVO: Limpiar errores previos al cambiar de paso
+                $('.alert-danger').fadeOut(300, function() {
+                    $(this).remove();
+                });
+                
+                if (stepIndex === 3) {
+                    setTimeout(() => {
+                        this.setupFileUpload();
+                    }, 100);
+                }
+            });
+        },
+
+        setupTextareaCounter: function() {
+            $('#descripcion-textarea').on('input', function() {
+                const texto = $(this).val().trim();
+                const caracteres = texto.length;
+                
+                $('#palabras-count').text(caracteres);
+                
+                const contador = $('#contador-palabras');
+                if (caracteres < 50) {
+                    contador.css('color', '#d63384').removeClass('text-success');
+                } else {
+                    contador.css('color', '#198754').addClass('text-success');
+                }
+            });
+        },
+
+        // Navegación
+        nextStep: function() {
+            console.log(`➡️ Avanzando desde paso ${DenunciaApp.vars.currentStep + 1}`);
+            if (this.validateStep(DenunciaApp.vars.currentStep)) {
+                $('#smartwizard').smartWizard("next");
+            }
+        },
+
+        prevStep: function() {
+            console.log(`⬅️ Retrocediendo desde paso ${DenunciaApp.vars.currentStep + 1}`);
+            $('#smartwizard').smartWizard("prev");
+        },
+
+        showStep: function(step) {
+            $('#smartwizard').smartWizard("goToStep", step);
+        },
+
+        updateNavigation: function() {
+            for (let i = 1; i <= DenunciaApp.vars.totalSteps; i++) {
+                const prevBtn = document.getElementById(`btn-prev-${i}`);
+                if (prevBtn) {
+                    prevBtn.disabled = DenunciaApp.vars.currentStep === 0;
+                }
+            }
+        },
+
+        // ⭐ FUNCIÓN MEJORADA: Validación por paso con mejor manejo de errores
+        validateStep: function(stepIndex) {
+            let isValid = true;
+            let errorMessage = '';
+
+            console.log(`🔍 Validando paso ${stepIndex + 1}`);
+
+            switch(stepIndex) {
+                case 0:
+                    // Validar selección de relación
+                    const relacionSeleccionada = $('input[name="denuncia_relacion"]:checked');
+                    if (!relacionSeleccionada.length) {
+                        errorMessage = 'Por favor seleccione su relación con la empresa';
+                        isValid = false;
+                    } else {
+                        // Si seleccionó "Otro", validar el campo de descripción
+                        const rol = relacionSeleccionada.data('rol');
+                        if (rol && rol.toLowerCase() === 'otro') {
+                            const descripcionOtro = $('#descripcion_relacion').val().trim();
+                            if (!descripcionOtro) {
+                                errorMessage = 'Por favor especifique su relación con la empresa';
+                                isValid = false;
+                            } else if (descripcionOtro.length < 3) {
+                                errorMessage = 'La descripción debe tener al menos 3 caracteres';
+                                isValid = false;
+                            }
+                        }
+                    }
+                    break;
+                
+                case 1:
+                    if (!$('select[name="denuncia_tiempo"]').val()) {
+                        errorMessage = 'Por favor seleccione hace cuánto tiempo ocurren los hechos';
+                        isValid = false;
+                    }
+                    break;
+                
+                case 2:
+                    const descripcion = $('textarea[name="descripcion"]').val().trim();
+                    if (!descripcion) {
+                        errorMessage = 'Por favor ingrese una descripción de los hechos';
+                        isValid = false;
+                    } else if (descripcion.length < 50) {
+                        errorMessage = 'La descripción debe tener al menos 50 caracteres';
+                        isValid = false;
+                    }
+                    break;
+                
+                case 3:
+                    isValid = true;
+                    break;
+            }
+
+            if (!isValid) {
+                console.log(`❌ Validación falló en paso ${stepIndex + 1}: ${errorMessage}`);
+                // ⭐ MEJORADO: Usar la función de error mejorada que detecta el paso activo
+                DenunciaApp.common.showError(errorMessage);
+            } else {
+                console.log(`✅ Validación exitosa en paso ${stepIndex + 1}`);
+            }
+
+            return isValid;
+        },
+
+        // Archivo upload y demás funciones del wizard
+        initFileUpload: function() {
+            setTimeout(() => {
+                if (DenunciaApp.vars.currentStep === 3) {
+                    this.setupFileUpload();
+                }
+            }, 500);
+        },
+
+        setupFileUpload: function() {
+            console.log('📎 Configurando upload de archivos');
+            
+            const uploadArea = document.getElementById('upload-area');
+            const fileInput = document.getElementById('file-input');
+            const selectBtn = document.getElementById('select-files-btn');
+
+            if (!uploadArea || !fileInput || !selectBtn) {
+                console.log('❌ No se encontraron elementos de upload');
+                return;
+            }
+
+            console.log('✅ Elementos de upload encontrados');
+
+            // Event listeners
+            selectBtn.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                fileInput.click();
+            };
+
+            uploadArea.onclick = (e) => {
+                if (e.target !== selectBtn && !selectBtn.contains(e.target)) {
+                    fileInput.click();
+                }
+            };
+
+            uploadArea.ondragover = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                uploadArea.classList.add('drag-over');
+            };
+
+            uploadArea.ondragleave = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                uploadArea.classList.remove('drag-over');
+            };
+
+            uploadArea.ondrop = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                uploadArea.classList.remove('drag-over');
+                this.handleFiles(e.dataTransfer.files);
+            };
+
+            fileInput.onchange = (e) => {
+                this.handleFiles(e.target.files);
+            };
+        },
+
+        handleFiles: function(files) {
+            console.log(`📁 Procesando ${files.length} archivos`);
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                
+                // Validar tipo
+                const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+                if (!DenunciaApp.config.allowedFileTypes.includes(fileExtension)) {
+                    DenunciaApp.common.showError('Tipo de archivo no permitido: ' + file.name);
+                    continue;
+                }
+
+                // Validar tamaño
+                if (file.size > DenunciaApp.config.maxFileSize) {
+                    DenunciaApp.common.showError('El archivo ' + file.name + ' excede el tamaño máximo permitido (500MB)');
+                    continue;
+                }
+
+                DenunciaApp.vars.selectedFiles.push(file);
+                this.displayFile(file, DenunciaApp.vars.selectedFiles.length - 1);
+                console.log(`✅ Archivo agregado: ${file.name}`);
+            }
+        },
+
+        displayFile: function(file, index) {
+            const fileSize = this.formatFileSize(file.size);
+            const fileIcon = this.getFileIcon(file.name);
+
+            const fileItem = `
+                <div class="file-item" data-index="${index}">
+                    <div class="file-info">
+                        <span class="file-icon">${fileIcon}</span>
+                        <div>
+                            <div class="file-name">${file.name}</div>
+                            <div class="file-size">${fileSize}</div>
+                        </div>
+                    </div>
+                    <button type="button" class="remove-file" onclick="DenunciaApp.wizardPage.removeFile(${index})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+
+            $('.file-list').append(fileItem);
+        },
+
+        removeFile: function(index) {
+            console.log(`🗑️ Removiendo archivo en índice: ${index}`);
+            DenunciaApp.vars.selectedFiles.splice(index, 1);
+            $(`.file-item[data-index="${index}"]`).remove();
+            
+            // Re-indexar
+            $('.file-item').each(function(i) {
+                $(this).attr('data-index', i);
+                $(this).find('.remove-file').attr('onclick', `DenunciaApp.wizardPage.removeFile(${i})`);
+            });
+        },
+
+        formatFileSize: function(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        },
+
+        getFileIcon: function(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            const icons = {
+                'pdf': '<i class="fas fa-file-pdf" style="color: #e74c3c;"></i>',
+                'doc': '<i class="fas fa-file-word" style="color: #2980b9;"></i>',
+                'docx': '<i class="fas fa-file-word" style="color: #2980b9;"></i>',
+                'jpg': '<i class="fas fa-file-image" style="color: #27ae60;"></i>',
+                'jpeg': '<i class="fas fa-file-image" style="color: #27ae60;"></i>',
+                'png': '<i class="fas fa-file-image" style="color: #27ae60;"></i>',
+                'gif': '<i class="fas fa-file-image" style="color: #27ae60;"></i>',
+                'xlsx': '<i class="fas fa-file-excel" style="color: #16a085;"></i>',
+                'xls': '<i class="fas fa-file-excel" style="color: #16a085;"></i>',
+                'txt': '<i class="fas fa-file-alt" style="color: #34495e;"></i>'
+            };
+            return icons[ext] || '<i class="fas fa-file" style="color: #95a5a6;"></i>';
+        },
+
+        // Envío final del wizard
+        submitDenuncia: function() {
+            console.log('📤 Enviando denuncia final...');
+            
+            const submitBtn = $('#btn-submit');
+            submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Procesando...');
+
+            const formData = new FormData();
+            
+            // Datos básicos
+            formData.append('denuncia_relacion', $('input[name="denuncia_relacion"]:checked').val());
+            formData.append('denuncia_tiempo', $('select[name="denuncia_tiempo"]').val());
+            formData.append('descripcion', $('textarea[name="descripcion"]').val());
+            
+            // NUEVO: Agregar descripción de "Otro" si aplica
+            const relacionSeleccionada = $('input[name="denuncia_relacion"]:checked');
+            const rol = relacionSeleccionada.data('rol');
+            if (rol && rol.toLowerCase() === 'otro') {
+                const descripcionRelacion = $('#descripcion_relacion').val().trim();
+                formData.append('descripcion_relacion', descripcionRelacion);
+                console.log('📝 Descripción "Otro":', descripcionRelacion);
+            }
+            
+            // Obtener y validar CSRF token
+            const csrfToken = DenunciaApp.common.getCSRFToken();
+            if (!csrfToken) {
+                console.error('❌ CSRF token no encontrado');
+                DenunciaApp.common.showError('Error de seguridad: Token CSRF no encontrado');
+                submitBtn.prop('disabled', false).html('<i class="fas fa-paper-plane me-2"></i>Continuar');
+                return;
+            }
+            formData.append('csrfmiddlewaretoken', csrfToken);
+            
+            // Agregar archivos
+            DenunciaApp.vars.selectedFiles.forEach((file, index) => {
+                formData.append('archivos[]', file);
+            });
+
+            console.log('📊 Datos a enviar:');
+            console.log('- Relación:', $('input[name="denuncia_relacion"]:checked').val());
+            console.log('- Rol:', rol);
+            if (rol && rol.toLowerCase() === 'otro') {
+                console.log('- Descripción Otro:', $('#descripcion_relacion').val());
+            }
+            console.log('- Tiempo:', $('select[name="denuncia_tiempo"]').val());
+            console.log('- Descripción chars:', $('textarea[name="descripcion"]').val().length);
+            console.log('- Archivos:', DenunciaApp.vars.selectedFiles.length);
+
+            // Obtener URL desde diferentes fuentes
+            let submitUrl;
+            
+            if (window.WIZARD_SUBMIT_URL) {
+                submitUrl = window.WIZARD_SUBMIT_URL;
+                console.log('🎯 URL desde variable global:', submitUrl);
+            } else if ($('#smartwizard').data('submit-url')) {
+                submitUrl = $('#smartwizard').data('submit-url');
+                console.log('🎯 URL desde data attribute:', submitUrl);
+            } else if ($('#wizard-form').attr('action')) {
+                submitUrl = $('#wizard-form').attr('action');
+                console.log('🎯 URL desde action del form:', submitUrl);
+            } else {
+                submitUrl = '/api/post/denuncia/wizzard/';
+                console.log('⚠️ Usando URL fallback:', submitUrl);
+            }
+
+            $.ajax({
+                url: submitUrl,
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    console.log('✅ Respuesta del servidor:', response);
+                    
+                    if (response.success) {
+                        DenunciaApp.common.showNotification('¡Denuncia enviada exitosamente!');
+                        setTimeout(() => {
+                            if (response.redirect_url) {
+                                window.location.href = response.redirect_url;
+                            } else {
+                                window.location.href = '/denuncia/Paso3/';
+                            }
+                        }, 1000);
+                    } else {
+                        console.log('❌ Error en respuesta:', response.message);
+                        DenunciaApp.common.showError(response.message || 'Error al procesar la denuncia');
+                        submitBtn.prop('disabled', false).html('<i class="fas fa-paper-plane me-2"></i>Continuar');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.log('❌ Error AJAX:', error);
+                    console.log('📄 Response text:', xhr.responseText);
+                    DenunciaApp.common.showError('Error al enviar la denuncia. Por favor intente nuevamente.');
+                    submitBtn.prop('disabled', false).html('<i class="fas fa-paper-plane me-2"></i>Continuar');
+                }
+            });
+        }
+    },
     // ===========================================
     // MÓDULO: PÁGINA DE USUARIO ⭐ ACTUALIZADA CON VALIDACIÓN DE RUT
     // ===========================================

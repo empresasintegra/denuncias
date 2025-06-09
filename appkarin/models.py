@@ -246,10 +246,34 @@ class AdminDenuncias(AbstractUser):
    
     rut = models.CharField(max_length=12, unique=True, blank=True, null=True, validators=[validate_rut])
     rol_categoria=models.ForeignKey(Categoria, on_delete=models.CASCADE)
+    _password_to_validate = None
 
     class Meta:
         verbose_name = "Administrador de Denuncias"
         verbose_name_plural = "Administradores de Denuncias"
+
+    def clean(self):
+        """Validaciones personalizadas incluyendo contraseña"""
+        super().clean()
+        
+        # Validar contraseña si hay una nueva
+        if hasattr(self, '_password_to_validate') and self._password_to_validate:
+            try:
+                validate_admin_password(self._password_to_validate)
+            except ValidationError as e:
+                raise ValidationError({'password': e.message})
+    
+    def set_password(self, raw_password):
+        """Sobrescribir para validar antes de establecer la contraseña"""
+        if raw_password:
+            # Guardar temporalmente para validar en clean()
+            self._password_to_validate = raw_password
+            
+            # Validar inmediatamente
+            validate_admin_password(raw_password)
+        
+        # Llamar al método padre para encriptar y guardar
+        super().set_password(raw_password)
 
 
 class Foro(models.Model):
