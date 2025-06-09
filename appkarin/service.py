@@ -121,7 +121,7 @@ class ServiceLoginAdminAPIView(APIView):
                 }
                 
                 # ✅ DETERMINAR URL DE REDIRECCIÓN
-                redirect_url = self._get_redirect_url(admin_denuncias, request)
+                redirect_url = "/"
                 
                 print(f"✅ Login exitoso para: {admin_denuncias.username}")
                 
@@ -162,7 +162,7 @@ class ServiceLoginAdminAPIView(APIView):
         """Determinar URL de redirección basada en el rol del usuario"""
         try:
             # URL por defecto
-            default_url = '/admin/dashboard/'
+            default_url = 'denuncias/consulta/'
             
             # Verificar si hay una URL solicitada en la sesión
             next_url = request.GET.get('next') or request.session.get('next_url')
@@ -174,19 +174,19 @@ class ServiceLoginAdminAPIView(APIView):
             
             # Redirección basada en el tipo de usuario
             if admin_user.is_superuser:
-                return '/admin/dashboard/super/'
+                return 'denuncias/consulta/'
             elif admin_user.is_staff:
-                return '/admin/dashboard/staff/'
+                return 'denuncias/consulta/'
             elif admin_user.rol_categoria:
                 # Redirección basada en la categoría
                 categoria = admin_user.rol_categoria.nombre.lower()
-                return f'/admin/dashboard/{categoria}/'
+                return f'denuncias/consulta/'
             
             return default_url
             
         except Exception as e:
             print(f"❌ Error determinando URL de redirección: {str(e)}")
-            return '/admin/dashboard/'
+            return 'denuncias/consulta/'
     
     def _is_safe_url(self, url):
         """Validar que la URL sea segura para redirección"""
@@ -742,7 +742,7 @@ class ServiceUserDenunciaAPIView(APIView):
                 print("✅ Serializer de usuario válido")
                 
                 # ✅ CREAR USUARIO con serializer (automáticamente valida y formatea)
-                usuario = usuario_serializer.save()
+                usuario = usuario_serializer.update_or_create()
                 print(f"✅ Usuario creado: {usuario.id}")
 
                 # ✅ CREAR DENUNCIA con datos validados del wizard
@@ -762,7 +762,7 @@ class ServiceUserDenunciaAPIView(APIView):
                 print(f"✅ Denuncia creada: {denuncia.codigo}")
 
                 # ⭐ GUARDAR CÓDIGO EN SESIÓN
-                request.session['codigo'] = denuncia.codigo
+                request.session['codigo'] = denuncia.codigo if tipo_denuncia == 'anonimo' else usuario.id
                 request.session.save()
                 
                 # ✅ RESPUESTA ESTRUCTURADA con todos los datos relevantes
@@ -949,3 +949,24 @@ class ConsultaDenunciaAPIView(APIView):
                 'message': 'Código inválido',
                 'errors': serializer.errors
             }, status=400, json_dumps_params={'ensure_ascii': False})
+    
+
+
+
+class CambiarEstadoDenunciaAPIView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        pass
+    pass
+
+class DenunciaDetalleAPIView(APIView):
+    pass
+
+class DenunciaMensajeAPIView(APIView):
+    pass
+
+class DenunciaInfoAPIView(APIView):
+    pass
+
+class DescargarDenunciaAPIView(APIView):
+    pass

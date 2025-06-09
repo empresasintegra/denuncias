@@ -16,7 +16,7 @@ class SimpleDenunciaDataTableAPIView(APIView):
     Maneja 4 tipos de usuarios:
     - Anónimo (DN-XXXXXX)
     - Identificado (XXXXX)
-    - Admin por categoría
+    - Admin por categoría (request.user con categoría)
     - Super admin
     """
     
@@ -24,9 +24,6 @@ class SimpleDenunciaDataTableAPIView(APIView):
         try:
             # Parsear datos de DataTables
             dt_data = self._parse_datatable_request(request)
-            
-            # Obtener información del usuario
-            user_info = dt_data.get('user_info', {})
             
             # Construir queryset base con optimizaciones
             queryset = Denuncia.objects.select_related(
@@ -40,8 +37,42 @@ class SimpleDenunciaDataTableAPIView(APIView):
                 num_mensajes=Count('foro')
             )
             
-            # Aplicar filtros según tipo de usuario
-            queryset = self._apply_user_filters(queryset, user_info)
+            # FILTRADO DIRECTO por usuario autenticado
+            if request.user.is_authenticated:
+                # Usuario admin autenticado
+                print("estoy autenticado")
+                print(request.user.rol_categoria.nombre)
+
+                if request.user.rol_categoria:
+                    # Admin con categoría específica: solo denuncias de su categoría
+                    print(f"Admin autenticado - Filtrando por categoría: {request.user.rol_categoria.nombre} (ID: {request.user.rol_categoria.id})")
+                    queryset = queryset.filter(item__categoria_id=request.user.rol_categoria.id)
+                elif request.user.is_superuser:
+                    # Superuser: ve todas las denuncias
+                    print("Superuser autenticado - Sin filtros")
+                    # queryset permanece sin filtros
+                else:
+                    # Admin sin categoría: no ve nada
+                    print("Admin sin categoría - Sin denuncias")
+                    queryset = queryset.none()
+            else:
+                # Usuarios no autenticados (consultas por código)
+                user_info = dt_data.get('user_info', {})
+                user_type = user_info.get('tipo', 'guest')
+                codigo = user_info.get('codigo', '')
+                
+                if user_type == 'anonimo' and codigo:
+                    # Usuario anónimo: filtrar por código
+                    print(f"Usuario anónimo - Código: {codigo}")
+                    queryset = queryset.filter(codigo=codigo)
+                elif user_type == 'identificado' and codigo:
+                    # Usuario identificado: filtrar por ID de usuario
+                    print(f"Usuario identificado - ID: {codigo}")
+                    queryset = queryset.filter(usuario__id=codigo)
+                else:
+                    # Sin permisos - no mostrar nada
+                    print("Sin permisos - Sin denuncias")
+                    queryset = queryset.none()
             
             # Aplicar búsqueda si existe
             search_value = dt_data.get('search', {}).get('value', '')
@@ -63,8 +94,9 @@ class SimpleDenunciaDataTableAPIView(APIView):
             data = []
             for denuncia in denuncias:
                 data.append({
-                    'codigo': denuncia.codigo,
+                    'codigo': denuncia.codigo,  # Primary key del modelo
                     'fecha': denuncia.fecha.isoformat() if denuncia.fecha else '',
+                    'categoria_id': denuncia.item.categoria.id,
                     'categoria_nombre': denuncia.item.categoria.nombre,
                     'item_enunciado': denuncia.item.enunciado,
                     'usuario_nombre': denuncia.usuario.nombre_completo,
@@ -108,31 +140,6 @@ class SimpleDenunciaDataTableAPIView(APIView):
         except:
             return {}
     
-    def _apply_user_filters(self, queryset, user_info):
-        """Aplicar filtros según tipo de usuario"""
-        user_type = user_info.get('tipo', 'admin')
-        codigo = user_info.get('codigo', '')
-        
-        if user_type == 'anonimo' and codigo:
-            # Usuario anónimo: filtrar por ID de usuario
-            queryset = queryset.filter(usuario__id=codigo)
-            
-        elif user_type == 'identificado' and codigo:
-            # Usuario identificado: filtrar por ID de usuario
-            queryset = queryset.filter(usuario__id=codigo)
-            
-        elif user_type == 'admin':
-            # Verificar si es admin de categoría o superadmin
-            categoria_id = user_info.get('categoria_id')
-            is_superuser = user_info.get('is_superuser', False)
-            
-            if not is_superuser and categoria_id:
-                # Admin de categoría: solo denuncias de su categoría
-                queryset = queryset.filter(item__categoria_id=categoria_id)
-            # Si es superuser, no se aplican filtros (ve todo)
-        
-        return queryset
-    
     def _apply_search(self, queryset, search_value):
         """Aplicar búsqueda global"""
         return queryset.filter(
@@ -172,4 +179,3 @@ class SimpleDenunciaDataTableAPIView(APIView):
         
         # Orden por defecto: fecha descendente
         return queryset.order_by('-fecha')
-

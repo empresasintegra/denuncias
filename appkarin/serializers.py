@@ -161,9 +161,30 @@ class UsuarioCreateSerializer(serializers.ModelSerializer):
         
         return data
     
-    def create(self, validated_data):
-        """Crear usuario con lógica personalizada"""
-        return Usuario.objects.create(**validated_data)
+    def update_or_create(self):
+        """
+        Usa update_or_create de Django para simplificar
+        """
+        rut = self.validated_data.get('rut')
+        
+        if rut and not self.validated_data.get('anonimo', True):
+            # Para usuarios identificados, buscar por RUT
+            usuario, created = Usuario.objects.update_or_create(
+                rut=rut,  # Campo de búsqueda
+                defaults=self.validated_data  # Campos a actualizar/crear
+            )
+            
+            if created:
+                print(f"✅ Usuario creado con RUT: {rut} - ID: {usuario.id}")
+            else:
+                print(f"✅ Usuario actualizado con RUT: {rut} - ID: {usuario.id}")
+            
+            return usuario
+        else:
+            # Para usuarios anónimos, siempre crear nuevo
+            usuario = Usuario.objects.create(**self.validated_data)
+            print(f"✅ Usuario anónimo creado: {usuario.id}")
+            return usuario
 
 
 class UsuarioDetailSerializer(serializers.ModelSerializer):
@@ -256,8 +277,25 @@ class DenunciaCreateSerializer(serializers.Serializer):
                         })
             except RelacionEmpresa.DoesNotExist:
                 pass  # Ya validado en validate_denuncia_relacion
+
+    def update_or_create(self):
+        """
+        Usa update_or_create de Django para simplificar
+         """
+        codigo = self.validated_data.get('codigo')
         
-        return data
+            # Para usuarios identificados, buscar por RUT
+        denuncia, created = Denuncia.objects.update_or_create(
+                codigo=codigo,  # Campo de búsqueda
+                defaults=self.validated_data  # Campos a actualizar/crear
+            )
+            
+        if created:
+            print(f"✅ Denuncia creada con RUT: {codigo} - codigo: {denuncia.codigo}")
+        else:
+            print(f"✅ Denuncia actualizada con RUT: {codigo} - Codigo: {denuncia.codigo}")
+            
+        return denuncia
 
 
 class DenunciaListSerializer(serializers.ModelSerializer):

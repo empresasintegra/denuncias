@@ -16,7 +16,12 @@ from appkarin.service import (
     DenunciaWizardDataAPIView,
     ConsultaDenunciaAPIView,
     ValidateRutAPIView,              # ⭐ NUEVA API
-    AutocompleteUserDataAPIView      # ⭐ NUEVA API
+    AutocompleteUserDataAPIView,   # ⭐ NUEVA API
+    CambiarEstadoDenunciaAPIView,
+    DenunciaDetalleAPIView,
+    DenunciaMensajeAPIView,
+    DenunciaInfoAPIView,
+    DescargarDenunciaAPIView
 )
 
 from appkarin.service_datatable import (
@@ -70,9 +75,18 @@ urlpatterns = [
          DenunciaWizardDataAPIView.as_view(), 
          name='wizard_data'),
     
-    path('api/consulta/denuncia/', 
+    path('api/dashboard/denuncia/', 
          csrf_exempt(ConsultaDenunciaAPIView.as_view()), 
          name='consulta_denuncia'),
+
+
+
+     path('api/cambiar-estado-denuncia/', CambiarEstadoDenunciaAPIView.as_view()),
+     path('api/denuncia-detalle/<str:codigo>/', DenunciaDetalleAPIView.as_view()),
+     path('api/denuncia-mensaje/<str:codigo>/', DenunciaMensajeAPIView.as_view()),
+     path('api/denuncia-info/<str:codigo>/', DenunciaInfoAPIView.as_view()),
+     path('api/descargar-denuncia/<str:codigo>/', DescargarDenunciaAPIView.as_view()),
+
 
 
     # =================================================================

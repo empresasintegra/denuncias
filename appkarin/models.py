@@ -245,7 +245,7 @@ class Archivo(models.Model):
 class AdminDenuncias(AbstractUser):
    
     rut = models.CharField(max_length=12, unique=True, blank=True, null=True, validators=[validate_rut])
-    rol_categoria=models.ForeignKey(Categoria, on_delete=models.CASCADE)
+    rol_categoria=models.ForeignKey(Categoria,blank=True,null=True, on_delete=models.CASCADE)
     _password_to_validate = None
 
     class Meta:

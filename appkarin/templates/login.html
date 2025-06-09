@@ -261,7 +261,7 @@
                                 this.showAlert('Ya tiene una sesión activa. Redirigiendo...', 'success');
                                 
                                 setTimeout(() => {
-                                    window.location.href = '/admin/dashboard/';
+                                    window.location.href = '{% url "consulta_denuncias" %}';
                                 }, 1500);
                             }
                         }.bind(this),
@@ -341,7 +341,7 @@
                                 
                                 // Redirigir después de 1.5 segundos
                                 setTimeout(() => {
-                                    window.location.href = response.redirect_url || '/admin/dashboard/';
+                                    window.location.href = response.redirect_url;
                                 }, 1500);
                                 
                             } else {

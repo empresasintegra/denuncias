@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (
-    Tiempo, Categoria, Item, RelacionEmpresa, Usuario, 
+    Tiempo, Categoria, Item, RelacionEmpresa, Usuario,AdminDenuncias, 
     Denuncia, Archivo,Foro, 
     DenunciaEstado, EstadosDenuncia
 )
@@ -53,6 +53,77 @@ class UsuarioAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+@admin.register(AdminDenuncias)
+class AdminDenunciasAdmin(admin.ModelAdmin):
+    """
+    Admin personalizado que hereda de UserAdmin para aprovechar
+    toda la funcionalidad de gestión de usuarios de Django
+    """
+    
+    # Campos a mostrar en la lista
+    list_display = [
+        'username',           # ← Campo de AbstractUser
+        'email',              # ← Campo de AbstractUser  
+        'first_name',         # ← Campo de AbstractUser
+        'last_name',          # ← Campo de AbstractUser
+        'rut',                # ← Tu campo personalizado
+        'rol_categoria',      # ← Tu campo personalizado
+        'is_active',          # ← Campo de AbstractUser
+        'is_staff',           # ← Campo de AbstractUser
+        'date_joined',        # ← Campo de AbstractUser
+    ]
+    
+    # Filtros laterales
+    list_filter = [
+        'is_active', 
+        'is_staff', 
+        'is_superuser',
+        'rol_categoria',
+        'date_joined'
+    ]
+    
+    # Campos de búsqueda
+    search_fields = [
+        'username', 
+        'email', 
+        'first_name', 
+        'last_name', 
+        'rut'
+    ]
+    
+    # Campos de solo lectura
+    readonly_fields = [
+        'date_joined', 
+        'last_login',
+        '_password_to_validate'
+    ]
+    
+    # Ordenamiento por defecto
+    ordering = ['rol_categoria', 'username']
+    
+    # ✅ FIELDSETS PERSONALIZADOS
+    fieldsets = (
+        ('Información de Usuario', {
+            'fields': ('username', 'password', 'email')
+        }),
+        ('Información Personal', {
+            'fields': ('first_name', 'last_name', 'rut')
+        }),
+        ('Información del Admin', {
+            'fields': ('rol_categoria', '_password_to_validate'),
+            'classes': ('collapse',)
+        }),
+        ('Permisos', {
+            'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'),
+            'classes': ('collapse',)
+        }),
+        ('Fechas Importantes', {
+            'fields': ('last_login', 'date_joined'),
+            'classes': ('collapse',)
+        }),
+    )
+
 
 @admin.register(Denuncia)
 class DenunciaAdmin(admin.ModelAdmin):

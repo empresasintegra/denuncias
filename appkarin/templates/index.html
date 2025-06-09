@@ -160,6 +160,35 @@
             gap: 1rem;
         }
 
+        /* Estados de autenticación */
+        .auth-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .auth-not-logged {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .auth-logged {
+            display: none;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        /* Mostrar sección apropiada basada en el context */
+        {% if user.is_authenticated %}
+        .auth-not-logged {
+            display: none !important;
+        }
+        .auth-logged {
+            display: flex !important;
+        }
+        {% endif %}
+
         .btn-login {
             background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(10px);
@@ -176,6 +205,7 @@
             gap: 0.5rem;
             position: relative;
             overflow: hidden;
+            cursor: pointer;
         }
 
         .btn-login::before {
@@ -225,6 +255,82 @@
             text-decoration: none;
         }
 
+        /* Botón de logout */
+        .btn-logout {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            border: none;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+            cursor: pointer;
+        }
+
+        .btn-logout:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.6);
+            background: linear-gradient(135deg, #ff5252, #e53e3e);
+        }
+
+        /* Botón ver denuncias */
+        .btn-ver-denuncias {
+            background: linear-gradient(135deg, #4c6ef5, #364fc7);
+            border: none;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 15px rgba(76, 110, 245, 0.4);
+            cursor: pointer;
+        }
+
+        .btn-ver-denuncias:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(76, 110, 245, 0.6);
+            background: linear-gradient(135deg, #3b5bdb, #2c51c7);
+            color: white;
+            text-decoration: none;
+        }
+
+        /* Información del usuario logueado */
+        .user-info {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .user-avatar {
+            width: 24px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+
         /* Menu hamburguesa para móviles */
         .mobile-menu-toggle {
             display: none;
@@ -267,7 +373,9 @@
             align-items: center;
         }
 
-        .mobile-menu .btn-login {
+        .mobile-menu .btn-login,
+        .mobile-menu .btn-logout,
+        .mobile-menu .btn-ver-denuncias {
             color: #667eea;
             background: rgba(102, 126, 234, 0.1);
             border-color: #667eea;
@@ -276,7 +384,28 @@
             justify-content: center;
         }
 
+        .mobile-menu .btn-logout {
+            background: rgba(255, 107, 107, 0.1);
+            border-color: #ff6b6b;
+            color: #ff6b6b;
+        }
+
+        .mobile-menu .btn-ver-denuncias {
+            background: rgba(76, 110, 245, 0.1);
+            border-color: #4c6ef5;
+            color: #4c6ef5;
+        }
+
         .mobile-menu .btn-emergency {
+            width: 100%;
+            max-width: 250px;
+            justify-content: center;
+        }
+
+        .mobile-menu .user-info {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: #667eea;
+            color: #667eea;
             width: 100%;
             max-width: 250px;
             justify-content: center;
@@ -629,11 +758,19 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            min-width: 140px;
+            justify-content: center;
         }
 
-        .btn-consultar:hover {
+        .btn-consultar:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(58, 123, 213, 0.4);
+        }
+
+        .btn-consultar:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
         }
 
         .btn-cancelar {
@@ -821,10 +958,37 @@
 
                 <!-- Botones Desktop -->
                 <div class="navbar-buttons">
-                    <a href="{% url 'login' %}" class="btn-login">
-                        <i class="fas fa-user-shield"></i>
-                        Ingreso Admin
-                    </a>
+                    <div class="auth-section">
+                        <!-- Sección cuando NO está logueado -->
+                        <div class="auth-not-logged">
+                            <a href="{% url 'login' %}" class="btn-login">
+                                <i class="fas fa-user-shield"></i>
+                                Ingreso Admin
+                            </a>
+                        </div>
+                        
+                        <!-- Sección cuando SÍ está logueado -->
+                        <div class="auth-logged">
+                            <div class="user-info">
+                                <div class="user-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                Admin
+                                {% if user.username %}
+                                    ({{ user.username }})
+                                {% endif %}
+                            </div>
+                            <a href="{% url 'consulta_denuncias' %}" class="btn-ver-denuncias">
+                                <i class="fas fa-list-alt"></i>
+                                Ver Denuncias
+                            </a>
+                            <button class="btn-logout" onclick="handleLogout()">
+                                <i class="fas fa-sign-out-alt"></i>
+                                Cerrar Sesión
+                            </button>
+                        </div>
+                    </div>
+                    
                     <a href="{% url 'items' %}" class="btn-emergency">
                         <i class="fas fa-exclamation-triangle"></i>
                         Denunciar Ahora
@@ -840,11 +1004,33 @@
             <!-- Menú móvil -->
             <div class="mobile-menu" id="mobileMenu">
                 <div class="mobile-menu-buttons">
-                    <a href="/admin/login/" class="btn-login">
-                        <i class="fas fa-user-shield"></i>
-                        Ingreso Admin
-                    </a>
-                    <a href="/denuncia/Paso1" class="btn-emergency">
+                    <!-- Sección móvil cuando NO está logueado -->
+                    <div class="auth-not-logged">
+                        <a href="{% url 'login' %}" class="btn-login">
+                            <i class="fas fa-user-shield"></i>
+                            Ingreso Admin
+                        </a>
+                    </div>
+                    
+                    <!-- Sección móvil cuando SÍ está logueado -->
+                    <div class="auth-logged">
+                        <div class="user-info">
+                            <div class="user-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            Admin{% if user.username %} ({{ user.username }}){% endif %}
+                        </div>
+                        <a href="{% url 'consulta_denuncias' %}" class="btn-ver-denuncias">
+                            <i class="fas fa-list-alt"></i>
+                            Ver Denuncias
+                        </a>
+                        <button class="btn-logout" onclick="handleLogout()">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Cerrar Sesión
+                        </button>
+                    </div>
+                    
+                    <a href="{% url 'items' %}" class="btn-emergency">
                         <i class="fas fa-exclamation-triangle"></i>
                         Denunciar Ahora
                     </a>
@@ -952,6 +1138,106 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
     <script>
+        // ✅ SOLUCIÓN PRINCIPAL: Función para resetear estado del botón
+        function resetearEstadoBoton() {
+            const btnConsultar = document.getElementById('btnConsultar');
+            const consultarText = document.getElementById('consultarText');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            
+            if (btnConsultar && consultarText && loadingSpinner) {
+                // Restaurar estado original del botón
+                btnConsultar.disabled = false;
+                consultarText.style.display = 'flex';
+                loadingSpinner.style.display = 'none';
+                
+                console.log('✅ Estado del botón reseteado correctamente');
+            }
+        }
+
+        // ✅ Event listener para detectar cuando la página se carga desde el cache
+        window.addEventListener('pageshow', function(event) {
+            // Si la página se carga desde el cache del navegador (botón atrás)
+            if (event.persisted) {
+                console.log('🔄 Página cargada desde cache - reseteando estado');
+                resetearEstadoBoton();
+            }
+        });
+
+        // ✅ También resetear al cargar la página normalmente
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📄 DOM cargado - reseteando estado inicial');
+            resetearEstadoBoton();
+        });
+
+        // ✅ Limpiar estado antes de salir de la página
+        window.addEventListener('beforeunload', function() {
+            console.log('🚪 Saliendo de la página - limpiando estado');
+            resetearEstadoBoton();
+        });
+
+        // ✅ Resetear también cuando se hace visible la página (para móviles)
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                console.log('👁️ Página visible - verificando estado');
+                resetearEstadoBoton();
+            }
+        });
+
+        // Función para obtener CSRF token
+        function getCSRFToken() {
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+            return csrfToken ? csrfToken.value : '';
+        }
+
+        // ✅ Función para manejar logout (sin cambios)
+        async function handleLogout() {
+            try {
+                // Mostrar loading en el botón
+                const logoutBtns = document.querySelectorAll('.btn-logout');
+                logoutBtns.forEach(btn => {
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cerrando...';
+                });
+
+                // Hacer petición al API de logout
+                const response = await fetch('/api/admin/logout/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken()
+                    },
+                    credentials: 'same-origin'
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        mostrarNotificacion('Sesión cerrada exitosamente', 'success');
+                        
+                        // Esperar un momento para mostrar la notificación
+                        setTimeout(() => {
+                            // Recargar la página para actualizar el estado de autenticación
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        throw new Error(data.message || 'Error al cerrar sesión');
+                    }
+                } else {
+                    throw new Error('Error de conexión');
+                }
+            } catch (error) {
+                console.error('Error en logout:', error);
+                mostrarNotificacion('Error al cerrar sesión: ' + error.message, 'error');
+                
+                // Restaurar botones
+                const logoutBtns = document.querySelectorAll('.btn-logout');
+                logoutBtns.forEach(btn => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Cerrar Sesión';
+                });
+            }
+        }
+
         // Función para mostrar/ocultar menú móvil
         function toggleMobileMenu() {
             const mobileMenu = document.getElementById('mobileMenu');
@@ -988,8 +1274,10 @@
             if (section.classList.contains('show')) {
                 section.classList.remove('show');
                 input.value = '';
+                resetearEstadoBoton(); // ✅ Resetear al cerrar
             } else {
                 section.classList.add('show');
+                resetearEstadoBoton(); // ✅ Resetear al abrir
                 setTimeout(() => {
                     input.focus();
                 }, 500);
@@ -1008,7 +1296,7 @@
             e.target.value = value;
         });
 
-        // Función para consultar código
+        // ✅ FUNCIÓN MEJORADA: Consultar código con todas las protecciones
         function consultarCodigo(event) {
             event.preventDefault();
             
@@ -1023,38 +1311,90 @@
                 return;
             }
 
+            // ✅ PREVENIR ENVÍOS MÚLTIPLES: Validar que el botón no esté ya procesando
+            if (btnConsultar.disabled) {
+                console.log('⚠️ Botón ya está procesando, ignorando clic');
+                return;
+            }
+
+            console.log('🔍 Iniciando consulta de código:', codigo);
+
             // Mostrar loading
             btnConsultar.disabled = true;
             consultarText.style.display = 'none';
             loadingSpinner.style.display = 'block';
 
-            // Crear formulario para envío POST
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '/denuncias/consulta/';
-            form.style.display = 'none';
+            // ✅ TIMEOUT DE SEGURIDAD: Resetear después de 15 segundos si algo falla
+            const timeoutId = setTimeout(() => {
+                console.log('⏰ Timeout alcanzado - reseteando estado por seguridad');
+                resetearEstadoBoton();
+                mostrarNotificacion('Tiempo de espera agotado. Intente nuevamente.', 'error');
+            }, 15000);
 
-            // Agregar CSRF token
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
-            if (csrfToken) {
-                const csrfInput = document.createElement('input');
-                csrfInput.type = 'hidden';
-                csrfInput.name = 'csrfmiddlewaretoken';
-                csrfInput.value = csrfToken.value;
-                form.appendChild(csrfInput);
+            try {
+                // Crear formulario para envío POST
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/denuncias/consulta/';
+                form.style.display = 'none';
+
+                // Agregar CSRF token
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+                if (csrfToken) {
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = 'csrfmiddlewaretoken';
+                    csrfInput.value = csrfToken.value;
+                    form.appendChild(csrfInput);
+                }
+
+                // Agregar código
+                const codigoInput = document.createElement('input');
+                codigoInput.type = 'hidden';
+                codigoInput.name = 'codigo';
+                codigoInput.value = codigo;
+                form.appendChild(codigoInput);
+
+                // Agregar al DOM
+                document.body.appendChild(form);
+                
+                // ✅ Limpiar timeout ya que vamos a enviar el formulario
+                clearTimeout(timeoutId);
+                
+                console.log('📤 Enviando formulario...');
+                
+                // Enviar formulario
+                form.submit();
+                
+            } catch (error) {
+                console.error('❌ Error al enviar formulario:', error);
+                clearTimeout(timeoutId);
+                resetearEstadoBoton();
+                mostrarNotificacion('Error al procesar la consulta: ' + error.message, 'error');
             }
-
-            // Agregar código
-            const codigoInput = document.createElement('input');
-            codigoInput.type = 'hidden';
-            codigoInput.name = 'codigo';
-            codigoInput.value = codigo;
-            form.appendChild(codigoInput);
-
-            // Enviar formulario
-            document.body.appendChild(form);
-            form.submit();
         }
+
+        // ✅ PREVENIR ENVÍOS MÚLTIPLES: Event listener adicional en el formulario
+        document.getElementById('consultaForm').addEventListener('submit', function(e) {
+            const btnConsultar = document.getElementById('btnConsultar');
+            if (btnConsultar.disabled) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('🛑 Formulario ya está siendo procesado - prevenido');
+                return false;
+            }
+        });
+
+        // ✅ Manejar tecla Enter en el input
+        document.getElementById('codigoInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const btnConsultar = document.getElementById('btnConsultar');
+                if (!btnConsultar.disabled) {
+                    consultarCodigo(e);
+                }
+            }
+        });
 
         function mostrarNotificacion(mensaje, tipo) {
             const notification = document.getElementById('notification');
@@ -1093,6 +1433,8 @@
                 });
             }, 300);
         });
+
+        console.log('🚀 Script del Portal de Denuncias inicializado correctamente');
     </script>
 </body>
 </html>

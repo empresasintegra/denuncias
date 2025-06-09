@@ -122,22 +122,61 @@
 
         /* DataTable customizado */
         .dataTables_wrapper {
-            padding: 0;
+            padding: 0 !important;
         }
 
-        .dataTables_filter input {
-            border: 2px solid #e2e8f0;
-            border-radius: 50px;
-            padding: 0.5rem 1.5rem;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
-            width: 300px;
+        .dataTables_wrapper .dataTables_filter {
+            float: right !important;
+            text-align: right !important;
+            margin-bottom: 1rem !important;
         }
 
-        .dataTables_filter input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        .dataTables_wrapper .dataTables_filter label {
+            font-weight: 600 !important;
+            color: #4a5568 !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+        }
+
+        .dataTables_wrapper .dataTables_filter input[type="search"] {
+            border: 2px solid #e2e8f0 !important;
+            border-radius: 25px !important;
+            padding: 0.6rem 1.5rem !important;
+            font-size: 0.95rem !important;
+            transition: all 0.3s ease !important;
+            width: 300px !important;
+            margin-left: 0.5rem !important;
+            background: white !important;
+            box-shadow: none !important;
+            outline: none !important;
+        }
+
+        .dataTables_wrapper .dataTables_filter input[type="search"]:focus {
+            border-color: #667eea !important;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+            outline: none !important;
+        }
+
+        .dataTables_wrapper .dataTables_length {
+            float: left !important;
+            margin-bottom: 1rem !important;
+        }
+
+        .dataTables_wrapper .dataTables_length select {
+            border: 2px solid #e2e8f0 !important;
+            border-radius: 8px !important;
+            padding: 0.4rem !important;
+            margin: 0 0.5rem !important;
+        }
+
+        .dataTables_wrapper .dataTables_info {
+            padding-top: 1rem !important;
+            color: #4a5568 !important;
+        }
+
+        .dataTables_wrapper .dataTables_paginate {
+            padding-top: 1rem !important;
         }
 
         table.dataTable {
@@ -198,28 +237,74 @@
             color: white;
         }
 
-        /* Botones de acción */
-        .btn-action {
-            padding: 0.5rem 1rem;
+        /* Select de estado para admin */
+        .estado-select {
+            border: 2px solid #e2e8f0;
             border-radius: 8px;
-            border: none;
+            padding: 0.5rem;
             font-weight: 600;
             font-size: 0.875rem;
+            background: white;
+            transition: all 0.3s ease;
+            width: 140px;
+        }
+
+        .estado-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .estado-select.loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        /* Botones de acción */
+        .btn-action {
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.8rem;
             transition: all 0.3s ease;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
             gap: 0.3rem;
+            margin: 0.1rem;
         }
 
-        .btn-view {
-            background: #edf2f7;
-            color: #4a5568;
+        .btn-descripcion {
+            background: linear-gradient(135deg, #4c6ef5, #364fc7);
+            color: white;
         }
 
-        .btn-view:hover {
-            background: #e2e8f0;
-            color: #2d3748;
+        .btn-descripcion:hover {
+            background: linear-gradient(135deg, #3b5bdb, #2c51c7);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .btn-mensaje {
+            background: linear-gradient(135deg, #20c997, #17a2b8);
+            color: white;
+        }
+
+        .btn-mensaje:hover {
+            background: linear-gradient(135deg, #1ba085, #138496);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .btn-descargar {
+            background: linear-gradient(135deg, #fd7e14, #e8590c);
+            color: white;
+        }
+
+        .btn-descargar:hover {
+            background: linear-gradient(135deg, #e8590c, #d63384);
+            color: white;
             transform: translateY(-1px);
         }
 
@@ -249,6 +334,68 @@
             box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
         }
 
+        /* Estilos para modals */
+        .modal-header {
+            background: var(--primary-gradient);
+            color: white;
+            border-bottom: none;
+        }
+
+        .modal-header .btn-close {
+            filter: invert(1);
+        }
+
+        .modal-title {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .denuncia-info {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #667eea;
+        }
+
+        .denuncia-info h6 {
+            color: #2d3748;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .denuncia-info p {
+            color: #4a5568;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .mensaje-content {
+            background: #e6fffa;
+            border: 1px solid #81e6d9;
+            border-radius: 8px;
+            padding: 1.5rem;
+            border-left: 4px solid #38b2ac;
+        }
+
+        .loading-content {
+            text-align: center;
+            padding: 2rem;
+            color: #4a5568;
+        }
+
+        .loading-content i {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            animation: spin 1s linear infinite;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .page-title {
@@ -259,8 +406,36 @@
                 padding: 1rem;
             }
             
-            .dataTables_filter input {
-                width: 100%;
+            .dataTables_wrapper .dataTables_filter input[type="search"] {
+                width: 100% !important;
+                margin-left: 0 !important;
+                margin-top: 0.5rem !important;
+            }
+
+            .dataTables_wrapper .dataTables_filter {
+                float: none !important;
+                text-align: left !important;
+            }
+
+            .dataTables_wrapper .dataTables_filter label {
+                width: 100% !important;
+                flex-direction: column !important;
+                align-items: flex-start !important;
+            }
+
+            .dataTables_wrapper .dataTables_length {
+                float: none !important;
+                margin-bottom: 1rem !important;
+            }
+
+            .btn-action {
+                font-size: 0.7rem;
+                padding: 0.3rem 0.6rem;
+            }
+
+            .estado-select {
+                width: 120px;
+                font-size: 0.8rem;
             }
         }
 
@@ -313,6 +488,31 @@
             transform: translateY(-2px);
             color: white;
         }
+
+        /* Notificación toast */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+        }
+
+        .toast {
+            background: white;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .toast-header {
+            background: var(--success-gradient);
+            color: white;
+            border-bottom: none;
+        }
+
+        .toast-header.error {
+            background: var(--danger-gradient);
+        }
     </style>
 </head>
 <body>
@@ -340,29 +540,23 @@
 
     <!-- Contenido Principal -->
     <div class="main-container">
-        <!-- Card de información del usuario (se muestra dinámicamente) -->
+        <!-- Información del usuario (se muestra condicionalmente) -->
         <div class="user-info-card" id="userInfoCard" style="display: none;">
-            <h5><i class="fas fa-user-circle"></i> Información del Usuario</h5>
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="info-item">
-                        <i class="fas fa-id-badge"></i>
-                        <span>Código:</span>
-                        <span class="info-value" id="userCode">-</span>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="info-item" id="userNameRow" style="display: none;">
-                        <i class="fas fa-signature"></i>
-                        <span>Nombre:</span>
-                        <span class="info-value" id="userName">-</span>
-                    </div>
-                    <div class="info-item" id="userCategoryRow" style="display: none;">
-                        <i class="fas fa-folder"></i>
-                        <span>Categoría:</span>
-                        <span class="info-value" id="userCategory">-</span>
-                    </div>
-                </div>
+            <h5><i class="fas fa-user-circle"></i> Información de Consulta</h5>
+            <div class="info-item" id="userCodeRow">
+                <i class="fas fa-hashtag"></i>
+                <span>Código:</span>
+                <span class="info-value" id="userCode"></span>
+            </div>
+            <div class="info-item" id="userNameRow" style="display: none;">
+                <i class="fas fa-user"></i>
+                <span>Usuario:</span>
+                <span class="info-value" id="userName"></span>
+            </div>
+            <div class="info-item" id="userCategoryRow" style="display: none;">
+                <i class="fas fa-tag"></i>
+                <span>Categoría:</span>
+                <span class="info-value" id="userCategory"></span>
             </div>
         </div>
 
@@ -389,6 +583,87 @@
         </div>
     </div>
 
+    <!-- Modal - Leer Descripción -->
+    <div class="modal fade" id="modalDescripcion" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-file-alt"></i> Descripción de la Denuncia
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalDescripcionBody">
+                    <div class="loading-content">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Cargando descripción...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal - Ver Mensaje -->
+    <div class="modal fade" id="modalMensaje" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-envelope"></i> Mensaje de la Denuncia
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalMensajeBody">
+                    <div class="loading-content">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Cargando mensaje...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal - Confirmar Descarga -->
+    <div class="modal fade" id="modalDescarga" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-download"></i> Descargar Denuncia
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="denuncia-info">
+                        <h6>Información de la Denuncia</h6>
+                        <p><strong>Código:</strong> <span id="descargaCodigo"></span></p>
+                        <p><strong>Fecha:</strong> <span id="descargaFecha"></span></p>
+                        <p><strong>Categoría:</strong> <span id="descargaCategoria"></span></p>
+                    </div>
+                    <p>¿Está seguro que desea descargar el reporte completo de esta denuncia?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btnConfirmarDescarga">
+                        <i class="fas fa-download"></i> Descargar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast para notificaciones -->
+    <div class="toast-container">
+        <div id="notificationToast" class="toast" role="alert">
+            <div class="toast-header">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong class="me-auto">Notificación</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body"></div>
+        </div>
+    </div>
+
     <!-- Footer -->
     {% include './footer/footer.html' %}
 
@@ -408,15 +683,14 @@
         // Variables globales
         let userInfo = null;
         let dataTable = null;
+        let currentDenunciaId = null;
 
         // Función para obtener el tipo de usuario y código
         function getUserInfo() {
             // Obtener código desde URL o del contexto Django
-            const urlParams = new URLSearchParams(window.location.search);
-            let codigo = urlParams.get('codigo') || '{{ codigo|default:"" }}';
+            let codigo = '{{ codigo|default:"" }}';
             
             // Si no hay código, verificar si es admin (esto vendría del backend)
-            const isAdmin = '{{ request.user.is_authenticated|yesno:"true,false" }}' === 'true';
             const adminCategory = '{{ request.user.rol_categoria.nombre|default:"" }}';
             const isSuperuser = '{{ request.user.is_superuser|yesno:"true,false" }}' === 'true';
             
@@ -444,8 +718,6 @@
             return userInfo;
         }
 
-        // Detectar tipo de usuario por el formato del códig
-
         // Función para formatear fecha
         function formatDate(dateString) {
             const date = new Date(dateString);
@@ -461,6 +733,9 @@
         // Función para crear badge de estado
         function getEstadoBadge(estado) {
             const badges = {
+                '1': '<span class="badge-estado badge-pendiente"><i class="fas fa-clock"></i> Pendiente</span>',
+                '2': '<span class="badge-estado badge-revision"><i class="fas fa-search"></i> En Revisión</span>',
+                '3': '<span class="badge-estado badge-resuelto"><i class="fas fa-check"></i> Resuelto</span>',
                 'PENDIENTE': '<span class="badge-estado badge-pendiente"><i class="fas fa-clock"></i> Pendiente</span>',
                 'EN_REVISION': '<span class="badge-estado badge-revision"><i class="fas fa-search"></i> En Revisión</span>',
                 'RESUELTO': '<span class="badge-estado badge-resuelto"><i class="fas fa-check"></i> Resuelto</span>'
@@ -468,21 +743,277 @@
             return badges[estado] || estado;
         }
 
-        // Función para crear botones de acción
-        function getActionButtons(codigo) {
+        // Función para crear select de estado (solo para admins)
+        function getEstadoSelect(estado, denunciaId) {
+            if (!userInfo.is_admin) {
+                return getEstadoBadge(estado);
+            }
+
+            const estadoValue = typeof estado === 'string' ? 
+                (estado === 'PENDIENTE' ? '1' : estado === 'EN_REVISION' ? '2' : '3') : 
+                estado.toString();
+
             return `
-                <a href="/denuncia/detalle/${codigo}" class="btn-action btn-view">
-                    <i class="fas fa-eye"></i> Ver
-                </a>
+                <select class="estado-select" data-denuncia-id="${denunciaId}" onchange="cambiarEstado(this)">
+                    <option value="1" ${estadoValue === '1' ? 'selected' : ''}>Pendiente</option>
+                    <option value="2" ${estadoValue === '2' ? 'selected' : ''}>En Revisión</option>
+                    <option value="3" ${estadoValue === '3' ? 'selected' : ''}>Resuelto</option>
+                </select>
             `;
         }
 
+        // Función para crear botones de acción
+        function getActionButtons(codigo, denunciaId) {
+            return `
+                <div class="d-flex flex-wrap gap-1">
+                    <button class="btn-action btn-descripcion" onclick="abrirModalDescripcion('${denunciaId}')">
+                        <i class="fas fa-file-alt"></i> Descripción
+                    </button>
+                    <button class="btn-action btn-mensaje" onclick="abrirModalMensaje('${denunciaId}')">
+                        <i class="fas fa-envelope"></i> Mensaje
+                    </button>
+                    <button class="btn-action btn-descargar" onclick="abrirModalDescarga('${denunciaId}', '${codigo}')">
+                        <i class="fas fa-download"></i> Descargar
+                    </button>
+                </div>
+            `;
+        }
+
+        // Función para cambiar estado (solo admins)
+        async function cambiarEstado(selectElement) {
+            if (!userInfo.is_admin) {
+                showNotification('No tienes permisos para cambiar estados', 'error');
+                return;
+            }
+
+            const denunciaId = selectElement.dataset.denunciaId;
+            const nuevoEstado = selectElement.value;
+            const selectOriginal = selectElement.cloneNode(true);
+
+            // Mostrar loading
+            selectElement.classList.add('loading');
+            selectElement.disabled = true;
+
+            try {
+                const response = await fetch('/api/cambiar-estado-denuncia/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        denuncia_id: denunciaId,
+                        nuevo_estado: nuevoEstado
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        showNotification('Estado actualizado correctamente', 'success');
+                    } else {
+                        throw new Error(data.message || 'Error al actualizar estado');
+                    }
+                } else {
+                    throw new Error('Error de conexión');
+                }
+            } catch (error) {
+                console.error('Error al cambiar estado:', error);
+                showNotification('Error al cambiar estado: ' + error.message, 'error');
+                
+                // Restaurar valor original
+                selectElement.value = selectOriginal.value;
+            } finally {
+                // Quitar loading
+                selectElement.classList.remove('loading');
+                selectElement.disabled = false;
+            }
+        }
+
+        // Función para abrir modal de descripción
+        async function abrirModalDescripcion(denunciaId) {
+            currentDenunciaId = denunciaId;
+            const modal = new bootstrap.Modal(document.getElementById('modalDescripcion'));
+            const modalBody = document.getElementById('modalDescripcionBody');
+            
+            // Mostrar loading
+            modalBody.innerHTML = `
+                <div class="loading-content">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Cargando descripción...</p>
+                </div>
+            `;
+            
+            modal.show();
+
+            try {
+                const response = await fetch(`/api/denuncia-detalle/${denunciaId}/`, {
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    modalBody.innerHTML = `
+                        <div class="denuncia-info">
+                            <h6>Información General</h6>
+                            <p><strong>Código:</strong> ${data.codigo}</p>
+                            <p><strong>Fecha:</strong> ${formatDate(data.fecha)}</p>
+                            <p><strong>Categoría:</strong> ${data.categoria}</p>
+                            <p><strong>Tipo:</strong> ${data.tipo_denuncia}</p>
+                        </div>
+                        <div class="denuncia-info">
+                            <h6>Descripción Detallada</h6>
+                            <p>${data.descripcion || 'No hay descripción disponible'}</p>
+                        </div>
+                    `;
+                } else {
+                    throw new Error('Error al cargar la descripción');
+                }
+            } catch (error) {
+                modalBody.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Error al cargar la descripción: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Función para abrir modal de mensaje
+        async function abrirModalMensaje(denunciaId) {
+            currentDenunciaId = denunciaId;
+            const modal = new bootstrap.Modal(document.getElementById('modalMensaje'));
+            const modalBody = document.getElementById('modalMensajeBody');
+            
+            // Mostrar loading
+            modalBody.innerHTML = `
+                <div class="loading-content">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Cargando mensaje...</p>
+                </div>
+            `;
+            
+            modal.show();
+
+            try {
+                const response = await fetch(`/api/denuncia-mensaje/${denunciaId}/`, {
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    modalBody.innerHTML = `
+                        <div class="denuncia-info">
+                            <h6>Información del Mensaje</h6>
+                            <p><strong>Código:</strong> ${data.codigo}</p>
+                            <p><strong>Fecha:</strong> ${formatDate(data.fecha)}</p>
+                        </div>
+                        <div class="mensaje-content">
+                            <h6><i class="fas fa-envelope"></i> Mensaje</h6>
+                            <p>${data.mensaje || 'No hay mensaje disponible'}</p>
+                        </div>
+                    `;
+                } else {
+                    throw new Error('Error al cargar el mensaje');
+                }
+            } catch (error) {
+                modalBody.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Error al cargar el mensaje: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Función para abrir modal de descarga
+        async function abrirModalDescarga(denunciaId, codigo) {
+            currentDenunciaId = denunciaId;
+            const modal = new bootstrap.Modal(document.getElementById('modalDescarga'));
+            
+            try {
+                const response = await fetch(`/api/denuncia-info/${denunciaId}/`, {
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('descargaCodigo').textContent = data.codigo;
+                    document.getElementById('descargaFecha').textContent = formatDate(data.fecha);
+                    document.getElementById('descargaCategoria').textContent = data.categoria;
+                } else {
+                    // Si falla, usar código como fallback
+                    document.getElementById('descargaCodigo').textContent = codigo;
+                    document.getElementById('descargaFecha').textContent = 'N/A';
+                    document.getElementById('descargaCategoria').textContent = 'N/A';
+                }
+            } catch (error) {
+                console.error('Error al cargar info para descarga:', error);
+            }
+            
+            modal.show();
+        }
+
+        // Función para confirmar descarga
+        document.getElementById('btnConfirmarDescarga').addEventListener('click', async function() {
+            if (!currentDenunciaId) return;
+
+            try {
+                // Cambiar botón a loading
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Descargando...';
+                this.disabled = true;
+
+                const response = await fetch(`/api/descargar-denuncia/${currentDenunciaId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                });
+
+                if (response.ok) {
+                    // Crear enlace de descarga
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = `denuncia_${currentDenunciaId}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+
+                    showNotification('Descarga iniciada correctamente', 'success');
+                    
+                    // Cerrar modal
+                    bootstrap.Modal.getInstance(document.getElementById('modalDescarga')).hide();
+                } else {
+                    throw new Error('Error al generar el archivo');
+                }
+            } catch (error) {
+                console.error('Error en descarga:', error);
+                showNotification('Error al descargar: ' + error.message, 'error');
+            } finally {
+                // Restaurar botón
+                this.innerHTML = '<i class="fas fa-download"></i> Descargar';
+                this.disabled = false;
+            }
+        });
+
         // Inicializar DataTable
         function initDataTable() {
+
             dataTable = $('#denunciasTable').DataTable({
                 processing: true,
                 serverSide: true,
                 responsive: true,
+                searching: true,
                 ajax: {
                     url: '/api/datatable/denuncias/simple/',
                     type: 'POST',
@@ -494,44 +1025,72 @@
                     contentType: 'application/json',
                     headers: {
                         'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    error: function(xhr, error, code) {
+                        console.error('Error en DataTable:', error, xhr.responseText);
+                        showNotification('Error al cargar las denuncias: ' + error, 'error');
+                        $('#loadingOverlay').fadeOut();
                     }
                 },
                 columns: [
                     { 
                         data: 'codigo',
-                        className: 'text-center font-monospace'
+                        name: 'codigo',
+                        className: 'text-center font-monospace',
+                        searchable: true,
+                        orderable: true
                     },
                     { 
                         data: 'fecha',
+                        name: 'fecha',
+                        searchable: false,
+                        orderable: true,
                         render: function(data) {
                             return formatDate(data);
                         }
                     },
-                    { data: 'categoria_nombre' },
-                    { data: 'item_enunciado' },
+                    { 
+                        data: 'categoria_nombre',
+                        name: 'categoria_nombre',
+                        searchable: true,
+                        orderable: true
+                    },
+                    { 
+                        data: 'item_enunciado',
+                        name: 'item_enunciado', 
+                        searchable: true,
+                        orderable: true
+                    },
                     { 
                         data: 'usuario_nombre',
+                        name: 'usuario_nombre',
+                        searchable: true,
+                        orderable: true,
                         render: function(data, type, row) {
                             if (row.usuario_anonimo) {
                                 return `<i class="fas fa-user-secret text-muted"></i> Anónimo`;
                             }
-                            return data;
+                            return data || 'N/A';
                         }
                     },
                     { 
                         data: 'estado_actual',
+                        name: 'estado_actual',
                         className: 'text-center',
-                        render: function(data) {
-                            return getEstadoBadge(data);
+                        searchable: false,
+                        orderable: true,
+                        render: function(data, type, row) {
+                            return getEstadoSelect(data, row.id);
                         }
                     },
                     { 
                         data: 'codigo',
+                        name: 'acciones',
                         orderable: false,
                         searchable: false,
                         className: 'text-center',
-                        render: function(data) {
-                            return getActionButtons(data);
+                        render: function(data, type, row) {
+                            return getActionButtons(data, row.id);
                         }
                     }
                 ],
@@ -539,11 +1098,31 @@
                 pageLength: 25,
                 lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
                 language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+                    search: "Buscar:",
+                    searchPlaceholder: "Buscar denuncias...",
+                    lengthMenu: "Mostrar _MENU_ registros",
+                    info: "Mostrando _START_ a _END_ de _TOTAL_ denuncias",
+                    infoEmpty: "Mostrando 0 a 0 de 0 denuncias",
+                    infoFiltered: "(filtrado de _MAX_ total denuncias)",
+                    paginate: {
+                        first: "Primero",
+                        last: "Último", 
+                        next: "Siguiente",
+                        previous: "Anterior"
+                    },
+                    processing: "Procesando...",
+                    loadingRecords: "Cargando...",
+                    zeroRecords: "No se encontraron denuncias que coincidan con su búsqueda"
                 },
-                drawCallback: function() {
+                drawCallback: function(settings) {
                     // Ocultar loading después de cargar
                     $('#loadingOverlay').fadeOut();
+                },
+                initComplete: function(settings, json) {
+                    // Personalizar input de búsqueda
+                    const searchInput = $('.dataTables_filter input');
+                    searchInput.attr('placeholder', 'Buscar denuncias...');
+                    searchInput.addClass('form-control');
                 }
             });
         }
@@ -562,6 +1141,80 @@
                 }
             }
             return cookieValue;
+        }
+
+        // Función para testear la conexión con el backend
+        function testBackendConnection() {
+            console.log('=== TESTING BACKEND CONNECTION ===');
+            console.log('UserInfo actual:', userInfo);
+            
+            const testData = {
+                draw: 1,
+                start: 0,
+                length: 10,
+                search: { value: '', regex: false },
+                order: [{ column: 1, dir: 'desc' }],
+                columns: [],
+                user_info: {
+                    tipo: userInfo.tipo,
+                    is_authenticated: userInfo.is_authenticated,
+                    user_id: userInfo.user_id,
+                    categoria_id: userInfo.categoria_id,
+                    codigo: userInfo.codigo
+                }
+            };
+            
+            console.log('Datos de prueba enviados:', testData);
+            
+            fetch('/api/datatable/denuncias/simple/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(testData)
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                console.log('Response ok:', response.ok);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('✅ Backend response exitosa:', data);
+                console.log('Registros encontrados:', data.recordsTotal);
+                console.log('Registros filtrados:', data.recordsFiltered);
+                showNotification(`✅ Conexión OK. ${data.recordsTotal} denuncias encontradas`, 'success');
+            })
+            .catch(error => {
+                console.error('❌ Backend connection error:', error);
+                showNotification(`❌ Error de conexión: ${error.message}`, 'error');
+            });
+        }
+
+        // Función para mostrar notificaciones
+        function showNotification(message, type = 'success') {
+            const toast = document.getElementById('notificationToast');
+            const toastHeader = toast.querySelector('.toast-header');
+            const toastBody = toast.querySelector('.toast-body');
+            
+            // Configurar tipo
+            toastHeader.className = `toast-header ${type}`;
+            
+            // Configurar icono y mensaje
+            if (type === 'error') {
+                toastHeader.querySelector('i').className = 'fas fa-exclamation-triangle me-2';
+            } else {
+                toastHeader.querySelector('i').className = 'fas fa-check-circle me-2';
+            }
+            
+            toastBody.textContent = message;
+            
+            // Mostrar toast
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
         }
 
         // Actualizar UI según tipo de usuario
@@ -584,6 +1237,11 @@
             } else if (userInfo.tipo === 'admin' && userInfo.categoria) {
                 subtitle.text(`Denuncias - ${userInfo.categoria}`);
                 $('#userCategory').text(userInfo.categoria);
+                $('#userCategoryRow').show();
+                userCard.show();
+            } else if (userInfo.tipo === 'admin') {
+                subtitle.text('Sin categoría asignada');
+                $('#userCategory').text('Sin categoría');
                 $('#userCategoryRow').show();
                 userCard.show();
             } else {
