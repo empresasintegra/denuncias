@@ -179,3 +179,6 @@ class SimpleDenunciaDataTableAPIView(APIView):
         
         # Orden por defecto: fecha descendente
         return queryset.order_by('-fecha')
+    
+
+

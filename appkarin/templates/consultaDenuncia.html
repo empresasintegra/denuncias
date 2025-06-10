@@ -691,19 +691,27 @@
             let codigo = '{{ codigo|default:"" }}';
             
             // Si no hay código, verificar si es admin (esto vendría del backend)
+            const isAuthenticated = '{{ request.user.is_authenticated|yesno:"true,false" }}' === 'true';
             const adminCategory = '{{ request.user.rol_categoria.nombre|default:"" }}';
             const isSuperuser = '{{ request.user.is_superuser|yesno:"true,false" }}' === 'true';
             
             let userInfo = {
                 codigo: codigo,
-                tipo: 'admin',
+                tipo: 'guest',
                 nombre: '',
                 categoria: adminCategory,
                 categoria_id: '{{ request.user.rol_categoria.id|default:"" }}',
-                is_superuser: isSuperuser
+                is_superuser: isSuperuser,
+                is_admin: false,  // 🔴 IMPORTANTE: Inicializar is_admin
+                is_authenticated: isAuthenticated
             };
             
-            if (codigo) {
+            // 🟢 CORRECCIÓN: Determinar si es admin
+            if (isAuthenticated) {
+                userInfo.tipo = 'admin';
+                userInfo.is_admin = true;  // 🟢 Establecer is_admin correctamente
+                userInfo.nombre = '{{ request.user.username|default:"Admin" }}';
+            } else if (codigo) {
                 // Detectar tipo por formato del código
                 if (codigo.length === 5 && !codigo.includes('-')) {
                     // Código de usuario (5 caracteres)
@@ -743,8 +751,9 @@
             return badges[estado] || estado;
         }
 
-        // Función para crear select de estado (solo para admins)
+        // 🟢 FUNCIÓN CORREGIDA: Para crear select de estado (solo para admins)
         function getEstadoSelect(estado, denunciaId) {
+            // 🟢 Ahora verifica correctamente is_admin
             if (!userInfo.is_admin) {
                 return getEstadoBadge(estado);
             }
@@ -779,7 +788,7 @@
             `;
         }
 
-        // Función para cambiar estado (solo admins)
+        // 🟢 FUNCIÓN MEJORADA: Para cambiar estado (solo admins)
         async function cambiarEstado(selectElement) {
             if (!userInfo.is_admin) {
                 showNotification('No tienes permisos para cambiar estados', 'error');
@@ -788,7 +797,10 @@
 
             const denunciaId = selectElement.dataset.denunciaId;
             const nuevoEstado = selectElement.value;
-            const selectOriginal = selectElement.cloneNode(true);
+            const estadoAnterior = selectElement.dataset.estadoAnterior || selectElement.value;
+
+            // Guardar estado anterior
+            selectElement.dataset.estadoAnterior = estadoAnterior;
 
             // Mostrar loading
             selectElement.classList.add('loading');
@@ -807,22 +819,27 @@
                     })
                 });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success) {
-                        showNotification('Estado actualizado correctamente', 'success');
-                    } else {
-                        throw new Error(data.message || 'Error al actualizar estado');
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    showNotification('Estado actualizado correctamente', 'success');
+                    
+                    // Actualizar el badge visual si existe
+                    const estadoCell = selectElement.closest('td');
+                    if (estadoCell) {
+                        // Actualizar el valor del select con el nuevo estado
+                        selectElement.value = nuevoEstado;
+                        selectElement.dataset.estadoAnterior = nuevoEstado;
                     }
                 } else {
-                    throw new Error('Error de conexión');
+                    throw new Error(data.message || 'Error al actualizar estado');
                 }
             } catch (error) {
                 console.error('Error al cambiar estado:', error);
                 showNotification('Error al cambiar estado: ' + error.message, 'error');
                 
-                // Restaurar valor original
-                selectElement.value = selectOriginal.value;
+                // Restaurar valor anterior
+                selectElement.value = estadoAnterior;
             } finally {
                 // Quitar loading
                 selectElement.classList.remove('loading');
@@ -1006,8 +1023,10 @@
             }
         });
 
-        // Inicializar DataTable
+        // 🟢 FUNCIÓN MEJORADA: Inicializar DataTable
         function initDataTable() {
+            // 🟢 Debugging: Mostrar información del usuario
+            console.log('UserInfo en initDataTable:', userInfo);
 
             dataTable = $('#denunciasTable').DataTable({
                 processing: true,
@@ -1080,7 +1099,8 @@
                         searchable: false,
                         orderable: true,
                         render: function(data, type, row) {
-                            return getEstadoSelect(data, row.id);
+                            // 🟢 Usar el código de denuncia como ID
+                            return getEstadoSelect(data, row.codigo);
                         }
                     },
                     { 
@@ -1090,7 +1110,8 @@
                         searchable: false,
                         className: 'text-center',
                         render: function(data, type, row) {
-                            return getActionButtons(data, row.id);
+                            // 🟢 Usar el código de denuncia para las acciones
+                            return getActionButtons(data, row.codigo);
                         }
                     }
                 ],
@@ -1143,57 +1164,6 @@
             return cookieValue;
         }
 
-        // Función para testear la conexión con el backend
-        function testBackendConnection() {
-            console.log('=== TESTING BACKEND CONNECTION ===');
-            console.log('UserInfo actual:', userInfo);
-            
-            const testData = {
-                draw: 1,
-                start: 0,
-                length: 10,
-                search: { value: '', regex: false },
-                order: [{ column: 1, dir: 'desc' }],
-                columns: [],
-                user_info: {
-                    tipo: userInfo.tipo,
-                    is_authenticated: userInfo.is_authenticated,
-                    user_id: userInfo.user_id,
-                    categoria_id: userInfo.categoria_id,
-                    codigo: userInfo.codigo
-                }
-            };
-            
-            console.log('Datos de prueba enviados:', testData);
-            
-            fetch('/api/datatable/denuncias/simple/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: JSON.stringify(testData)
-            })
-            .then(response => {
-                console.log('Response status:', response.status);
-                console.log('Response ok:', response.ok);
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('✅ Backend response exitosa:', data);
-                console.log('Registros encontrados:', data.recordsTotal);
-                console.log('Registros filtrados:', data.recordsFiltered);
-                showNotification(`✅ Conexión OK. ${data.recordsTotal} denuncias encontradas`, 'success');
-            })
-            .catch(error => {
-                console.error('❌ Backend connection error:', error);
-                showNotification(`❌ Error de conexión: ${error.message}`, 'error');
-            });
-        }
-
         // Función para mostrar notificaciones
         function showNotification(message, type = 'success') {
             const toast = document.getElementById('notificationToast');
@@ -1217,10 +1187,12 @@
             bsToast.show();
         }
 
-        // Actualizar UI según tipo de usuario
+        // 🟢 FUNCIÓN MEJORADA: Actualizar UI según tipo de usuario
         function updateUIForUser() {
             const userCard = $('#userInfoCard');
             const subtitle = $('#pageSubtitle');
+            
+            console.log('Actualizando UI para usuario:', userInfo); // 🟢 Debug
             
             if (userInfo.tipo === 'anonimo') {
                 subtitle.text('Mis denuncias anónimas');
@@ -1234,15 +1206,26 @@
                     $('#userNameRow').show();
                 }
                 userCard.show();
-            } else if (userInfo.tipo === 'admin' && userInfo.categoria) {
-                subtitle.text(`Denuncias - ${userInfo.categoria}`);
-                $('#userCategory').text(userInfo.categoria);
-                $('#userCategoryRow').show();
-                userCard.show();
-            } else if (userInfo.tipo === 'admin') {
-                subtitle.text('Sin categoría asignada');
-                $('#userCategory').text('Sin categoría');
-                $('#userCategoryRow').show();
+            } else if (userInfo.tipo === 'admin' && userInfo.is_admin) {
+                // 🟢 Mostrar información diferente para admins
+                if (userInfo.categoria) {
+                    subtitle.text(`Gestión de Denuncias - ${userInfo.categoria}`);
+                    $('#userCategory').text(userInfo.categoria);
+                    $('#userCategoryRow').show();
+                } else if (userInfo.is_superuser) {
+                    subtitle.text('Gestión de Denuncias - Todas las categorías');
+                    $('#userCategory').text('Superadministrador');
+                    $('#userCategoryRow').show();
+                } else {
+                    subtitle.text('Gestión de Denuncias');
+                }
+                
+                // Mostrar nombre del admin
+                if (userInfo.nombre) {
+                    $('#userName').text(userInfo.nombre);
+                    $('#userNameRow').show();
+                }
+                
                 userCard.show();
             } else {
                 subtitle.text('Todas las denuncias');
@@ -1253,6 +1236,11 @@
         $(document).ready(function() {
             // Obtener información del usuario
             userInfo = getUserInfo();
+            
+            // 🟢 Debugging
+            console.log('UserInfo al iniciar:', userInfo);
+            console.log('Es admin:', userInfo.is_admin);
+            console.log('Está autenticado:', userInfo.is_authenticated);
             
             // Actualizar UI
             updateUIForUser();

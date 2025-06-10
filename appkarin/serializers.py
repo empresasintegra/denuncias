@@ -142,8 +142,10 @@ class UsuarioCreateSerializer(serializers.ModelSerializer):
     def validate(self, data):
         """Validación a nivel de objeto"""
         anonimo = data.get('anonimo', True)
-        
+       
+
         if not anonimo:
+            
             # Para usuarios identificados, validar campos requeridos
             required_fields = ['rut', 'nombre', 'apellidos', 'correo']
             for field in required_fields:
@@ -152,6 +154,7 @@ class UsuarioCreateSerializer(serializers.ModelSerializer):
                         field: f'{field} es requerido para usuarios no anónimos'
                     })
         else:
+            print("anonimo?")
             # Para usuarios anónimos, limpiar campos innecesarios
             data['rut'] = None
             data['nombre'] = None
@@ -276,9 +279,10 @@ class DenunciaCreateSerializer(serializers.Serializer):
                             'descripcion_relacion': 'La descripción debe tener al menos 3 caracteres'
                         })
             except RelacionEmpresa.DoesNotExist:
-                pass  # Ya validado en validate_denuncia_relacion
+                pass  
+        return data
 
-    def update_or_create(self):
+    def update_Estado(self):
         """
         Usa update_or_create de Django para simplificar
          """

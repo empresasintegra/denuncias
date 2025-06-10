@@ -1,96 +1,138 @@
 """
-URL configuration for leykarin project - ACTUALIZADO CON VALIDACIÓN DE RUT
+URL configuration for leykarin project - VERSIÓN FINAL CONSOLIDADA
 """
 from django.conf import settings
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.routers import DefaultRouter
 from appkarin import views
-from appkarin.service import (
-    ServiceLoginAdminAPIView,
-    ServiceLogoutAdminAPIView, 
-    ServiceCheckAuthAdminAPIView,
-    ServiceItemsAPIView,
-    ServiceProcessDenunciaAPIView,
-    ServiceUserDenunciaAPIView,
-    DenunciaWizardDataAPIView,
-    ConsultaDenunciaAPIView,
-    ValidateRutAPIView,              # ⭐ NUEVA API
-    AutocompleteUserDataAPIView,   # ⭐ NUEVA API
-    CambiarEstadoDenunciaAPIView,
-    DenunciaDetalleAPIView,
-    DenunciaMensajeAPIView,
-    DenunciaInfoAPIView,
-    DescargarDenunciaAPIView
-)
 
-from appkarin.service_datatable import (
-    SimpleDenunciaDataTableAPIView,
-)
+# Importar solo los servicios consolidados
+from appkarin.service_admin_auth import ServiceAdminDenunciaAuth
+from appkarin.service_process_denuncia import ServiceProcessDenuncia
+from appkarin.service_consolidated import DenunciaManagementViewSet, DenunciaQueryAPI
+from appkarin.service_datatable import SimpleDenunciaDataTableAPIView
 
+# Configurar router para ViewSets
+router = DefaultRouter()
+router.register(r'denuncias', DenunciaManagementViewSet, basename='denuncia-management')
 
 urlpatterns = [
     
-    # 🔐 RUTAS DE AUTENTICACIÓN ADMIN
-    path('api/admin/login/', ServiceLoginAdminAPIView.as_view(), name='admin_login_api'),
-    path('api/admin/logout/', ServiceLogoutAdminAPIView.as_view(), name='admin_logout_api'),
-    path('api/admin/check-auth/', ServiceCheckAuthAdminAPIView.as_view(), name='admin_check_auth_api'),
-
-
-
-
     # =================================================================
-    # APIs CON LAS MISMAS URLs EXACTAS (Corregidas para evitar 404)
+    # 🔐 AUTENTICACIÓN ADMIN CONSOLIDADA
     # =================================================================
     
-    # ✅ URLs EXACTAS del service.py original - Agregando csrf_exempt
+    # Rutas de autenticación admin usando un solo servicio
+    path('api/admin/auth/<str:action>/', 
+         ServiceAdminDenunciaAuth.as_view(), 
+         name='admin-auth'),
+    
+    # Mantener compatibilidad con URLs antiguas
+    path('api/admin/login/', 
+         ServiceAdminDenunciaAuth.as_view(), 
+         {'action': 'login'}, 
+         name='admin_login_api'),
+    
+    path('api/admin/logout/', 
+         ServiceAdminDenunciaAuth.as_view(), 
+         {'action': 'logout'}, 
+         name='admin_logout_api'),
+    
+    path('api/admin/check-auth/', 
+         ServiceAdminDenunciaAuth.as_view(), 
+         {'action': 'check'}, 
+         name='admin_check_auth_api'),
+
+    # =================================================================
+    # 📝 PROCESO DE DENUNCIA CONSOLIDADO
+    # =================================================================
+    
+    # Rutas del proceso de denuncia usando un solo servicio
+    path('api/denuncia/process/<str:step>/', 
+         ServiceProcessDenuncia.as_view(), 
+         name='denuncia-process'),
+    
+    # Mantener compatibilidad con URLs antiguas
     path('api/create/denuncia/items/', 
-         csrf_exempt(ServiceItemsAPIView.as_view()), 
+         ServiceProcessDenuncia.as_view(), 
+         {'step': 'items'}, 
          name='process_items'),
     
     path('api/create/denuncia/wizzard/', 
-         csrf_exempt(ServiceProcessDenunciaAPIView.as_view()), 
+         ServiceProcessDenuncia.as_view(), 
+         {'step': 'wizard'}, 
          name='process_denuncia'),
     
     path('api/create/denuncia/user/', 
-         csrf_exempt(ServiceUserDenunciaAPIView.as_view()), 
+         ServiceProcessDenuncia.as_view(), 
+         {'step': 'user'}, 
          name='process_user'),
-
-    # =================================================================
-    # 🆕 NUEVAS APIs PARA VALIDACIÓN DE RUT
-    # =================================================================
     
-    # ⭐ API para validar RUT en tiempo real
     path('api/validate/rut/', 
-         csrf_exempt(ValidateRutAPIView.as_view()), 
+         ServiceProcessDenuncia.as_view(), 
+         {'step': 'validate-rut'}, 
          name='validate_rut'),
     
-    # ⭐ API para autocompletar datos de usuario
     path('api/autocomplete/user/', 
-         csrf_exempt(AutocompleteUserDataAPIView.as_view()), 
+         ServiceProcessDenuncia.as_view(), 
+         {'step': 'autocomplete-user'}, 
          name='autocomplete_user'),
-
-    # 🆕 APIs adicionales funcionales
+    
     path('api/wizard/data/', 
-         DenunciaWizardDataAPIView.as_view(), 
+         ServiceProcessDenuncia.as_view(), 
+         {'step': 'wizard-data'}, 
          name='wizard_data'),
     
     path('api/dashboard/denuncia/', 
-         csrf_exempt(ConsultaDenunciaAPIView.as_view()), 
+         ServiceProcessDenuncia.as_view(), 
+         {'step': 'consulta'}, 
          name='consulta_denuncia'),
 
-
-
-     path('api/cambiar-estado-denuncia/', CambiarEstadoDenunciaAPIView.as_view()),
-     path('api/denuncia-detalle/<str:codigo>/', DenunciaDetalleAPIView.as_view()),
-     path('api/denuncia-mensaje/<str:codigo>/', DenunciaMensajeAPIView.as_view()),
-     path('api/denuncia-info/<str:codigo>/', DenunciaInfoAPIView.as_view()),
-     path('api/descargar-denuncia/<str:codigo>/', DescargarDenunciaAPIView.as_view()),
-
-
+    # =================================================================
+    # 🗄️ GESTIÓN DE DENUNCIAS (ViewSet)
+    # =================================================================
+    
+    # ViewSet para gestión de denuncias
+    path('api/', include(router.urls)),
+    
+    # Rutas específicas para mantener compatibilidad
+    path('api/denuncia-detalle/<str:codigo>/', 
+         DenunciaManagementViewSet.as_view({'get': 'detalle'}), 
+         name='denuncia-detalle'),
+    
+    path('api/denuncia-mensaje/<str:codigo>/', 
+         DenunciaManagementViewSet.as_view({'get': 'mensaje'}), 
+         name='denuncia-mensaje'),
+    
+    path('api/denuncia-info/<str:codigo>/', 
+         DenunciaManagementViewSet.as_view({'get': 'info'}), 
+         name='denuncia-info'),
+    
+    path('api/cambiar-estado-denuncia/', 
+         DenunciaManagementViewSet.as_view({'post': 'cambiar_estado'}), 
+         name='cambiar-estado'),
+    
+    path('api/descargar-denuncia/<str:codigo>/', 
+         DenunciaManagementViewSet.as_view({'post': 'descargar'}), 
+         name='descargar-denuncia'),
+    
+    # API de consultas complejas
+    path('api/denuncias/query/<str:action>/', 
+         csrf_exempt(DenunciaQueryAPI.as_view()), 
+         name='denuncia-query'),
 
     # =================================================================
-    # VISTAS PARA RENDERIZAR TEMPLATES (Sin cambios)
+    # 📊 DATATABLES
+    # =================================================================
+    
+    path('api/datatable/denuncias/simple/', 
+         csrf_exempt(SimpleDenunciaDataTableAPIView.as_view()), 
+         name='datatable_simple'),
+
+    # =================================================================
+    # 🌐 VISTAS (TEMPLATES)
     # =================================================================
     
     # Páginas principales
@@ -102,21 +144,11 @@ urlpatterns = [
     
     # Admin y consultas
     path('admin/login/', views.renderLoginAdmin, name='login'),
+    path('denuncias/consulta/', views.renderConsultaDenuncia, name='consulta_denuncias'),
 
     # =================================================================
-    # VISTAS PARA RENDERIZAR Y GENERAR DATATABLES (Sin cambios)
+    # 🔧 DJANGO ADMIN
     # =================================================================
-     path('api/datatable/denuncias/simple/', 
-         csrf_exempt(SimpleDenunciaDataTableAPIView.as_view()), 
-         name='datatable_simple'),
-     
-     path('denuncias/consulta/', 
-         views.renderConsultaDenuncia, 
-         name='consulta_denuncias'),
-
-
-    # =================================================================
-    # DJANGO ADMIN
-    # =================================================================
+    
     path(settings.ADMIN_URL, admin.site.urls),
 ]

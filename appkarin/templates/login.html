@@ -338,7 +338,7 @@
                                 
                                 // Limpiar formulario por seguridad
                                 this.clearFormData();
-                                
+                                console.log(response.redirect_url)
                                 // Redirigir después de 1.5 segundos
                                 setTimeout(() => {
                                     window.location.href = response.redirect_url;
