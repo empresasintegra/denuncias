@@ -114,7 +114,7 @@ urlpatterns = [
          DenunciaManagementViewSet.as_view({'post': 'cambiar_estado'}), 
          name='cambiar-estado'),
     
-    path('api/descargar-denuncia/<str:codigo>/', 
+    path('api/descargar-denuncia/', 
          DenunciaManagementViewSet.as_view({'post': 'descargar'}), 
          name='descargar-denuncia'),
     

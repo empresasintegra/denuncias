@@ -11,7 +11,10 @@ from django.utils.decorators import method_decorator
 from .models import Denuncia, DenunciaEstado, EstadosDenuncia
 from .serializers import DenunciaDetailSerializer
 import json
+import os
 from datetime import datetime
+from docxtpl import DocxTemplate
+import datetime
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -213,11 +216,12 @@ class DenunciaManagementViewSet(ViewSet):
         Genera y descarga un PDF con la información de la denuncia
         """
         try:
-            denuncia = self.get_denuncia(codigo)
-            
+            print(request.data)
+            denuncia_codigo=request.data.denuncia
+
             # Aquí deberías implementar la generación del PDF
             # Por ahora, retornamos un PDF dummy
-            pdf_content = self._generar_pdf_denuncia(denuncia)
+            pdf_content = self._generar_pdf_denuncia(denuncia_codigo)
             
             response = HttpResponse(pdf_content, content_type='application/pdf')
             response['Content-Disposition'] = f'attachment; filename="denuncia_{codigo}.pdf"'
@@ -227,14 +231,62 @@ class DenunciaManagementViewSet(ViewSet):
         except Exception as e:
             return Response({'error': str(e)}, status=500)
     
-    def _generar_pdf_denuncia(self, denuncia):
+    def _generar_pdf_denuncia(self, denuncia_codigo):
         """
         Método helper para generar el PDF
         Aquí deberías usar una librería como ReportLab o WeasyPrint
         """
-        # Por ahora retornamos un PDF dummy
-        # En producción, usar ReportLab o similar
-        return b'%PDF-1.4\n%Dummy PDF content\n'
+        denuncia = Denuncia.objects.get(codigo=denuncia_codigo).first()
+        path_archive= './templates/word/template_denuncia.docx'
+        # Genero el documento
+       
+        doc = DocxTemplate(path_archive)
+        # Variables de Autorización Firma Electrónica
+        context = { 'fecha_descarga':datetime.datetime.now(),
+                    'usuario_nombre': denuncia.usuario.nombre,
+                    'usuario_apellidos': denuncia.usuario.apellidos,
+                    'rol':denuncia.item.categoria.nombre,
+                    'codigo': denuncia.codigo,
+                    'fecha_denuncia': denuncia.fecha,
+                    'item_enunciado': denuncia.item.enunciado,
+                    'rol_empresa': denuncia.relación_empresa.rol,
+                    'descripcion_relacion': denuncia.descripcion_relacion,
+                    'correo_trabajador': denuncia.email,
+                    'tiempo': denuncia.tiempo.intervalo,
+                    
+                    }
+            # Creo documento word con datos de trabajador
+        doc.render(context)
+        path_doc ='Informe_denuncia.docx'
+            
+            # Guarda el documento
+        doc.save(path_doc)
+
+
+            # Convierto documento a PDF
+        #pdf = Popen(['libreoffice', '--headless', '--convert-to', 'pdf', '--outdir',
+                       # '', path_doc])
+        #pdf.communicate()
+
+        #path_pdf = str(trabajador.rut) + '_' + p.abreviatura + '_' + str(trabajador_id) + '.pdf'
+        #file = Path(path_pdf).open(mode='rb')
+        #trabajador.archivo = default_storage.save('autorizaciones/' + path_pdf, file)
+            # Elimino el documento word.
+        #os.remove(path_doc)
+            # Inicio integración de la API
+        #if enviar_autorizacion(request, trabajador, empresas, path_pdf):        
+            # ENVIADO_FIRMAR = 'EF' FIRMADO = 'FF' RECHAZADO ='RC' EXPIRADO = 'EX'
+        #    trabajador.autorizacion = Trabajador.ENVIADO_FIRMAR
+        #    trabajador.save()
+        #    messages.success(request, 'Autorización de Firma Electrónica enviada Exitosamente')
+        #else:
+        #    messages.error(request, 'El documento no se logró enviar a firma')
+
+            # Elimino el documento pdf.
+        #os.remove(path_pdf)
+        #eliminar_qr(url)
+            
+    #return redirect('users:list-trabajador')
 
 
 # También puedes crear una API consolidada para operaciones de consulta

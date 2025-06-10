@@ -286,6 +286,10 @@ class Foro(models.Model):
         help_text="Administrador que escribió el mensaje (null si fue el usuario)"
     )
     mensaje=models.TextField(max_length=2000)
+    leido= models.BooleanField(
+        null=True,
+        help_text="Boleano que indica si son mensajes obsoletos o no, si es null va ser el primer mensaje de cualquiera de los 2, y despues continua el ping-pong"
+    )
 
     class Meta:
         verbose_name = "Foro"

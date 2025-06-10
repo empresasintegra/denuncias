@@ -985,13 +985,17 @@
                 // Cambiar botón a loading
                 this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Descargando...';
                 this.disabled = true;
-
-                const response = await fetch(`/api/descargar-denuncia/${currentDenunciaId}/`, {
+                
+                const response = await fetch(`/api/descargar-denuncia/`, {
                     method: 'POST',
                     headers: {
+                        'Content-Type': 'application/json',
                         'X-CSRFToken': getCookie('csrftoken')
-                    }
-                });
+                    },
+                    body: JSON.stringify({
+                        denuncia_id: denunciaId,
+                    })
+                })
 
                 if (response.ok) {
                     // Crear enlace de descarga
