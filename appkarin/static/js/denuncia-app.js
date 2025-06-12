@@ -624,19 +624,16 @@ const DenunciaApp = {
             console.log('✅ Configurando SmartWizard');
 
             wizardElement.smartWizard({
-                selected: 0,
-                theme: 'default',
-                justified: true,
-                autoAdjustHeight: true,
-                backButtonSupport: false,
-                enableUrlHash: false,
+                selected: 0,                    // Paso inicial 
+                theme: 'default',               // Tema
+                justified: true,                // Justificación del menú
+                autoAdjustHeight: true,         // Ajustar altura automáticamente
+                backButtonSupport: true,        // Soporte botón atrás
+                enableURLhash: true,           // Hash en URL
                 transition: {
-                    animation: 'slideHorizontal',
-                    speed: '200'
-                },
-                toolbar: {
-                    showNextButton: false,
-                    showPreviousButton: false
+                    animation: 'slideHorizontal', // 'none'|'fade'|'slideHorizontal'|'slideVertical'|'slideSwing'|'css'
+                    speed: '400',                // Velocidad
+                    easing: ''                   // Easing (requiere plugin jQuery)
                 }
             });
 
@@ -684,16 +681,20 @@ const DenunciaApp = {
         },
 
         // Navegación
-        nextStep: function() {
+       nextStep: function() {
             console.log(`➡️ Avanzando desde paso ${DenunciaApp.vars.currentStep + 1}`);
             if (this.validateStep(DenunciaApp.vars.currentStep)) {
                 $('#smartwizard').smartWizard("next");
+                
+                // ⭐ AUTO-SCROLL DESPUÉS DE CAMBIAR PASO
             }
         },
 
         prevStep: function() {
             console.log(`⬅️ Retrocediendo desde paso ${DenunciaApp.vars.currentStep + 1}`);
             $('#smartwizard').smartWizard("prev");
+            
+            // ⭐ AUTO-SCROLL DESPUÉS DE CAMBIAR PASO
         },
 
         showStep: function(step) {
