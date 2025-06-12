@@ -9,8 +9,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from .models import Denuncia, DenunciaEstado, EstadosDenuncia
-from .serializers import DenunciaDetailSerializer
 import json
+from subprocess import Popen
 import os
 from datetime import datetime
 from docxtpl import DocxTemplate
@@ -264,13 +264,11 @@ class DenunciaManagementViewSet(ViewSet):
 
 
             # Convierto documento a PDF
-        #pdf = Popen(['libreoffice', '--headless', '--convert-to', 'pdf', '--outdir',
-                       # '', path_doc])
-        #pdf.communicate()
+        pdf = Popen(['libreoffice', '--headless', '--convert-to', 'pdf', '--outdir',
+                        '', path_doc])
+        pdf.communicate()
 
-        #path_pdf = str(trabajador.rut) + '_' + p.abreviatura + '_' + str(trabajador_id) + '.pdf'
-        #file = Path(path_pdf).open(mode='rb')
-        #trabajador.archivo = default_storage.save('autorizaciones/' + path_pdf, file)
+        path_pdf = 'Informe_denuncia.pdf'
             # Elimino el documento word.
         #os.remove(path_doc)
             # Inicio integración de la API

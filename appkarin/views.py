@@ -12,8 +12,23 @@ import re
 # VISTAS PARA RENDERIZAR TEMPLATES (Sin cambios)
 # =================================================================
 
-def renderHome(request):
-    return render(request, 'index.html')
+def renderHome(request,empresa):
+
+    _empresa=empresa
+
+    url_logo=f'assets/Logo{_empresa}.png'
+    _empresa
+
+   
+    _empresa = re.sub(r'(?<![A-Z\W])(?=[A-Z])', ' ', _empresa)
+    
+    print(url_logo)
+    context= {
+        'url_logo':url_logo,
+        'empresa':_empresa
+    }
+
+    return render(request, 'index.html',context)
 
 def renderItemsDenuncia(request):
     categorias = Categoria.objects.all().prefetch_related('item_set')
@@ -93,3 +108,33 @@ def renderConsultaDenuncia(request):
 def renderLoginAdmin(request):
 
     return render(request, 'login.html')
+
+
+def renderHub(request):
+    empresas=['Global','Trasec','ByF','ServiciosTransitorios','PlugInTech','Capacitaciones','Constructora','Cevcom','ServiciosIndustriales','Transportes']
+    descripciones=['Global empresa dedicada',
+                   'Trasec empresa dedicada',
+                   'ByF empresa dedicada',
+                   'Servicios Transitorios es una empresa dedicada a',
+                   'PlugInTech empresa dedicada',
+                   'Capacitaciones es una empresa dedicada',
+                   'Constructura es una empresa dedicada',
+                   'Cevcom es una empresa dedicada',
+                   'Servicios Industriales es una empresa dedicada',
+                   'Transportes es una empresa dedicada']
+    
+    url_logos = []
+    redirect_urls = []  # Agregar esta lista
+    
+    for empresa in empresas:
+        url_logos.append(f'assets/Logo{empresa}.png')
+        redirect_urls.append(f'/{empresa}/')  # Usar la URL que ya tienes configurada
+
+    # Cambiar el zip para incluir las URLs
+    cards_data = zip(empresas, descripciones, url_logos, redirect_urls)
+
+    context = {
+        'cards_data': cards_data
+    }
+
+    return render(request, 'hub.html', context)

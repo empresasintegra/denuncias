@@ -87,6 +87,42 @@
             
             .input-icon .form-control {
                 padding-left: 2.75rem;
+                padding-right: 3rem; /* Espacio para el toggle */
+            }
+            
+            /* Toggle de contraseña */
+            #passwordToggle {
+                position: absolute;
+                right: 1rem;
+                top: 50%;
+                transform: translateY(-50%);
+                cursor: pointer;
+                color: #6b7280;
+                font-size: 1.1rem;
+                padding: 0.25rem;
+                border-radius: 4px;
+                transition: all 0.2s ease;
+                z-index: 10;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 30px;
+                height: 30px;
+            }
+            
+            #passwordToggle:hover {
+                color: #3b82f6 !important;
+                background-color: #f3f4f6 !important;
+            }
+            
+            #passwordToggle:active {
+                transform: translateY(-50%) scale(0.95) !important;
+            }
+            
+            /* Efecto visual cuando se muestra la contraseña */
+            .password-revealed {
+                background-color: #fef3cd !important;
+                border-color: #ffc107 !important;
             }
             
             .btn-login {
@@ -191,7 +227,6 @@
                             <i class="fas fa-user"></i> Usuario o Email
                         </label>
                         <div class="input-icon">
-                            <i class="fas fa-user"></i>
                             <input 
                                 type="text" 
                                 id="username" 
@@ -219,6 +254,9 @@
                                 required
                                 autocomplete="current-password"
                             >
+                            <span id="passwordToggle">
+                                <i class="fas fa-eye"></i>
+                            </span>
                         </div>
                     </div>
                     
@@ -510,6 +548,31 @@
                 });
                 
                 console.log('🎯 AdminLoginApp inicializado correctamente');
+                
+                // ✅ TOGGLE DE CONTRASEÑA - FUNCIONAL
+                $('#passwordToggle').on('click', function() {
+                    console.log("✅ Toggle funcionando correctamente");
+                    const passwordInput = $('#password');
+                    const icon = $(this).find('i');
+                    const isPassword = passwordInput.attr('type') === 'password';
+                    
+                    if (isPassword) {
+                        // Mostrar contraseña
+                        passwordInput.attr('type', 'text');
+                        icon.removeClass('fa-eye').addClass('fa-eye-slash');
+                        passwordInput.addClass('password-revealed');
+                        console.log("🔓 Contraseña mostrada");
+                    } else {
+                        // Ocultar contraseña
+                        passwordInput.attr('type', 'password');
+                        icon.removeClass('fa-eye-slash').addClass('fa-eye');
+                        passwordInput.removeClass('password-revealed');
+                        console.log("🔒 Contraseña oculta");
+                    }
+                    
+                    // Mantener foco en el input
+                    passwordInput.focus();
+                });
             });
         </script>
     </body>

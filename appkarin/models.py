@@ -165,6 +165,14 @@ class Usuario(models.Model):
             return f"Usuario Anónimo {self.id}"
         return f"{self.nombre} {self.apellidos}"
 
+class Empresa(models.Model):
+    nombre = models.CharField(
+        max_length=250, 
+        help_text="nombre de la empresa asociada a Integra"
+    )
+    descripcion= models.TextField(max_length=500)
+
+
 # =================================================================
 # MODELO DENUNCIA ACTUALIZADO
 # =================================================================
@@ -180,6 +188,7 @@ class Denuncia(models.Model):
     )
     
     # Relaciones
+    tipo_empresa= models.ForeignKey(Empresa, on_delete=models.CASCADE)
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     item = models.ForeignKey('Item', on_delete=models.CASCADE)
     relacion_empresa = models.ForeignKey('RelacionEmpresa', on_delete=models.CASCADE)
