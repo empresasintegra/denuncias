@@ -1065,10 +1065,10 @@
     <!-- Sección de botones -->
     <section class="buttons-section">
         <div class="buttons-container">
-            <a class="btn-modern btn-danger" href="/denuncia/Paso1">
-                <i class="fas fa-exclamation-triangle btn-icon"></i>
+            <button class="btn-modern btn-danger" onclick="realizarDenuncia()">
+            <i class="fas fa-exclamation-triangle btn-icon"></i>
                 Realizar Denuncia
-            </a>
+            </button>
             <button class="btn-modern btn-success" onclick="toggleCodigoSection()">
                 <i class="fas fa-search btn-icon"></i>
                 Ver Estado de Denuncia
@@ -1144,6 +1144,50 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
     <script>
+
+        async function realizarDenuncia() {
+    try {
+        const response = await fetch('{% url "initialize" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken() // Usar la función que ya tienes
+                },
+                body: JSON.stringify({
+                    empresa: '{{ empresa }}'
+                }),
+                credentials: 'same-origin' // Importante para cookies de sesión
+            });
+
+            if (response.ok) {
+                // Verificar si la respuesta es JSON o redirección
+                const contentType = response.headers.get('content-type');
+                
+                if (contentType && contentType.includes('application/json')) {
+                    const data = await response.json();
+                    if (data.redirect_url) {
+                        window.location.href = data.redirect_url;
+                    } else {
+                        window.location.href = '/denuncia/Paso1';
+                    }
+                } else {
+                    // Si es una redirección directa del servidor
+                    window.location.href = response.url || '/denuncia/Paso1';
+                }
+            } else {
+                // Manejar errores HTTP
+                const errorData = await response.json().catch(() => null);
+                const errorMessage = errorData?.message || `Error ${response.status}: ${response.statusText}`;
+                mostrarNotificacion(errorMessage, 'error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            mostrarNotificacion('Error de conexión. Intente nuevamente.', 'error');
+            }
+        }
+
+
+
         // ✅ SOLUCIÓN PRINCIPAL: Función para resetear estado del botón
         function resetearEstadoBoton() {
             const btnConsultar = document.getElementById('btnConsultar');

@@ -7,13 +7,13 @@ from django.db import transaction
 from django.shortcuts import redirect
 from .models import (
     Categoria, Item, RelacionEmpresa, Tiempo, Usuario, 
-    Denuncia
+    Denuncia, Empresa
 )
 from .serializers import (
     ItemSelectionSerializer, DenunciaCreateSerializer, 
     UsuarioCreateSerializer,
     CategoriaWithItemsSerializer, RelacionEmpresaSerializer, 
-    TiempoSerializer
+    TiempoSerializer,EmpresaSerializer
 )
 from .utils import (
     validate_rut
@@ -52,8 +52,15 @@ class ServiceProcessDenuncia(APIView):
         - autocomplete-user: Autocompletar datos de usuario por RUT
         - consulta: Consultar estado de denuncia
         """
+
+        print("hola?")
         try:
-            if step == 'items':
+            print("estoy en try")
+
+            if step == 'initialize':
+                print("estoy en initilize")
+                return self._process_initialize(request)
+            elif step == 'items':
                 return self._process_items(request)
             elif step == 'wizard':
                 return self._process_wizard(request)
@@ -92,8 +99,25 @@ class ServiceProcessDenuncia(APIView):
             'success': False,
             'message': 'Método no permitido'
         }, status=405)
-    
-    # ===== PASO 1: SELECCIÓN DE ITEMS =====
+    # ===== PASO 1: INICIACIÓN DE LA DENUNCIA =====
+    def _process_initialize(self,request):
+       
+        empresa=request.data['empresa']
+        empresa="".join(empresa.split())
+
+        empresa_filtrada=Empresa.objects.filter(nombre=empresa).first()
+        request.session['empresa_id']=empresa_filtrada.id
+        print(empresa_filtrada.id)
+
+        return Response({
+                'success': True,
+                'message': 'Item seleccionado correctamente',
+                'redirect_url': '/denuncia/Paso1/',
+            })
+
+
+
+    # ===== PASO 2: SELECCIÓN DE ITEMS =====
     def _process_items(self, request):
         """
         Procesa la selección del tipo de denuncia (Paso 1)

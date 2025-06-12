@@ -17,12 +17,16 @@ def renderHome(request,empresa):
     _empresa=empresa
 
     url_logo=f'assets/Logo{_empresa}.png'
-    _empresa
 
-   
-    _empresa = re.sub(r'(?<![A-Z\W])(?=[A-Z])', ' ', _empresa)
+    if (_empresa !='ByF'):
+        _empresa = re.sub(r'(?<![A-Z\W])(?=[A-Z])', ' ', _empresa)
+    else:
+        _empresa = 'B y F'
     
-    print(url_logo)
+    empresa_filtrada=Empresa.objects.filter(nombre=empresa).first()
+
+    request.session['empresa_id']=empresa_filtrada.id
+
     context= {
         'url_logo':url_logo,
         'empresa':_empresa
@@ -31,6 +35,7 @@ def renderHome(request,empresa):
     return render(request, 'index.html',context)
 
 def renderItemsDenuncia(request):
+    print(request)
     categorias = Categoria.objects.all().prefetch_related('item_set')
     context = {'categorias': categorias}
     return render(request, 'InicioDenuncia.html', context)
@@ -111,27 +116,26 @@ def renderLoginAdmin(request):
 
 
 def renderHub(request):
-    empresas=['Global','Trasec','ByF','ServiciosTransitorios','PlugInTech','Capacitaciones','Constructora','Cevcom','ServiciosIndustriales','Transportes']
-    descripciones=['Global empresa dedicada',
-                   'Trasec empresa dedicada',
-                   'ByF empresa dedicada',
-                   'Servicios Transitorios es una empresa dedicada a',
-                   'PlugInTech empresa dedicada',
-                   'Capacitaciones es una empresa dedicada',
-                   'Constructura es una empresa dedicada',
-                   'Cevcom es una empresa dedicada',
-                   'Servicios Industriales es una empresa dedicada',
-                   'Transportes es una empresa dedicada']
-    
+
+    empresas= Empresa.objects.all()
+
+    nombre_empresas=[]
     url_logos = []
+    descripciones=[]
     redirect_urls = []  # Agregar esta lista
     
     for empresa in empresas:
-        url_logos.append(f'assets/Logo{empresa}.png')
-        redirect_urls.append(f'/{empresa}/')  # Usar la URL que ya tienes configurada
+        if (empresa.nombre !='ByF'):
+             nombre_empresas.append(re.sub(r'(?<![A-Z\W])(?=[A-Z])', ' ', empresa.nombre))
+        else:
+            nombre_empresas.append('B y F')
+
+        url_logos.append(f'assets/Logo{empresa.nombre}.png')
+        redirect_urls.append(f'/{empresa.nombre}/')  # Usar la URL que ya tienes configurada
+        descripciones.append(empresa.descripcion)
 
     # Cambiar el zip para incluir las URLs
-    cards_data = zip(empresas, descripciones, url_logos, redirect_urls)
+    cards_data = zip(nombre_empresas, descripciones, url_logos, redirect_urls)
 
     context = {
         'cards_data': cards_data

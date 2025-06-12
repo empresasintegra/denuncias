@@ -172,6 +172,10 @@ class Empresa(models.Model):
     )
     descripcion= models.TextField(max_length=500)
 
+    class Meta:
+        verbose_name = "Empresa"
+        verbose_name_plural = "Empresas"
+
 
 # =================================================================
 # MODELO DENUNCIA ACTUALIZADO
@@ -188,7 +192,7 @@ class Denuncia(models.Model):
     )
     
     # Relaciones
-    tipo_empresa= models.ForeignKey(Empresa, on_delete=models.CASCADE)
+    tipo_empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     item = models.ForeignKey('Item', on_delete=models.CASCADE)
     relacion_empresa = models.ForeignKey('RelacionEmpresa', on_delete=models.CASCADE)

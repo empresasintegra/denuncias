@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (
     Tiempo, Categoria, Item, RelacionEmpresa, Usuario, Denuncia, 
-    Archivo, Foro, AdminDenuncias,DenunciaEstado, EstadosDenuncia,
+    Archivo, Foro,DenunciaEstado, EstadosDenuncia,Empresa,
     validate_rut, validate_admin_password
 )
 import re
@@ -10,6 +10,12 @@ import re
 # =================================================================
 # SERIALIZERS BÁSICOS (Para modelos simples)
 # =================================================================
+class EmpresaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Empresa
+        fields = ['id', 'nombre', 'descripcion']
+
+
 
 class TiempoSerializer(serializers.ModelSerializer):
     class Meta:

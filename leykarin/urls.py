@@ -50,9 +50,7 @@ urlpatterns = [
     # =================================================================
     
     # Rutas del proceso de denuncia usando un solo servicio
-    path('api/denuncia/process/<str:step>/', 
-         ServiceProcessDenuncia.as_view(), 
-         name='denuncia-process'),
+    path('api/denuncia/initialize',ServiceProcessDenuncia.as_view(),{'step':'initialize'},name='initialize'),
     
     # Mantener compatibilidad con URLs antiguas
     path('api/create/denuncia/items/', 
