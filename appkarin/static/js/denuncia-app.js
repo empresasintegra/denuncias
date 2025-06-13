@@ -628,14 +628,21 @@ const DenunciaApp = {
                 theme: 'default',               // Tema
                 justified: true,                // Justificación del menú
                 autoAdjustHeight: true,         // Ajustar altura automáticamente
-                backButtonSupport: true,        // Soporte botón atrás
                 enableURLhash: true,           // Hash en URL
                 transition: {
                     animation: 'slideHorizontal', // 'none'|'fade'|'slideHorizontal'|'slideVertical'|'slideSwing'|'css'
-                    speed: '400',                // Velocidad
+                    speed: '200',                // Velocidad
                     easing: ''                   // Easing (requiere plugin jQuery)
+                },
+               toolbarSettings: {
+                    toolbarPosition: 'bottom',
+                    toolbarButtonPosition: 'right',
+                    showNextButton: false,
+                    showPreviousButton: false,
+                    toolbarExtraButtons: [] // Sin botones extra
                 }
             });
+
 
             this.showStep(0);
 
@@ -646,23 +653,44 @@ const DenunciaApp = {
                 return true;
             });
 
-            wizardElement.on("showStep", (e, anchorObject, stepIndex, stepDirection, stepPosition) => {
-                DenunciaApp.vars.currentStep = stepIndex;
-                console.log(`📍 Mostrando paso: ${stepIndex + 1}`);
-                this.updateNavigation();
-                
-                // ⭐ NUEVO: Limpiar errores previos al cambiar de paso
-                $('.alert-danger').fadeOut(300, function() {
-                    $(this).remove();
-                });
-                
-                if (stepIndex === 3) {
-                    setTimeout(() => {
-                        this.setupFileUpload();
-                    }, 100);
-                }
-            });
-        },
+
+    $('.sw-toolbar').hide(); // Oculta toda la toolbar
+        // O específicamente:
+    $('.sw-btn-prev, .sw-btn-next').hide(); // Oculta solo esos botones
+            // ⭐ USANDO EL EVENTO CORRECTO CON PARÁMETROS REALES
+    wizardElement.on("showStep", function(e, anchorObject, stepIndex, stepDirection, stepPosition) {
+    DenunciaApp.vars.currentStep = stepIndex;
+    console.log(`📍 Mostrando paso: ${stepIndex + 1}, dirección: ${stepDirection}, posición: ${stepPosition}`);
+    this.updateNavigation();
+    
+    // ⭐ LIMPIAR ERRORES PREVIOS
+    $('.alert-danger').fadeOut(300, function() {
+        $(this).remove();
+    });
+    
+    // ⭐⭐ AUTO-SCROLL CON TIMING CORRECTO ⭐⭐
+    setTimeout(() => {
+        // Método 1: jQuery (más compatible)
+        $('html, body').stop(true, true).animate({
+            scrollTop: 0
+        }, 100);
+        
+        // Método 2: JavaScript nativo (más moderno)
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+        
+        console.log('📜 Auto-scroll ejecutado en showStep');
+        }, 25); // Esperar 300ms para que termine la animación slideHorizontal
+        
+        if (stepIndex === 3) {
+            setTimeout(() => {
+                this.setupFileUpload();
+            }, 50);
+         }
+        }.bind(this)); // ⭐ IMPORTANTE: bind(this) para mantener el contexto
+    },
 
         setupTextareaCounter: function() {
             $('#descripcion-textarea').on('input', function() {

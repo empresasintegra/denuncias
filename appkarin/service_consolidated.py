@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from .models import Denuncia, DenunciaEstado, EstadosDenuncia
+from .models import Denuncia, DenunciaEstado, EstadosDenuncia, Foro, AdminDenuncias
 import json
 from subprocess import Popen
 import os
@@ -93,7 +93,7 @@ class DenunciaManagementViewSet(ViewSet):
             
             # Obtener mensajes del foro
             mensajes = denuncia.foro_set.all().order_by('id')
-            
+            print(mensajes)
             data = {
                 'codigo': denuncia.codigo,
                 'fecha': denuncia.fecha.isoformat(),
@@ -102,9 +102,11 @@ class DenunciaManagementViewSet(ViewSet):
                     'id': m.id,
                     'mensaje': m.mensaje,
                     'es_admin': m.admin is not None,
-                    'admin_nombre': m.admin.nombre if m.admin else None
+                    'admin_nombre': m.admin.nombre if m.admin else None,
+                    'fecha':m.fecha,
                 } for m in mensajes]
             }
+            print(data)
             
             return Response(data)
             
@@ -131,6 +133,47 @@ class DenunciaManagementViewSet(ViewSet):
             
         except Exception as e:
             return Response({'error': str(e)}, status=500)
+        
+
+    @action(detail=True, methods=['post'])
+    def enviar_mensaje(self, request):
+        print("enviar mensaje")
+        """
+        POST /api/denuncia-envio-mensaje/
+        envia el mensaje hacia Foro
+        """
+        try:
+            print("denuncia?")
+         
+            denuncia= request.data['denuncia_codigo']
+           
+            mensaje=request.data['mensaje']
+            
+            print(denuncia)
+            print(mensaje)
+
+            # Obtener mensajes del foro
+            mensaje_foro=Foro.objects.create(
+                denuncia=denuncia,
+                mensaje=mensaje,
+                leido=False
+            )
+
+            print("hola ")
+
+            mensaje_foro.save()
+
+            data = {
+                'success':True,
+                'response': "emvio correcto del mensaje",
+                'fecha': mensaje_foro.fecha
+            }
+            
+            return Response(data)
+            
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+
 
     # 4. CAMBIAR ESTADO (reemplaza CambiarEstadoDenunciaAPIView)
     @action(detail=False, methods=['post'])

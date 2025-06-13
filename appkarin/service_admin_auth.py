@@ -2,6 +2,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.hashers import check_password, make_password
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from .models import AdminDenuncias
@@ -12,7 +13,6 @@ import json
 class ServiceAdminDenunciaAuth(APIView):
     """
     Servicio consolidado para todas las operaciones de autenticación de administradores.
-    Reemplaza: ServiceLoginAdminAPIView, ServiceLogoutAdminAPIView, ServiceCheckAuthAdminAPIView
     """
     
     def post(self, request, action=None):
@@ -62,92 +62,117 @@ class ServiceAdminDenunciaAuth(APIView):
         Espera: { "username": "usuario", "password": "contraseña" }
         """
         try:
-
             username = request.data.get('username', '').strip()
             password = request.data.get('password', '')
             
             if not username or not password:
                 return Response({
                     'success': False,
-                    'message': 'Usuario y contraseña son requeridos'
+                    'message': 'Usuario y contraseña son requeridos',
+                    'error_code': 'MISSING_CREDENTIALS'
                 }, status=400)
             
-            # Intentar autenticar con Django auth
+            # Primero intentar autenticación normal de Django
+            print(f"🔐 Intentando autenticar a: {username}")
             user = authenticate(request, username=username, password=password)
             
-            if user is not None and user.is_active:
-                # Usuario Django válido
+            # Si la autenticación normal falla, verificar si es problema de contraseña no hasheada
+            if user is None:
+                print("❌ Autenticación normal falló, verificando contraseñas no hasheadas...")
+                
+                try:
+                    # Buscar el usuario manualmente
+                    admin_user = AdminDenuncias.objects.get(username=username)
+                    
+                    # Verificar si la contraseña está hasheada
+                    is_hashed = admin_user.password.startswith(('pbkdf2_', 'bcrypt', 'argon2'))
+                    
+                    if not is_hashed:
+                        print("⚠️ Contraseña en texto plano detectada")
+                        
+                        # Comparar contraseña en texto plano
+                        if admin_user.password == password:
+                            print("✅ Contraseña correcta, hasheando...")
+                            
+                            # Hashear la contraseña para futuras autenticaciones
+                            admin_user.set_password(password)
+                            admin_user.save()
+                            print("✅ Contraseña hasheada y guardada")
+                            
+                            # Ahora intentar autenticar de nuevo
+                            user = authenticate(request, username=username, password=password)
+                        else:
+                            print("❌ Contraseña incorrecta")
+                    else:
+                        # La contraseña está hasheada pero no coincide
+                        print("❌ Contraseña hasheada pero incorrecta")
+                        
+                except AdminDenuncias.DoesNotExist:
+                    print(f"❌ Usuario '{username}' no existe")
+                except Exception as e:
+                    print(f"❌ Error verificando usuario: {str(e)}")
+            
+            # Verificar el resultado final
+            if user is not None:
+                # Verificar que el usuario esté activo
+                if not user.is_active:
+                    return Response({
+                        'success': False,
+                        'message': 'Su cuenta está desactivada. Contacte al administrador.',
+                        'error_code': 'USER_INACTIVE'
+                    }, status=401)
+                
+                # Verificar que sea staff o superuser
+                if not (user.is_staff or user.is_superuser):
+                    print(f"⚠️ Usuario {username} no es staff. Actualizando...")
+                    # Auto-corregir si no es staff
+                    user.is_staff = True
+                    user.save()
+                
+                # Login exitoso
                 login(request, user)
+                print(f"✅ Login exitoso para: {username}")
                 
                 # Preparar datos de respuesta
                 response_data = {
                     'success': True,
                     'message': 'Login exitoso',
-                    'user': {
+                    'user_info': {
                         'id': user.id,
                         'username': user.username,
-                        'email': user.email,
+                        'email': user.email or '',
                         'is_superuser': user.is_superuser,
                         'is_staff': user.is_staff,
+                        'nombre_completo': user.get_full_name() or user.username
                     },
-                    'redirect_url': '/'
+                    'redirect_url': '/consulta-denuncias/'
                 }
                 
                 # Agregar información de categoría si existe
                 if hasattr(user, 'rol_categoria') and user.rol_categoria:
-                    response_data['user']['categoria'] = {
+                    response_data['user_info']['categoria'] = {
                         'id': user.rol_categoria.id,
                         'nombre': user.rol_categoria.nombre
                     }
-                else:
-                    response_data['user']['categoria'] = None
+                
+                # Agregar RUT si existe
+                if hasattr(user, 'rut') and user.rut:
+                    response_data['user_info']['rut'] = user.rut
                 
                 # Guardar información en sesión
                 request.session['admin_logged'] = True
                 request.session['admin_id'] = user.id
                 request.session['admin_username'] = user.username
                 request.session['is_django_user'] = True
+                request.session.save()
                 
                 return Response(response_data)
             
-            # Si no es usuario Django, verificar en tabla AdminDenuncias (legacy)
-            try:
-                admin = AdminDenuncias.objects.get(
-                    usuario=username,
-                    estado=True  # Solo admins activos
-                )
-                
-                # Verificar contraseña (deberías usar hashing en producción)
-                if admin.password == password:  # ⚠️ INSEGURO - usar hashing
-                    # Login exitoso con admin legacy
-                    request.session['admin_logged'] = True
-                    request.session['admin_id'] = admin.id
-                    request.session['admin_username'] = admin.usuario
-                    request.session['admin_name'] = admin.nombre
-                    request.session['is_django_user'] = False
-                    
-                    return Response({
-                        'success': True,
-                        'message': 'Login exitoso',
-                        'user': {
-                            'id': admin.id,
-                            'username': admin.usuario,
-                            'nombre': admin.nombre,
-                            'email': admin.correo,
-                            'is_superuser': False,
-                            'is_staff': False,
-                            'categoria': None,
-                            'is_legacy': True
-                        }
-                    })
-                
-            except AdminDenuncias.DoesNotExist:
-                pass
-            
-            # Credenciales inválidas
+            # Si llegamos aquí, las credenciales son inválidas
             return Response({
                 'success': False,
-                'message': 'Usuario o contraseña incorrectos'
+                'message': 'Usuario o contraseña incorrectos',
+                'error_code': 'INVALID_CREDENTIALS'
             }, status=401)
             
         except json.JSONDecodeError:
@@ -156,6 +181,7 @@ class ServiceAdminDenunciaAuth(APIView):
                 'message': 'Formato de datos inválido'
             }, status=400)
         except Exception as e:
+            print(f"❌ Error en login: {str(e)}")
             return Response({
                 'success': False,
                 'message': f'Error en login: {str(e)}'
@@ -178,9 +204,12 @@ class ServiceAdminDenunciaAuth(APIView):
             for key in session_keys:
                 request.session.pop(key, None)
             
+            request.session.save()
+            
             return Response({
                 'success': True,
-                'message': 'Sesión cerrada exitosamente'
+                'message': 'Sesión cerrada exitosamente',
+                'redirect_url': '/login/'
             })
             
         except Exception as e:
@@ -199,9 +228,10 @@ class ServiceAdminDenunciaAuth(APIView):
                 user_data = {
                     'id': request.user.id,
                     'username': request.user.username,
-                    'email': request.user.email,
+                    'email': request.user.email or '',
                     'is_superuser': request.user.is_superuser,
                     'is_staff': request.user.is_staff,
+                    'nombre_completo': request.user.get_full_name() or request.user.username
                 }
                 
                 # Agregar categoría si existe
@@ -210,37 +240,29 @@ class ServiceAdminDenunciaAuth(APIView):
                         'id': request.user.rol_categoria.id,
                         'nombre': request.user.rol_categoria.nombre
                     }
-                else:
-                    user_data['categoria'] = None
+                
+                # Agregar RUT si existe
+                if hasattr(request.user, 'rut') and request.user.rut:
+                    user_data['rut'] = request.user.rut
                 
                 return Response({
+                    'success': True,
                     'authenticated': True,
-                    'is_admin': True,
-                    'user': user_data
-                })
-            
-            # Verificar sesión legacy
-            if request.session.get('admin_logged'):
-                return Response({
-                    'authenticated': True,
-                    'is_admin': True,
-                    'user': {
-                        'id': request.session.get('admin_id'),
-                        'username': request.session.get('admin_username'),
-                        'nombre': request.session.get('admin_name'),
-                        'is_legacy': not request.session.get('is_django_user', False)
-                    }
+                    'is_admin': request.user.is_staff or request.user.is_superuser,
+                    'user_info': user_data
                 })
             
             # No autenticado
             return Response({
+                'success': False,
                 'authenticated': False,
                 'is_admin': False,
-                'user': None
+                'user_info': None
             })
             
         except Exception as e:
             return Response({
+                'success': False,
                 'authenticated': False,
                 'is_admin': False,
                 'error': str(e)

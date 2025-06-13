@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.db.models import Q, Count
-from .models import Denuncia, Usuario, AdminDenuncias
+from .models import Denuncia, Usuario, AdminDenuncias,Foro
 import json
 
 
@@ -24,17 +24,36 @@ class SimpleDenunciaDataTableAPIView(APIView):
         try:
             # Parsear datos de DataTables
             dt_data = self._parse_datatable_request(request)
-            
-            # Construir queryset base con optimizaciones
-            queryset = Denuncia.objects.select_related(
+
+            admin = AdminDenuncias.objects.filter(id=request.user.id).first()
+
+            # ✅ FORMA CORRECTA con Count y filtros
+            denuncia = Denuncia.objects.select_related(
                 'usuario',
-                'item',
+                'item', 
                 'item__categoria',
                 'relacion_empresa',
                 'tiempo'
             ).annotate(
                 num_archivos=Count('archivo'),
-                num_mensajes=Count('foro')
+                
+                # ✅ Contar mensajes NO leídos del admin específico
+                num_mensajes_no_leidos=Count(
+                    'foro',
+                    filter=Q(foro__leido=False, foro__admin=admin)
+                ),
+                
+                # ✅ Contar mensajes SÍ leídos del admin específico  
+                num_mensajes_leidos=Count(
+                    'foro',
+                    filter=Q(foro__leido=True, foro__admin=admin)
+                ),
+                
+                # ✅ Contar TODOS los mensajes del admin
+                num_mensajes_total=Count(
+                    'foro',
+                    filter=Q(foro__admin=admin)
+                )
             )
             
             # FILTRADO DIRECTO por usuario autenticado
@@ -46,15 +65,7 @@ class SimpleDenunciaDataTableAPIView(APIView):
                 if request.user.rol_categoria:
                     # Admin con categoría específica: solo denuncias de su categoría
                     print(f"Admin autenticado - Filtrando por categoría: {request.user.rol_categoria.nombre} (ID: {request.user.rol_categoria.id})")
-                    queryset = queryset.filter(item__categoria_id=request.user.rol_categoria.id)
-                elif request.user.is_superuser:
-                    # Superuser: ve todas las denuncias
-                    print("Superuser autenticado - Sin filtros")
-                    # queryset permanece sin filtros
-                else:
-                    # Admin sin categoría: no ve nada
-                    print("Admin sin categoría - Sin denuncias")
-                    queryset = queryset.none()
+                    denuncia = denuncia.filter(item__categoria_id=request.user.rol_categoria.id)
             else:
                 # Usuarios no autenticados (consultas por código)
                 user_info = dt_data.get('user_info', {})
@@ -64,31 +75,31 @@ class SimpleDenunciaDataTableAPIView(APIView):
                 if user_type == 'anonimo' and codigo:
                     # Usuario anónimo: filtrar por código
                     print(f"Usuario anónimo - Código: {codigo}")
-                    queryset = queryset.filter(codigo=codigo)
+                    denuncia = denuncia.filter(codigo=codigo)
                 elif user_type == 'identificado' and codigo:
                     # Usuario identificado: filtrar por ID de usuario
                     print(f"Usuario identificado - ID: {codigo}")
-                    queryset = queryset.filter(usuario__id=codigo)
+                    denuncia = denuncia.filter(usuario__id=codigo)
                 else:
                     # Sin permisos - no mostrar nada
                     print("Sin permisos - Sin denuncias")
-                    queryset = queryset.none()
+                    denuncia = denuncia.none()
             
             # Aplicar búsqueda si existe
             search_value = dt_data.get('search', {}).get('value', '')
             if search_value:
-                queryset = self._apply_search(queryset, search_value)
+                denuncia = self._apply_search(denuncia, search_value)
             
             # Contar registros
-            records_filtered = queryset.count()
+            records_filtered = denuncia.count()
             
             # Aplicar ordenamiento
-            queryset = self._apply_ordering(queryset, dt_data)
+            denuncia = self._apply_ordering(denuncia, dt_data)
             
             # Paginar
             start = dt_data.get('start', 0)
             length = dt_data.get('length', 10)
-            denuncias = queryset[start:start + length]
+            denuncias = denuncia[start:start + length]
             
             # Serializar datos
             data = []
@@ -103,7 +114,9 @@ class SimpleDenunciaDataTableAPIView(APIView):
                     'usuario_anonimo': denuncia.usuario.anonimo,
                     'estado_actual': denuncia.estado_actual,
                     'num_archivos': denuncia.num_archivos,
-                    'num_mensajes': denuncia.num_mensajes,
+                    'num_mensajes_leidos': denuncia.num_mensajes_leidos,
+                    'num_mensajes_no_leidos': denuncia.num_mensajes_no_leidos,
+                    'num_mensajes_total': denuncia.num_mensajes_total,
                     'relacion_empresa': denuncia.relacion_empresa.rol,
                     'tiempo': denuncia.tiempo.intervalo,
                 })
@@ -182,3 +195,5 @@ class SimpleDenunciaDataTableAPIView(APIView):
     
 
 
+class DataTableActions(APIView):
+    pass

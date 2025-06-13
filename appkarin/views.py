@@ -22,10 +22,6 @@ def renderHome(request,empresa):
         _empresa = re.sub(r'(?<![A-Z\W])(?=[A-Z])', ' ', _empresa)
     else:
         _empresa = 'B y F'
-    
-    empresa_filtrada=Empresa.objects.filter(nombre=empresa).first()
-
-    request.session['empresa_id']=empresa_filtrada.id
 
     context= {
         'url_logo':url_logo,

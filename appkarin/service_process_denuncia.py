@@ -236,9 +236,11 @@ class ServiceProcessDenuncia(APIView):
             # Generar código único
             # Crear denuncia
             print("create?")
+            print (request.session['empresa_id'])
             denuncia = Denuncia.objects.create(
                 usuario=usuario,
                 item_id=request.session['denuncia_item_id'],
+                tipo_empresa_id=request.session['empresa_id'],
                 relacion_empresa_id=request.session['denuncia_relacion_id'],
                 tiempo_id=request.session['denuncia_tiempo_id'],
                 descripcion=request.session['denuncia_descripcion'],

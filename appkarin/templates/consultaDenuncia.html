@@ -513,6 +513,226 @@
         .toast-header.error {
             background: var(--danger-gradient);
         }
+
+        /* ===== ESTILOS PARA CHAT/FORO ===== */
+
+.chat-container {
+    height: 400px;
+    overflow-y: auto;
+    background: #f8fafc;
+}
+
+.chat-messages {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.chat-header {
+    background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
+    color: #4a5568;
+    font-size: 0.9rem;
+}
+
+/* Mensaje individual */
+.message-item {
+    display: flex;
+    margin-bottom: 1rem;
+    animation: messageSlideIn 0.3s ease-out;
+}
+
+@keyframes messageSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mensaje del usuario (derecha) */
+        .message-user {
+            justify-content: flex-end;
+        }
+
+        .message-user .message-bubble {
+            background: var(--primary-gradient);
+            color: white;
+            border-radius: 18px 18px 4px 18px;
+            margin-left: 20%;
+        }
+
+        .message-user .message-avatar {
+            order: 2;
+            margin-left: 0.75rem;
+            margin-right: 0;
+        }
+
+        /* Mensaje del admin (izquierda) */
+        .message-admin {
+            justify-content: flex-start;
+        }
+
+        .message-admin .message-bubble {
+            background: white;
+            color: #2d3748;
+            border: 1px solid #e2e8f0;
+            border-radius: 18px 18px 18px 4px;
+            margin-right: 20%;
+        }
+
+        .message-admin .message-avatar {
+            order: 1;
+            margin-right: 0.75rem;
+            margin-left: 0;
+        }
+
+        /* Burbuja del mensaje */
+        .message-bubble {
+            max-width: 80%;
+            padding: 0.75rem 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            word-wrap: break-word;
+        }
+
+        .message-content {
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        .message-meta {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            margin-top: 0.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .message-time {
+            font-weight: 500;
+        }
+
+        .message-author {
+            font-weight: 600;
+        }
+
+        /* Avatar */
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .avatar-user {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .avatar-admin {
+            background: linear-gradient(135deg, #20c997, #17a2b8);
+            color: white;
+        }
+
+        /* Área de input */
+        .chat-input-container {
+            background: white;
+        }
+
+        .chat-textarea {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 0.75rem;
+            resize: none;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .chat-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .chat-textarea::placeholder {
+            color: #a0aec0;
+        }
+
+        /* Estado vacío */
+        .empty-chat {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #718096;
+        }
+
+        .empty-chat i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Loading en envío */
+        .sending {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .modal-dialog.modal-xl {
+                margin: 0.5rem;
+            }
+            
+            .chat-container {
+                height: 300px;
+            }
+            
+            .message-bubble {
+                max-width: 85%;
+            }
+            
+            .message-user .message-bubble {
+                margin-left: 15%;
+            }
+            
+            .message-admin .message-bubble {
+                margin-right: 15%;
+            }
+            
+            .chat-header {
+                font-size: 0.8rem;
+            }
+            
+            .chat-header .row > div {
+                margin-bottom: 0.5rem;
+            }
+        }
+
+        /* Scrollbar personalizado */
+        .chat-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
     </style>
 </head>
 <body>
@@ -604,24 +824,56 @@
     </div>
 
     <!-- Modal - Ver Mensaje -->
-    <div class="modal fade" id="modalMensaje" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="fas fa-envelope"></i> Mensaje de la Denuncia
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body" id="modalMensajeBody">
-                    <div class="loading-content">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>Cargando mensaje...</p>
+    <!-- Modal - Foro de Mensajes (REEMPLAZAR EL MODAL EXISTENTE) -->
+    <!-- Modal - Foro de Mensajes (VERSIÓN CORREGIDA) -->
+<div class="modal fade" id="modalMensaje" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-comments"></i> Foro de la Denuncia <span id="modalDenunciaCodigo"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <!-- Área de mensajes (chat) -->
+                <div class="chat-container" id="chatContainer">
+                    <div class="chat-messages" id="chatMessages">
+                        <!-- Loading inicial -->
+                        <div class="loading-content text-center py-5" id="chatLoading">
+                            <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                            <p>Cargando mensajes...</p>
+                        </div>
                     </div>
+                </div>
+                
+                <!-- Área para escribir nuevo mensaje -->
+                <div class="chat-input-container border-top p-3" id="chatInputContainer">
+                    <form id="formNuevoMensaje" class="d-flex gap-2">
+                        <div class="flex-grow-1">
+                            <textarea 
+                                id="nuevoMensajeTexto" 
+                                class="form-control chat-textarea" 
+                                placeholder="Escriba su mensaje aquí..."
+                                rows="2"
+                                maxlength="1000"
+                                required></textarea>
+                            <small class="text-muted">
+                                <span id="contadorCaracteres">0</span>/1000 caracteres
+                            </small>
+                        </div>
+                        <div class="d-flex flex-column justify-content-end">
+                            <button type="submit" class="btn btn-primary" id="btnEnviarMensaje">
+                                <i class="fas fa-paper-plane"></i>
+                                <span class="d-none d-md-inline ms-1">Enviar</span>
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
     <!-- Modal - Confirmar Descarga -->
     <div class="modal fade" id="modalDescarga" tabindex="-1">
@@ -898,54 +1150,239 @@
             }
         }
 
-        // Función para abrir modal de mensaje
+                // Función para abrir modal de mensaje
+                // ===== FUNCIONES PARA CHAT/FORO =====
+
+        // Función para abrir modal de mensajes (REEMPLAZAR LA EXISTENTE)
+        // ✅ FUNCIÓN SIMPLIFICADA (REEMPLAZAR LA ANTERIOR)
         async function abrirModalMensaje(denunciaId) {
             currentDenunciaId = denunciaId;
             const modal = new bootstrap.Modal(document.getElementById('modalMensaje'));
-            const modalBody = document.getElementById('modalMensajeBody');
             
-            // Mostrar loading
-            modalBody.innerHTML = `
-                <div class="loading-content">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <p>Cargando mensaje...</p>
+            // ✅ Mostrar código en el título directamente
+            document.getElementById('modalDenunciaCodigo').textContent = `(${denunciaId})`;
+            
+            // Limpiar y mostrar loading
+            document.getElementById('chatMessages').innerHTML = `
+                <div class="loading-content text-center py-5">
+                    <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                    <p>Cargando mensajes...</p>
                 </div>
             `;
             
             modal.show();
-
+            
             try {
+                // ✅ Solo cargar mensajes - no info redundante
                 const response = await fetch(`/api/denuncia-mensaje/${denunciaId}/`, {
-                    headers: {
-                        'X-CSRFToken': getCookie('csrftoken')
-                    }
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') }
                 });
 
                 if (response.ok) {
                     const data = await response.json();
-                    modalBody.innerHTML = `
-                        <div class="denuncia-info">
-                            <h6>Información del Mensaje</h6>
-                            <p><strong>Código:</strong> ${data.codigo}</p>
-                            <p><strong>Fecha:</strong> ${formatDate(data.fecha)}</p>
-                        </div>
-                        <div class="mensaje-content">
-                            <h6><i class="fas fa-envelope"></i> Mensaje</h6>
-                            <p>${data.mensaje || 'No hay mensaje disponible'}</p>
-                        </div>
-                    `;
+                    cargarMensajesEnChat(data.mensajes || []);
                 } else {
-                    throw new Error('Error al cargar el mensaje');
+                    throw new Error('Error al cargar mensajes');
                 }
+
             } catch (error) {
-                modalBody.innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        Error al cargar el mensaje: ${error.message}
+                console.error('Error al cargar chat:', error);
+                document.getElementById('chatMessages').innerHTML = `
+                    <div class="alert alert-danger text-center">
+                        <i class="fas fa-exclamation-triangle mb-2"></i><br>
+                        Error al cargar los mensajes: ${error.message}
                     </div>
                 `;
             }
+}
+
+    // ✅ Función para enviar mensaje (sin cambios, pero más simple)
+    async function enviarNuevoMensaje(texto) {
+        if (!currentDenunciaId || !texto.trim()) return;
+
+        try {
+            const response = await fetch('/api/denuncia-envio-mensaje/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    denuncia_codigo: currentDenunciaId,  // ✅ Usar el código directamente
+                    mensaje: texto.trim()
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                // Agregar mensaje al chat
+                const nuevoMensaje = {
+                    mensaje: texto.trim(),
+                    es_admin: userInfo.is_admin,
+                    admin_nombre: userInfo.is_admin ? userInfo.nombre : null,
+                    fecha: data.fecha
+                };
+                
+                agregarMensajeAlChat(nuevoMensaje);
+                
+                // Limpiar textarea
+                document.getElementById('nuevoMensajeTexto').value = '';
+                actualizarContadorCaracteres();
+                
+                showNotification('Mensaje enviado correctamente', 'success');
+            } else {
+                throw new Error(data.message || 'Error al enviar mensaje');
+            }
+        } catch (error) {
+            console.error('Error al enviar mensaje:', error);
+            showNotification('Error al enviar mensaje: ' + error.message, 'error');
         }
+    }
+
+        // Función para cargar mensajes en el chat
+        function cargarMensajesEnChat(mensajes) {
+            const chatMessages = document.getElementById('chatMessages');
+            
+            if (!mensajes || mensajes.length === 0) {
+                chatMessages.innerHTML = `
+                    <div class="empty-chat">
+                        <i class="fas fa-comments"></i>
+                        <h5>No hay mensajes</h5>
+                        <p>Sea el primero en escribir un mensaje en este foro</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Generar HTML de los mensajes
+            const mensajesHTML = mensajes.map(mensaje => crearMensajeHTML(mensaje)).join('');
+            chatMessages.innerHTML = mensajesHTML;
+            
+            // Scroll hacia abajo
+            scrollToBottom();
+        }
+
+        // Función para crear HTML de un mensaje individual
+        function crearMensajeHTML(mensaje) {
+            const esAdmin = mensaje.es_admin || mensaje.admin_id;
+            const claseMessage = esAdmin ? 'message-admin' : 'message-user';
+            const claseAvatar = esAdmin ? 'avatar-admin' : 'avatar-user';
+            const iconoAvatar = esAdmin ? 'fas fa-user-shield' : 'fas fa-user';
+            const autor = esAdmin ? (mensaje.admin_nombre || 'Administrador') : 'Usuario';
+            
+            return `
+                <div class="message-item ${claseMessage}">
+                    <div class="message-avatar ${claseAvatar}">
+                        <i class="${iconoAvatar}"></i>
+                    </div>
+                    <div class="message-bubble">
+                        <div class="message-content">${escapeHtml(mensaje.mensaje)}</div>
+                        <div class="message-meta">
+                            <span class="message-author">${autor}</span>
+                            <span class="message-time">${formatDate(mensaje.fecha || mensaje.created_at)}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    
+
+        // Función para agregar un mensaje nuevo al chat
+        function agregarMensajeAlChat(mensaje) {
+            const chatMessages = document.getElementById('chatMessages');
+            
+            // Si está vacío, limpiar el mensaje de vacío
+            if (chatMessages.querySelector('.empty-chat')) {
+                chatMessages.innerHTML = '';
+            }
+            
+            // Crear y agregar el nuevo mensaje
+            const mensajeHTML = crearMensajeHTML(mensaje);
+            chatMessages.insertAdjacentHTML('beforeend', mensajeHTML);
+            
+            // Scroll hacia abajo
+            scrollToBottom();
+        }
+
+        // Función para scroll hacia abajo
+        function scrollToBottom() {
+            const chatContainer = document.getElementById('chatContainer');
+            setTimeout(() => {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 100);
+        }
+
+        // Función para actualizar contador de caracteres
+        function actualizarContadorCaracteres() {
+            const textarea = document.getElementById('nuevoMensajeTexto');
+            const contador = document.getElementById('contadorCaracteres');
+            contador.textContent = textarea.value.length;
+        }
+
+        // Función auxiliar para escapar HTML
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // Función auxiliar para obtener texto del estado
+        function getEstadoTexto(estado) {
+            const estados = {
+                '1': 'Pendiente',
+                '2': 'En Revisión', 
+                '3': 'Resuelto',
+                'PENDIENTE': 'Pendiente',
+                'EN_REVISION': 'En Revisión',
+                'RESUELTO': 'Resuelto'
+            };
+            return estados[estado] || estado;
+        }
+
+        // ===== EVENT LISTENERS PARA EL CHAT =====
+
+        // Event listener para el formulario de nuevo mensaje
+        document.getElementById('formNuevoMensaje').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const textarea = document.getElementById('nuevoMensajeTexto');
+            const btnEnviar = document.getElementById('btnEnviarMensaje');
+            const texto = textarea.value.trim();
+            
+            if (!texto) {
+                textarea.focus();
+                return;
+            }
+            
+            // Mostrar loading
+            btnEnviar.disabled = true;
+            btnEnviar.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            
+            try {
+                await enviarNuevoMensaje(texto);
+            } finally {
+                // Restaurar botón
+                btnEnviar.disabled = false;
+                btnEnviar.innerHTML = '<i class="fas fa-paper-plane"></i><span class="d-none d-md-inline ms-1">Enviar</span>';
+            }
+        });
+
+        // Event listener para contador de caracteres
+        document.getElementById('nuevoMensajeTexto').addEventListener('input', actualizarContadorCaracteres);
+
+        // Event listener para enviar con Ctrl+Enter
+        document.getElementById('nuevoMensajeTexto').addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('formNuevoMensaje').dispatchEvent(new Event('submit'));
+            }
+        });
 
         // Función para abrir modal de descarga
         async function abrirModalDescarga(denunciaId, codigo) {
@@ -993,7 +1430,8 @@
                         'X-CSRFToken': getCookie('csrftoken')
                     },
                     body: JSON.stringify({
-                        denuncia_id: denunciaId,
+                        denuncia_id: currentDenunciaId,
+                        admin_id: adminId ? adminId : null
                     })
                 })
 

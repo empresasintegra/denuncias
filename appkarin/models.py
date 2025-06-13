@@ -301,8 +301,9 @@ class Foro(models.Model):
     mensaje=models.TextField(max_length=2000)
     leido= models.BooleanField(
         null=True,
-        help_text="Boleano que indica si son mensajes obsoletos o no, si es null va ser el primer mensaje de cualquiera de los 2, y despues continua el ping-pong"
+        help_text="Boleano que indica si son mensajes obsoletos o no"
     )
+
 
     class Meta:
         verbose_name = "Foro"
