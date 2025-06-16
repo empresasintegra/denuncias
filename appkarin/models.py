@@ -191,7 +191,7 @@ class Denuncia(models.Model):
         help_text="Código único de seguimiento de la denuncia"
     )
     
-    # Relaciones
+    #Relaciones
     tipo_empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     item = models.ForeignKey('Item', on_delete=models.CASCADE)

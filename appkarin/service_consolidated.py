@@ -253,14 +253,10 @@ class DenunciaManagementViewSet(ViewSet):
         Genera y descarga un PDF con la información de la denuncia
         """
         try:
-            print("ok?")
            
             denuncia_codigo=request.data['denuncia_id']
-            print(denuncia_codigo)
-
             # Aquí deberías implementar la generación del PDF
             # Por ahora, retornamos un PDF dummy
-            print("voy a generar pdf")
             pdf_content = self._generar_pdf_denuncia(denuncia_codigo)
             
             return pdf_content
@@ -275,29 +271,41 @@ class DenunciaManagementViewSet(ViewSet):
         """
         print("denuncia?")
         denuncia = Denuncia.objects.filter(codigo=denuncia_codigo).first()
-        path_archive= './templates/word/template_denuncia{denuncia.tipo_empresa.nombre}.docx'
+        
+        base_path = os.path.join(os.path.dirname(__file__), 'templates', 'word')
+        template_filename = f'template_denuncia_{denuncia.tipo_empresa.nombre}.docx'
+        path_archive = os.path.join(base_path, template_filename)
+        
         # Genero el documento
-        print(denuncia.usuario.nombre)
-       
+        print(denuncia.relacion_empresa.rol)
+        
+
         doc = DocxTemplate(path_archive)
+        print(path_archive)
         # Variables de Autorización Firma Electrónica
         print("este será context")
-        context = { 'fecha_descarga':datetime.datetime.now(),
-                    'usuario_nombre': denuncia.usuario.nombre,
-                    'usuario_apellidos': denuncia. usuario.apellidos,
+        context = { 'fecha_descarga':datetime.datetime.now().strftime('%d/%m/%Y'),
                     'rol':denuncia.item.categoria.nombre,
                     'codigo': denuncia.codigo,
-                    'fecha_denuncia': denuncia.fecha,
+                    'fecha_denuncia': denuncia.fecha.strftime('%d/%m/%Y'),
+                    'usuario_nombre': denuncia.usuario.nombre or '',
+                    'usuario_apellidos': denuncia.usuario.apellidos or '',   
+                    'usuario_celular': denuncia.usuario.celular or '',
+                    'usuario_correo': denuncia.usuario.correo or '',
                     'item_enunciado': denuncia.item.enunciado,
-                    'rol_empresa': denuncia.relación_empresa.rol,
-                    'descripcion_relacion': denuncia.descripcion_relacion,
-                    'correo_trabajador': denuncia.email,
+                    'rol_empresa': denuncia.relacion_empresa.rol,
+                    'descripcion': denuncia.descripcion,
+                    'descripcion_relacion': denuncia.descripcion_relacion or '',
+                    'correo_trabajador': denuncia.usuario.correo or '',
                     'tiempo': denuncia.tiempo.intervalo,
+                    'archivos':[],
+                    'anonimo': 'Sí' if denuncia.usuario.anonimo else 'No'
                     }
             # Creo documento word con datos de trabajador
+        print("render?")
         doc.render(context)
+        print("termine render")
         path_doc ='Informe_denuncia.docx'
-            
             # Guarda el documento
         doc.save(path_doc)
 
