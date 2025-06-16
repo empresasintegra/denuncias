@@ -52,6 +52,10 @@ def renderWizzDenuncia(request):
     return render(request, 'denunciaWizzard.html', context)
 
 def renderUserDenuncia(request):
+
+    if (request.session.get('categoria_id')!=1):
+        return render(request, 'terminoDenunciaLeyKarin.html')
+   
     return render(request, 'terminoDenuncia.html')
 
 def renderCodeDenuncia(request):
@@ -102,6 +106,7 @@ def renderConsultaDenuncia(request):
     codigo = request.session.get('codigo_consulta')
     
     context['codigo'] = codigo
+    context['admin_id']=request.user.id
     # Si es admin, verificar autenticación (esto sería con el sistema de auth real)
     # Por ahora solo pasamos el contexto 
     return render(request, 'consultaDenuncia.html', context)

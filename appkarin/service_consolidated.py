@@ -102,7 +102,7 @@ class DenunciaManagementViewSet(ViewSet):
                     'id': m.id,
                     'mensaje': m.mensaje,
                     'es_admin': m.admin is not None,
-                    'admin_nombre': m.admin.nombre if m.admin else None,
+                    'admin_nombre': m.admin.username if m.admin else None,
                     'fecha':m.fecha,
                 } for m in mensajes]
             }
@@ -137,29 +137,22 @@ class DenunciaManagementViewSet(ViewSet):
 
     @action(detail=True, methods=['post'])
     def enviar_mensaje(self, request):
-        print("enviar mensaje")
         """
         POST /api/denuncia-envio-mensaje/
         envia el mensaje hacia Foro
         """
         try:
-            print("denuncia?")
          
             denuncia= request.data['denuncia_codigo']
-           
             mensaje=request.data['mensaje']
-            
-            print(denuncia)
-            print(mensaje)
 
             # Obtener mensajes del foro
             mensaje_foro=Foro.objects.create(
-                denuncia=denuncia,
+                denuncia_id=denuncia,
+                admin_id=request.user.id or None,
                 mensaje=mensaje,
                 leido=False
             )
-
-            print("hola ")
 
             mensaje_foro.save()
 
@@ -190,8 +183,10 @@ class DenunciaManagementViewSet(ViewSet):
                     'message': 'Usuario no autenticado'
                 }, status=401)
             
+            print("permison?")
             # Verificar permisos de admin
             has_permission, categoria = self.check_admin_permissions(request)
+            print("permison2?")
             if not has_permission:
                 return Response({
                     'success': False,
@@ -199,9 +194,9 @@ class DenunciaManagementViewSet(ViewSet):
                 }, status=403)
             
             # Obtener datos
-            data = json.loads(request.body)
-            denuncia_id = data.get('denuncia_id')
-            nuevo_estado_id = data.get('nuevo_estado')
+            
+            denuncia_id = request.data.get('denuncia_id')
+            nuevo_estado_id = request.data.get('nuevo_estado')
             
             if not denuncia_id or not nuevo_estado_id:
                 return Response({
@@ -236,7 +231,6 @@ class DenunciaManagementViewSet(ViewSet):
             EstadosDenuncia.objects.create(
                 denuncia=denuncia,
                 estado=nuevo_estado,
-                fecha=datetime.now()
             )
             
             return Response({
@@ -259,17 +253,17 @@ class DenunciaManagementViewSet(ViewSet):
         Genera y descarga un PDF con la información de la denuncia
         """
         try:
-            print(request.data)
-            denuncia_codigo=request.data.denuncia
+            print("ok?")
+           
+            denuncia_codigo=request.data['denuncia_id']
+            print(denuncia_codigo)
 
             # Aquí deberías implementar la generación del PDF
             # Por ahora, retornamos un PDF dummy
+            print("voy a generar pdf")
             pdf_content = self._generar_pdf_denuncia(denuncia_codigo)
             
-            response = HttpResponse(pdf_content, content_type='application/pdf')
-            response['Content-Disposition'] = f'attachment; filename="denuncia_{codigo}.pdf"'
-            
-            return response
+            return pdf_content
             
         except Exception as e:
             return Response({'error': str(e)}, status=500)
@@ -279,15 +273,18 @@ class DenunciaManagementViewSet(ViewSet):
         Método helper para generar el PDF
         Aquí deberías usar una librería como ReportLab o WeasyPrint
         """
-        denuncia = Denuncia.objects.get(codigo=denuncia_codigo).first()
-        path_archive= './templates/word/template_denuncia.docx'
+        print("denuncia?")
+        denuncia = Denuncia.objects.filter(codigo=denuncia_codigo).first()
+        path_archive= './templates/word/template_denuncia{denuncia.tipo_empresa.nombre}.docx'
         # Genero el documento
+        print(denuncia.usuario.nombre)
        
         doc = DocxTemplate(path_archive)
         # Variables de Autorización Firma Electrónica
+        print("este será context")
         context = { 'fecha_descarga':datetime.datetime.now(),
                     'usuario_nombre': denuncia.usuario.nombre,
-                    'usuario_apellidos': denuncia.usuario.apellidos,
+                    'usuario_apellidos': denuncia. usuario.apellidos,
                     'rol':denuncia.item.categoria.nombre,
                     'codigo': denuncia.codigo,
                     'fecha_denuncia': denuncia.fecha,
@@ -296,7 +293,6 @@ class DenunciaManagementViewSet(ViewSet):
                     'descripcion_relacion': denuncia.descripcion_relacion,
                     'correo_trabajador': denuncia.email,
                     'tiempo': denuncia.tiempo.intervalo,
-                    
                     }
             # Creo documento word con datos de trabajador
         doc.render(context)
@@ -305,26 +301,27 @@ class DenunciaManagementViewSet(ViewSet):
             # Guarda el documento
         doc.save(path_doc)
 
-
             # Convierto documento a PDF
+        print("pdf!")
         pdf = Popen(['libreoffice', '--headless', '--convert-to', 'pdf', '--outdir',
                         '', path_doc])
+        
         pdf.communicate()
 
         path_pdf = 'Informe_denuncia.pdf'
             # Elimino el documento word.
-        #os.remove(path_doc)
-            # Inicio integración de la API
-        #if enviar_autorizacion(request, trabajador, empresas, path_pdf):        
-            # ENVIADO_FIRMAR = 'EF' FIRMADO = 'FF' RECHAZADO ='RC' EXPIRADO = 'EX'
-        #    trabajador.autorizacion = Trabajador.ENVIADO_FIRMAR
-        #    trabajador.save()
-        #    messages.success(request, 'Autorización de Firma Electrónica enviada Exitosamente')
-        #else:
-        #    messages.error(request, 'El documento no se logró enviar a firma')
+        os.remove(path_doc)
 
-            # Elimino el documento pdf.
-        #os.remove(path_pdf)
+        with open(path_pdf, 'rb') as pdf_file:
+            response = HttpResponse(
+                pdf_file.read(), 
+                content_type='application/pdf'
+            )
+            response['Content-Disposition'] = f'attachment; filename="{path_pdf}"'
+
+        os.remove(path_pdf)
+    
+        return response
         #eliminar_qr(url)
             
     #return redirect('users:list-trabajador')

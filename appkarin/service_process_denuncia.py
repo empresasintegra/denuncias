@@ -130,6 +130,7 @@ class ServiceProcessDenuncia(APIView):
             # Guardar en sesión
             request.session['denuncia_item_id'] = item.id
             request.session['denuncia_item_nombre'] = item.enunciado
+            request.session['denuncia_categoria_id']=item.categoria.id
             request.session['denuncia_categoria_nombre'] = item.categoria.nombre
             request.session.modified = True
             
@@ -202,7 +203,8 @@ class ServiceProcessDenuncia(APIView):
         # Verificar datos previos en sesión
         required_session_keys = [
             'denuncia_item_id', 'denuncia_relacion_id', 
-            'denuncia_tiempo_id', 'denuncia_descripcion'
+            'denuncia_categoria_id','denuncia_categoria_nombre'
+            'denuncia_tiempo_id', 'denuncia_descripcion','denuncia_descripcion_relacion'
         ]
         
         missing_keys = [key for key in required_session_keys if not request.session.get(key)]
@@ -248,7 +250,7 @@ class ServiceProcessDenuncia(APIView):
             )
             
             # Limpiar sesión
-            for key in required_session_keys + ['denuncia_descripcion_relacion']:
+            for key in required_session_keys:
                 request.session.pop(key, None)
             
             # Guardar código para mostrar en página final

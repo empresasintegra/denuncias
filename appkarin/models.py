@@ -303,6 +303,7 @@ class Foro(models.Model):
         null=True,
         help_text="Boleano que indica si son mensajes obsoletos o no"
     )
+    fecha=models.DateTimeField(auto_now_add=True)
 
 
     class Meta:

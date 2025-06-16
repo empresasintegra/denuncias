@@ -1431,7 +1431,7 @@
                     },
                     body: JSON.stringify({
                         denuncia_id: currentDenunciaId,
-                        admin_id: adminId ? adminId : null
+                        admin_id: parseInt('{{admin_id}}', 10) || null
                     })
                 })
 
