@@ -120,15 +120,65 @@
             color: #2d3748;
         }
 
+        /* ===== NUEVO DISEÑO PARA CONTROLES DE TABLA ===== */
+        .table-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .search-excel-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+            justify-content: flex-end;
+        }
+
+        .btn-excel {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+            text-decoration: none;
+        }
+
+        .btn-excel:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+            color: white;
+        }
+
+        .btn-excel:active {
+            transform: translateY(0);
+        }
+
+        .btn-excel.loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
         /* DataTable customizado */
         .dataTables_wrapper {
             padding: 0 !important;
         }
 
         .dataTables_wrapper .dataTables_filter {
-            float: right !important;
+            float: none !important;
             text-align: right !important;
-            margin-bottom: 1rem !important;
+            margin: 0 !important;
         }
 
         .dataTables_wrapper .dataTables_filter label {
@@ -137,6 +187,7 @@
             display: flex !important;
             align-items: center !important;
             gap: 0.5rem !important;
+            margin: 0 !important;
         }
 
         .dataTables_wrapper .dataTables_filter input[type="search"] {
@@ -160,7 +211,7 @@
 
         .dataTables_wrapper .dataTables_length {
             float: left !important;
-            margin-bottom: 1rem !important;
+            margin: 0 !important;
         }
 
         .dataTables_wrapper .dataTables_length select {
@@ -220,6 +271,7 @@
             display: inline-flex;
             align-items: center;
             gap: 0.3rem;
+            transition: all 0.3s ease;
         }
 
         .badge-pendiente {
@@ -237,112 +289,148 @@
             color: white;
         }
 
-        /* ===== SELECTORES PARA ADMINS - CON FLECHITA SIEMPRE VISIBLE ===== */
-        .estado-select {
-            border: 2px solid #e2e8f0;
-            border-radius: 25px;
-            padding: 0.6rem 1.2rem;
-            padding-right: 2.5rem; /* Espacio para la flecha */
-            font-weight: 600;
-            font-size: 0.875rem;
-            background: white;
-            color: #2d3748;
-            transition: all 0.3s ease;
-            width: 160px;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            appearance: none;
+        /* ===== NUEVO DISEÑO: ESTADO INTERACTIVO PARA ADMIN ===== */
+        .estado-admin-container {
             position: relative;
+            display: inline-block;
         }
 
-        /* ✅ FLECHA COMO PSEUDO-ELEMENTO - SIEMPRE VISIBLE */
-        .estado-select::after {
+        .estado-badge-clickable {
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            user-select: none;
+        }
+
+        /* Estados específicos para admin */
+        .estado-badge-clickable.estado-1 {
+            background: var(--warning-gradient);
+            color: white;
+        }
+
+        .estado-badge-clickable.estado-2 {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .estado-badge-clickable.estado-3 {
+            background: var(--success-gradient);
+            color: white;
+        }
+
+        /* Efectos hover para admin */
+        .estado-badge-clickable:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .estado-badge-clickable:hover::after {
+            content: '✏️ Click para cambiar';
+            position: absolute;
+            top: -2.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            white-space: nowrap;
+            z-index: 1000;
+            animation: tooltipFadeIn 0.2s ease;
+        }
+
+        @keyframes tooltipFadeIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(-5px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        .estado-badge-clickable:active {
+            transform: translateY(0);
+        }
+
+        /* Select desplegable mejorado */
+        .estado-select-dropdown {
+            position: fixed !important; /* Cambio a fixed para evitar problemas de overflow */
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.25), 0 5px 15px rgba(0, 0, 0, 0.1);
+            z-index: 9999 !important;
+            min-width: 160px;
+            overflow: hidden;
+            animation: dropdownSlideIn 0.2s ease;
+        }
+
+        @keyframes dropdownSlideIn {
+            from { 
+                opacity: 0; 
+                transform: translateX(-50%) translateY(-10px) scale(0.95);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateX(-50%) translateY(0) scale(1);
+            }
+        }
+
+        .estado-option {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-weight: 600;
+            color: #2d3748;
+            /* Evitar que capture eventos del buscador */
+            pointer-events: auto;
+        }
+
+        .estado-option:hover {
+            background: #f7fafc;
+        }
+
+        .estado-option.selected {
+            background: #edf2f7;
+            color: #667eea;
+        }
+
+        /* Asegurar que el dropdown no interfiera con otros elementos */
+        .estado-select-dropdown * {
+            pointer-events: auto;
+        }
+
+        /* Loading state */
+        .estado-badge-clickable.loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .estado-badge-clickable.loading::after {
             content: '';
             position: absolute;
             top: 50%;
-            right: 0.75rem;
-            width: 0;
-            height: 0;
-            border-left: 5px solid transparent;
-            border-right: 5px solid transparent;
-            border-top: 6px solid #4a5568;
+            right: 0.5rem;
             transform: translateY(-50%);
-            pointer-events: none;
-            transition: all 0.3s ease;
-        }
-
-        /* ✅ OPCIONES SIEMPRE LEGIBLES */
-        .estado-select option {
-            background: white !important;
-            color: #2d3748 !important;
-            padding: 0.5rem;
-            font-weight: 600;
-        }
-
-        /* ✅ ESTADOS CON COLORES */
-        .estado-select.estado-1 {
-            background: var(--warning-gradient);
-            color: white;
-            border-color: #f59e0b;
-        }
-
-        .estado-select.estado-1::after {
-            border-top-color: white; /* Flecha blanca en fondo oscuro */
-        }
-
-        .estado-select.estado-2 {
-            background: var(--primary-gradient);
-            color: white;
-            border-color: #667eea;
-        }
-
-        .estado-select.estado-2::after {
-            border-top-color: white; /* Flecha blanca en fondo oscuro */
-        }
-
-        .estado-select.estado-3 {
-            background: var(--success-gradient);
-            color: white;
-            border-color: #00d2ff;
-        }
-
-        .estado-select.estado-3::after {
-            border-top-color: white; /* Flecha blanca en fondo oscuro */
-        }
-
-        /* ✅ ASEGURAR QUE LAS OPCIONES SIEMPRE SEAN LEGIBLES */
-        .estado-select.estado-1 option,
-        .estado-select.estado-2 option,
-        .estado-select.estado-3 option {
-            background: white !important;
-            color: #2d3748 !important;
-            font-weight: 600 !important;
-        }
-
-        /* ✅ EFECTOS HOVER Y FOCUS */
-        .estado-select:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
-            transform: translateY(-1px);
-        }
-
-        .estado-select:focus::after {
-            transform: translateY(-50%) rotate(180deg); /* Flecha hacia arriba al abrir */
-        }
-
-        .estado-select:hover:not(.loading) {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .estado-select:hover:not(.loading)::after {
-            transform: translateY(-50%) scale(1.1); /* Flecha más grande en hover */
-        }
-
-        /* ✅ LOADING STATE - SIN SPINNER, SOLO OPACITY */
-        .estado-select.loading {
-            opacity: 0.6;
-            pointer-events: none;
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
         }
 
         /* Botones de acción */
@@ -491,14 +579,23 @@
                 padding: 1rem;
             }
             
+            .table-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-excel-container {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.75rem;
+            }
+            
             .dataTables_wrapper .dataTables_filter input[type="search"] {
                 width: 100% !important;
                 margin-left: 0 !important;
-                margin-top: 0.5rem !important;
             }
 
             .dataTables_wrapper .dataTables_filter {
-                float: none !important;
                 text-align: left !important;
             }
 
@@ -508,21 +605,13 @@
                 align-items: flex-start !important;
             }
 
-            .dataTables_wrapper .dataTables_length {
-                float: none !important;
-                margin-bottom: 1rem !important;
-            }
-
             .btn-action {
                 font-size: 0.7rem;
                 padding: 0.3rem 0.6rem;
             }
 
-            .estado-select {
-                width: 140px;
-                font-size: 0.8rem;
-                padding: 0.5rem 1rem;
-                padding-right: 2rem;
+            .btn-excel {
+                justify-content: center;
             }
         }
 
@@ -603,44 +692,44 @@
 
         /* ===== ESTILOS PARA CHAT/FORO ===== */
 
-.chat-container {
-    height: 400px;
-    overflow-y: auto;
-    background: #f8fafc;
-}
+        .chat-container {
+            height: 400px;
+            overflow-y: auto;
+            background: #f8fafc;
+        }
 
-.chat-messages {
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
+        .chat-messages {
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
 
-.chat-header {
-    background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
-    color: #4a5568;
-    font-size: 0.9rem;
-}
+        .chat-header {
+            background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
+            color: #4a5568;
+            font-size: 0.9rem;
+        }
 
-/* Mensaje individual */
-.message-item {
-    display: flex;
-    margin-bottom: 1rem;
-    animation: messageSlideIn 0.3s ease-out;
-}
+        /* Mensaje individual */
+        .message-item {
+            display: flex;
+            margin-bottom: 1rem;
+            animation: messageSlideIn 0.3s ease-out;
+        }
 
-@keyframes messageSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-/* Mensaje del usuario (derecha) */
+        /* Mensaje del usuario (derecha) */
         .message-user {
             justify-content: flex-end;
         }
@@ -772,7 +861,7 @@
             pointer-events: none;
         }
 
-        /* Responsive */
+        /* Responsive para chat */
         @media (max-width: 768px) {
             .modal-dialog.modal-xl {
                 margin: 0.5rem;
@@ -869,6 +958,18 @@
 
         <!-- Tabla de denuncias -->
         <div class="table-card">
+            <!-- Controles de tabla -->
+            <div class="table-controls">
+                <div id="table-length-container"></div>
+                <div class="search-excel-container">
+                    <div id="table-search-container"></div>
+                    <button class="btn-excel" id="btnGenerarExcel">
+                        <i class="fas fa-file-excel"></i>
+                        <span>Generar Excel</span>
+                    </button>
+                </div>
+            </div>
+            
             <div class="table-responsive">
                 <table id="denunciasTable" class="table table-hover" style="width:100%">
                     <thead>
@@ -1015,12 +1116,16 @@
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+    
+    <!-- SheetJS para exportar Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <script>
         // Variables globales
         let userInfo = null;
         let dataTable = null;
         let currentDenunciaId = null;
+        let currentDropdown = null; // Para controlar el dropdown abierto
 
         // Función para obtener el tipo de usuario y código
         function getUserInfo() {
@@ -1075,16 +1180,6 @@
                 (estado === 'PENDIENTE' ? '1' : estado === 'EN_REVISION' ? '2' : '3') : 
                 estado.toString();
             
-            // Solo mostrar console.log una vez para debugging
-            if (window.badgeDebugCount === undefined) {
-                window.badgeDebugCount = 0;
-            }
-            if (window.badgeDebugCount < 1) {
-                console.log("Estado value:", estadoValue);
-                window.badgeDebugCount++;
-            }
-
-            // ✅ HTML CORREGIDO - clases correctas
             const badges = {
                 '1': '<span class="badge-estado badge-pendiente"><i class="fas fa-clock"></i> Pendiente</span>',
                 '2': '<span class="badge-estado badge-revision"><i class="fas fa-search"></i> En Revisión</span>',
@@ -1094,14 +1189,8 @@
             return badges[estadoValue] || `<span class="badge-estado">${estado}</span>`;
         }
 
-        // Función para actualizar estilo del select según el valor
-        function updateSelectStyle(selectElement, valor) {
-            selectElement.classList.remove('estado-1', 'estado-2', 'estado-3');
-            selectElement.classList.add(`estado-${valor}`);
-        }
-
-        // Función para crear select de estado con colores dinámicos
-        function getEstadoSelect(estado, denunciaId) {
+        // ✅ NUEVA FUNCIÓN: Estado interactivo para Admin con hover
+        function getEstadoInteractivo(estado, denunciaId) {
             if (!userInfo.is_admin) {
                 return getEstadoBadge(estado);
             }
@@ -1110,51 +1199,125 @@
                 (estado === 'PENDIENTE' ? '1' : estado === 'EN_REVISION' ? '2' : '3') : 
                 estado.toString();
 
-            return `
-                <select class="estado-select estado-${estadoValue}" data-denuncia-id="${denunciaId}" onchange="cambiarEstado(this)">
-                    <option value="1">🕐 Pendiente</option>
-                    <option value="2">🔍 En Revisión</option>
-                    <option value="3">✅ Resuelto</option>
-                </select>
-            `;
-        }
+            const estadoTextos = {
+                '1': '<i class="fas fa-clock"></i> Pendiente',
+                '2': '<i class="fas fa-search"></i> En Revisión', 
+                '3': '<i class="fas fa-check"></i> Resuelto'
+            };
 
-        // Función para crear botones de acción
-        function getActionButtons(codigo, denunciaId) {
             return `
-                <div class="d-flex flex-wrap gap-1">
-                    <button class="btn-action btn-descripcion" onclick="abrirModalDescripcion('${denunciaId}')">
-                        <i class="fas fa-file-alt"></i> Descripción
-                    </button>
-                    <button class="btn-action btn-mensaje" onclick="abrirModalMensaje('${denunciaId}')">
-                        <i class="fas fa-envelope"></i> Mensaje
-                    </button>
-                    <button class="btn-action btn-descargar" onclick="abrirModalDescarga('${denunciaId}', '${codigo}')">
-                        <i class="fas fa-download"></i> Descargar
-                    </button>
+                <div class="estado-admin-container">
+                    <div class="estado-badge-clickable estado-${estadoValue}" 
+                         data-denuncia-id="${denunciaId}" 
+                         data-estado-actual="${estadoValue}"
+                         onclick="toggleEstadoDropdown(this)">
+                        ${estadoTextos[estadoValue]}
+                    </div>
                 </div>
             `;
         }
 
-        // Función para cambiar estado
-        async function cambiarEstado(selectElement) {
+        // ✅ NUEVA FUNCIÓN: Toggle dropdown de estados
+        function toggleEstadoDropdown(badgeElement) {
+            // Cerrar dropdown existente si hay uno
+            if (currentDropdown && currentDropdown !== badgeElement) {
+                closeCurrentDropdown();
+            }
+
+            const existingDropdown = document.querySelector('.estado-select-dropdown');
+            
+            if (existingDropdown) {
+                // Si ya existe, lo cerramos
+                closeCurrentDropdown();
+                return;
+            }
+
+            // Crear nuevo dropdown
+            const denunciaId = badgeElement.dataset.denunciaId;
+            const estadoActual = badgeElement.dataset.estadoActual;
+
+            // Calcular posición para positioning fixed
+            const rect = badgeElement.getBoundingClientRect();
+            const dropdownTop = rect.bottom + 8; // 8px de separación
+            const dropdownLeft = rect.left + (rect.width / 2); // Centrado
+
+            const dropdown = document.createElement('div');
+            dropdown.className = 'estado-select-dropdown';
+            dropdown.style.top = dropdownTop + 'px';
+            dropdown.style.left = dropdownLeft + 'px';
+            dropdown.style.transform = 'translateX(-50%)'; // Centrar horizontalmente
+            dropdown.innerHTML = `
+                <button class="estado-option ${estadoActual === '1' ? 'selected' : ''}" 
+                        onclick="cambiarEstado('${denunciaId}', '1', this)">
+                    🕐 Pendiente
+                </button>
+                <button class="estado-option ${estadoActual === '2' ? 'selected' : ''}" 
+                        onclick="cambiarEstado('${denunciaId}', '2', this)">
+                    🔍 En Revisión
+                </button>
+                <button class="estado-option ${estadoActual === '3' ? 'selected' : ''}" 
+                        onclick="cambiarEstado('${denunciaId}', '3', this)">
+                    ✅ Resuelto
+                </button>
+            `;
+
+            // Agregar al body para posicionamiento fixed
+            document.body.appendChild(dropdown);
+            currentDropdown = badgeElement;
+
+            // Cerrar dropdown al hacer click fuera o scroll
+            setTimeout(() => {
+                document.addEventListener('click', handleOutsideClick);
+                window.addEventListener('scroll', closeCurrentDropdown, true);
+                window.addEventListener('resize', closeCurrentDropdown);
+            }, 100);
+        }
+
+        // ✅ NUEVA FUNCIÓN: Cerrar dropdown actual
+        function closeCurrentDropdown() {
+            if (currentDropdown) {
+                const dropdown = document.querySelector('.estado-select-dropdown');
+                if (dropdown) {
+                    dropdown.remove();
+                }
+                currentDropdown = null;
+                document.removeEventListener('click', handleOutsideClick);
+                window.removeEventListener('scroll', closeCurrentDropdown, true);
+                window.removeEventListener('resize', closeCurrentDropdown);
+            }
+        }
+
+        // ✅ NUEVA FUNCIÓN: Manejar clicks fuera del dropdown
+        function handleOutsideClick(event) {
+            const dropdown = document.querySelector('.estado-select-dropdown');
+            if (currentDropdown && 
+                !currentDropdown.contains(event.target) && 
+                (!dropdown || !dropdown.contains(event.target))) {
+                closeCurrentDropdown();
+            }
+        }
+
+        // ✅ FUNCIÓN MEJORADA: Cambiar estado
+        async function cambiarEstado(denunciaId, nuevoEstado, optionElement) {
             if (!userInfo.is_admin) {
                 showNotification('No tienes permisos para cambiar estados', 'error');
                 return;
             }
 
-            const denunciaId = selectElement.dataset.denunciaId;
-            const nuevoEstado = selectElement.value;
-            const estadoAnterior = selectElement.dataset.estadoAnterior || selectElement.value;
+            // Obtener el badge principal
+            const badgeElement = currentDropdown;
+            const estadoAnterior = badgeElement.dataset.estadoActual;
 
-            selectElement.dataset.estadoAnterior = estadoAnterior;
+            // Cerrar dropdown inmediatamente
+            closeCurrentDropdown();
 
-            // Actualizar estilo visual inmediatamente
-            updateSelectStyle(selectElement, nuevoEstado);
+            // Si es el mismo estado, no hacer nada
+            if (estadoAnterior === nuevoEstado) {
+                return;
+            }
 
-            // Mostrar loading (solo opacity, sin spinner)
-            selectElement.classList.add('loading');
-            selectElement.disabled = true;
+            // Mostrar loading en el badge
+            badgeElement.classList.add('loading');
 
             try {
                 const response = await fetch('/api/cambiar-estado-denuncia/', {
@@ -1172,28 +1335,143 @@
                 const data = await response.json();
 
                 if (response.ok && data.success) {
+                    // Actualizar el badge
+                    badgeElement.dataset.estadoActual = nuevoEstado;
+                    badgeElement.className = `estado-badge-clickable estado-${nuevoEstado}`;
+                    
+                    const estadoTextos = {
+                        '1': '<i class="fas fa-clock"></i> Pendiente',
+                        '2': '<i class="fas fa-search"></i> En Revisión', 
+                        '3': '<i class="fas fa-check"></i> Resuelto'
+                    };
+                    
+                    badgeElement.innerHTML = estadoTextos[nuevoEstado];
+                    
                     // Efecto de éxito visual
-                    selectElement.style.transform = 'scale(1.05)';
+                    badgeElement.style.transform = 'scale(1.1)';
                     setTimeout(() => {
-                        selectElement.style.transform = '';
-                    }, 200);
+                        badgeElement.style.transform = '';
+                    }, 300);
                     
                     showNotification('Estado actualizado correctamente', 'success');
-                    selectElement.dataset.estadoAnterior = nuevoEstado;
                 } else {
                     throw new Error(data.message || 'Error al actualizar estado');
                 }
             } catch (error) {
                 console.error('Error al cambiar estado:', error);
                 showNotification('Error al cambiar estado: ' + error.message, 'error');
-                
-                // Restaurar valor anterior
-                selectElement.value = estadoAnterior;
-                updateSelectStyle(selectElement, estadoAnterior);
             } finally {
                 // Quitar loading
-                selectElement.classList.remove('loading');
-                selectElement.disabled = false;
+                badgeElement.classList.remove('loading');
+            }
+        }
+
+        // ✅ NUEVA FUNCIÓN: Generar Excel
+        async function generarExcel() {
+            const btnExcel = document.getElementById('btnGenerarExcel');
+            
+            // Mostrar loading
+            btnExcel.classList.add('loading');
+            btnExcel.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Generando...</span>';
+            btnExcel.disabled = true;
+
+            try {
+                // Obtener todos los datos de la tabla
+                const response = await fetch('/api/datatable/denuncias/export/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        user_info: userInfo,
+                        search: dataTable.search(),
+                        order: dataTable.order(),
+                        columns: dataTable.columns().data().toArray()
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al obtener los datos');
+                }
+
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.message || 'Error al exportar datos');
+                }
+
+                // Preparar datos para Excel
+                const worksheetData = [
+                    // Headers
+                    ['Código', 'Fecha', 'Categoría', 'Tipo Denuncia', 'Usuario', 'Estado']
+                ];
+
+                // Datos
+                data.data.forEach(row => {
+                    const estadoTexto = row.estado_actual === '1' ? 'Pendiente' : 
+                                       row.estado_actual === '2' ? 'En Revisión' : 'Resuelto';
+                    
+                    const usuarioTexto = row.usuario_anonimo ? 'Anónimo' : (row.usuario_nombre || 'N/A');
+                    
+                    worksheetData.push([
+                        row.codigo,
+                        formatDate(row.fecha),
+                        row.categoria_nombre,
+                        row.item_enunciado,
+                        usuarioTexto,
+                        estadoTexto
+                    ]);
+                });
+
+                // Crear libro de Excel
+                const workbook = XLSX.utils.book_new();
+                const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+
+                // Configurar ancho de columnas
+                worksheet['!cols'] = [
+                    { width: 15 }, // Código
+                    { width: 20 }, // Fecha
+                    { width: 25 }, // Categoría
+                    { width: 30 }, // Tipo Denuncia
+                    { width: 20 }, // Usuario
+                    { width: 15 }  // Estado
+                ];
+
+                // Aplicar estilo a los headers
+                const headerStyle = {
+                    font: { bold: true, color: { rgb: "FFFFFF" } },
+                    fill: { fgColor: { rgb: "4F46E5" } },
+                    alignment: { horizontal: "center" }
+                };
+
+                // Aplicar estilo a la primera fila (headers)
+                ['A1', 'B1', 'C1', 'D1', 'E1', 'F1'].forEach(cell => {
+                    if (!worksheet[cell]) worksheet[cell] = {};
+                    worksheet[cell].s = headerStyle;
+                });
+
+                // Agregar hoja al libro
+                XLSX.utils.book_append_sheet(workbook, worksheet, 'Denuncias');
+
+                // Generar nombre de archivo con fecha actual
+                const fechaActual = new Date().toISOString().split('T')[0];
+                const tipoUsuario = userInfo.is_admin ? 'admin' : 'consulta';
+                const filename = `denuncias_${tipoUsuario}_${fechaActual}.xlsx`;
+
+                // Descargar archivo
+                XLSX.writeFile(workbook, filename);
+
+                showNotification(`Excel generado: ${filename}`, 'success');
+
+            } catch (error) {
+                console.error('Error al generar Excel:', error);
+                showNotification('Error al generar Excel: ' + error.message, 'error');
+            } finally {
+                // Restaurar botón
+                btnExcel.classList.remove('loading');
+                btnExcel.innerHTML = '<i class="fas fa-file-excel"></i> <span>Generar Excel</span>';
+                btnExcel.disabled = false;
             }
         }
 
@@ -1245,6 +1523,81 @@
                     </div>
                 `;
             }
+        }
+
+        // ✅ FUNCIÓN DE DEBUG Y FALLBACK PARA EL BUSCADOR
+        function debugBuscador() {
+            const searchInput = $('.dataTables_filter input');
+            console.log('=== DEBUG BUSCADOR ===');
+            console.log('Es admin:', userInfo.is_admin);
+            console.log('Input encontrado:', searchInput.length);
+            console.log('Eventos actuales:', $._data(searchInput[0], 'events'));
+            console.log('DataTable inicializado:', !!dataTable);
+            
+            if (searchInput.length === 0) {
+                console.log('ERROR: Input de búsqueda no encontrado');
+                return false;
+            }
+            
+            // Test del buscador
+            const testValue = 'TEST123';
+            searchInput.val(testValue);
+            dataTable.search(testValue).draw();
+            
+            setTimeout(() => {
+                const resultados = dataTable.rows({search: 'applied'}).count();
+                console.log('Test búsqueda - Resultados:', resultados);
+                
+                // Limpiar test
+                searchInput.val('');
+                dataTable.search('').draw();
+            }, 500);
+            
+            return true;
+        }
+
+        // ✅ FUNCIÓN PARA FORZAR RECONEXIÓN DEL BUSCADOR
+        function forzarReconexionBuscador() {
+            setTimeout(() => {
+                const searchInput = $('.dataTables_filter input');
+                
+                if (searchInput.length === 0) {
+                    console.log('No se encontró input, reintentando...');
+                    setTimeout(forzarReconexionBuscador, 200);
+                    return;
+                }
+                
+                // Remover todos los eventos
+                searchInput.off();
+                
+                // Agregar evento simple y directo
+                searchInput.on('input', function() {
+                    const valor = this.value;
+                    if (dataTable && dataTable.search() !== valor) {
+                        dataTable.search(valor).draw();
+                    }
+                });
+                
+                console.log('Buscador reconectado por fallback');
+                
+                // Test después de reconectar
+                setTimeout(debugBuscador, 100);
+            }, 100);
+        }
+        function getActionButtons(codigo, denunciaId) {
+            return `
+                <div class="d-flex flex-wrap gap-1">
+                    <button class="btn-action btn-descripcion" onclick="abrirModalDescripcion('${denunciaId}')">
+                        <i class="fas fa-file-alt"></i> Descripción
+                    </button>
+                    <button class="btn-action btn-mensaje" onclick="abrirModalMensaje('${denunciaId}')">
+                        <i class="fas fa-envelope"></i> Mensaje
+                    </button>
+                    <button class="btn-action btn-descargar" onclick="abrirModalDescarga('${denunciaId}', '${codigo}')">
+                        <i class="fas fa-download"></i> Descargar
+                    </button>
+                </div>
+            `;
         }
 
         // ===== FUNCIONES PARA CHAT/FORO =====
@@ -1442,6 +1795,9 @@
             }
         });
 
+        // Event listener para el botón de Excel
+        document.getElementById('btnGenerarExcel').addEventListener('click', generarExcel);
+
         // Función para abrir modal de descarga
         async function abrirModalDescarga(denunciaId, codigo) {
             currentDenunciaId = denunciaId;
@@ -1526,6 +1882,7 @@
                 serverSide: true,
                 responsive: true,
                 searching: true,
+                dom: '<"#table-length-container"l><"#table-search-container"f>rtip',
                 ajax: {
                     url: '/api/datatable/denuncias/simple/',
                     type: 'POST',
@@ -1591,7 +1948,7 @@
                         searchable: false,
                         orderable: true,
                         render: function(data, type, row) {
-                            return getEstadoSelect(data, row.codigo);
+                            return getEstadoInteractivo(data, row.codigo);
                         }
                     },
                     { 
@@ -1628,16 +1985,17 @@
                 drawCallback: function(settings) {
                     $('#loadingOverlay').fadeOut();
                     
-                    setTimeout(() => {
-                        document.querySelectorAll('.estado-select').forEach(select => {
-                            updateSelectStyle(select, select.value);
-                        });
-                    }, 100);
+                    // Cerrar cualquier dropdown abierto cuando se redibuje la tabla
+                    closeCurrentDropdown();
                 },
                 initComplete: function(settings, json) {
-                    const searchInput = $('.dataTables_filter input');
+                    // Solo personalizar el input de búsqueda, sin mover elementos
+                    const searchInput = $('#table-search-container input');
                     searchInput.attr('placeholder', 'Buscar denuncias...');
                     searchInput.addClass('form-control');
+                    
+                    console.log('DataTable inicializado. Es admin:', userInfo.is_admin);
+                    console.log('Input de búsqueda encontrado:', searchInput.length);
                 }
             });
         }
@@ -1717,12 +2075,6 @@
                 subtitle.text('Todas las denuncias');
             }
         }
-
-        document.addEventListener('change', function(e) {
-            if (e.target.classList.contains('estado-select')) {
-                updateSelectStyle(e.target, e.target.value);
-            }
-        });
 
         // Inicialización
         $(document).ready(function() {

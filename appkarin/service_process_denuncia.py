@@ -203,11 +203,15 @@ class ServiceProcessDenuncia(APIView):
         # Verificar datos previos en sesión
         required_session_keys = [
             'denuncia_item_id', 'denuncia_relacion_id', 
-            'denuncia_categoria_id','denuncia_categoria_nombre'
-            'denuncia_tiempo_id', 'denuncia_descripcion','denuncia_descripcion_relacion'
+            'denuncia_categoria_id','denuncia_categoria_nombre',
+            'denuncia_tiempo_id', 'denuncia_descripcion'
         ]
+
+        print(required_session_keys)
+        print("?")
         
         missing_keys = [key for key in required_session_keys if not request.session.get(key)]
+        print(missing_keys)
         if missing_keys:
             return Response({
                 'success': False,
@@ -246,7 +250,7 @@ class ServiceProcessDenuncia(APIView):
                 relacion_empresa_id=request.session['denuncia_relacion_id'],
                 tiempo_id=request.session['denuncia_tiempo_id'],
                 descripcion=request.session['denuncia_descripcion'],
-                descripcion_relacion=request.session.get('denuncia_descripcion_relacion', ''),
+                descripcion_relacion=request.session.get('denuncia_descripcion_relacion', '') if request.session['denuncia_descripcion_relacion'] else ''
             )
             
             # Limpiar sesión

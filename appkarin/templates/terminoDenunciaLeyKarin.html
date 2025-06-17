@@ -177,6 +177,21 @@
                 position: relative;
             }
 
+            /* ⭐ ESTILOS PARA MOSTRAR/OCULTAR DATOS PERSONALES */
+            #datosPersonales {
+                opacity: 0;
+                max-height: 0;
+                overflow: hidden;
+                transition: all 0.5s ease-in-out;
+                transform: translateY(-20px);
+            }
+
+            #datosPersonales.show {
+                opacity: 1;
+                max-height: 2000px; /* Suficiente para mostrar todo el contenido */
+                transform: translateY(0);
+            }
+
             /* ✅ RESPONSIVE DESIGN */
             @media (max-width: 768px) {
                 .autocomplete-option {
@@ -214,17 +229,33 @@
                 {% csrf_token %}
                 
                 <!-- Campo oculto para indicar que siempre es identificado -->
-                <input type="hidden" name="tipo_denuncia" value="identificado">
                 
                 <div class="form-card">
-                    <h2>Información Personal</h2>
+                    <h2>Información del Denunciante</h2>
                     <p class="subtitle">
-                        Complete el formulario con sus datos personales. La información proporcionada
-                        será tratada con total confidencialidad y utilizada únicamente para los fines establecidos.
+                        Para procesar su denuncia de manera adecuada, necesitamos recopilar
+                        sus datos de contacto. Sus datos serán tratados con total confidencialidad.
                     </p>
 
-                    <!-- Sección de Datos Personales (Siempre visible) -->
-                    <div class="datos-personales">
+                    <!-- Sección de Tipo de Denuncia (Solo Identificada - INFORMATIVA) -->
+                    <div class="privacy-section">
+                        <h3>Tipo de Denuncia</h3>
+                        <div class="privacy-options">
+                            <div class="privacy-option">
+                                <div class="privacy-btn selected">
+                                    <div class="icon">👤</div>
+                                    <div class="title">Denuncia Identificada</div>
+                                    <div class="description">
+                                        Sus datos de contacto son requeridos para el procesamiento
+                                        de esta denuncia y serán tratados con total confidencialidad.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ⭐ SECCIÓN DE DATOS PERSONALES - CORREGIDA CON ID Y CLASE SHOW -->
+                    <div class="datos-personales show" id="datosPersonales">
                         <h3>Datos de Contacto</h3>
 
                         <!-- ⭐ CAMPO RUT CON VALIDACIÓN EN TIEMPO REAL -->

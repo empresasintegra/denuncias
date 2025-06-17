@@ -293,7 +293,7 @@ const DenunciaApp = {
                 console.log('📤 Enviando formulario de items...');
 
                 // Validar que se haya seleccionado algo
-                if (!$('input[name="denuncia_item"]:checked').length) {
+                if (!$('input[name="denuncia_item"]:checked').length && '{{seleccionable}}'== true ) {
                     DenunciaApp.common.showError('Debe seleccionar el tipo de denuncia');
                     return;
                 }
@@ -1493,7 +1493,7 @@ const DenunciaApp = {
                 console.log('📤 Enviando formulario de usuario...');
 
                 const tipoSeleccionado = document.querySelector('input[name="tipo_denuncia"]:checked');
-                if (!tipoSeleccionado) {
+                if (!tipoSeleccionado && '{{seleccionable}}'== true ) {
                     DenunciaApp.common.showError('Por favor, seleccione el tipo de denuncia');
                     return;
                 }

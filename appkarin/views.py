@@ -52,16 +52,23 @@ def renderWizzDenuncia(request):
     return render(request, 'denunciaWizzard.html', context)
 
 def renderUserDenuncia(request):
+    print(request.session.get('denuncia_categoria_id'))
 
-    if (request.session.get('categoria_id')==1):
-        return render(request, 'terminoDenunciaLeyKarin.html')
-   
-    return render(request, 'terminoDenuncia.html')
+    if (request.session.get('denuncia_categoria_id')==1):
+        print("true")
+        context={'seleccionable':False}
+        return render(request, 'terminoDenunciaLeyKarin.html',context)
+    
+    context={'seleccionable':True}
+    return render(request, 'terminoDenuncia.html',context)
 
 def renderCodeDenuncia(request):
-    context = {'code': request.session.get('codigo', '')}
+
+    empresa=Empresa.objects.filter(id=request.session.get('empresa_id')).first()
+
+    context = {'code': request.session.get('codigo', ''),'empresa':empresa.nombre}
     response = render(request, 'codeIndex.html', context)
-    keys_denuncia = ['item_id', 'wizzard_data', 'codigo']
+    keys_denuncia = ['item_id', 'wizzard_data', 'codigo','empresa_id']
     for key in keys_denuncia:
         if key in request.session:
             del request.session[key]
