@@ -967,7 +967,7 @@
                     <div class="auth-section">
                         <!-- Sección cuando NO está logueado -->
                         <div class="auth-not-logged">
-                            <a href="{% url 'login' %}" class="btn-login">
+                            <a href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}" class="btn-login">
                                 <i class="fas fa-user-shield"></i>
                                 Ingreso Admin
                             </a>

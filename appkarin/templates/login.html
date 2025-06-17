@@ -273,6 +273,21 @@
 
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script>
+
+
+
+        function getEmpresaFromNext() {
+                const next = new URLSearchParams(window.location.search).get('next');
+                if (!next) return null;
+                
+                const match = next.match(/^\/([^\/\?#]+)/);
+                if (!match) return null;
+                
+                const empresa = match[1];
+                const excluded = ['admin', 'api', 'login', 'logout', 'static', 'media'];
+                
+                return excluded.includes(empresa.toLowerCase()) ? null : empresa;
+            }
             // Objeto para manejar el login de administradores
             const AdminLoginApp = {
                 init: function() {
@@ -336,64 +351,66 @@
                     this.submitLogin(username, password);
                 },
                 
-                submitLogin: function(username, password) {
-                    const csrfToken = $('[name=csrfmiddlewaretoken]').val();
-                    
-                    // Mostrar estado de carga
-                    this.setLoadingState(true);
-                    this.hideAlert();
-                    
-                    console.log('🔐 Enviando credenciales para:', username);
-                    
-                    $.ajax({
-                        url: '{% url "admin_login_api" %}',  // ✅ NUEVA URL DE LA API
-                        type: 'POST',
-                        headers: {
-                            'X-CSRFToken': csrfToken,
-                            'Content-Type': 'application/json',
-                        },
-                        data: JSON.stringify({
-                            'username': username,
-                            'password': password
-                        }),
-                        success: function(response) {
-                            console.log('✅ Respuesta del servidor:', response);
+
+            // 🔧 MODIFICAR solo esta parte en tu función submitLogin existente:
+
+            submitLogin: function(username, password) {
+                const csrfToken = $('[name=csrfmiddlewaretoken]').val();
+                
+                // 🔧 NUEVO: Extraer empresa del parámetro next
+                const empresa = getEmpresaFromNext();
+                console.log('📤 Enviando empresa al backend:', empresa);
+                
+                this.setLoadingState(true);
+                this.hideAlert();
+                
+                console.log('🔐 Enviando credenciales para:', username);
+                
+                $.ajax({
+                    url: '{% url "admin_login_api" %}',
+                    type: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json',
+                    },
+                    data: JSON.stringify({
+                        'username': username,
+                        'password': password,
+                        'empresa': empresa  // 🔧 AGREGAR ESTA LÍNEA
+                    }),
+                    success: function(response) {
+                        console.log('✅ Respuesta del servidor:', response);
+                        
+                        if (response.success) {
+                            this.showAlert(response.message || 'Inicio de sesión exitoso', 'success');
                             
-                            if (response.success) {
-                                // ✅ LOGIN EXITOSO
-                                this.showAlert(response.message || 'Inicio de sesión exitoso', 'success');
-                                
-                                // Mostrar información del usuario
-                                if (response.user_info) {
-                                    console.log('👤 Usuario autenticado:', {
-                                        username: response.user_info.username,
-                                        categoria: response.user_info.categoria?.nombre,
-                                        is_staff: response.user_info.is_staff,
-                                        is_superuser: response.user_info.is_superuser
-                                    });
-                                }
-                                
-                                // Limpiar formulario por seguridad
-                                this.clearFormData();
-                                console.log(response.redirect_url)
-                                // Redirigir después de 1.5 segundos
-                                setTimeout(() => {
-                                    window.location.href = response.redirect_url;
-                                }, 1500);
-                                
-                            } else {
-                                // ❌ LOGIN FALLIDO
-                                this.handleLoginError(response);
+                            if (response.user_info) {
+                                console.log('👤 Usuario autenticado:', {
+                                    username: response.user_info.username,
+                                    categoria: response.user_info.categoria?.nombre,
+                                    is_staff: response.user_info.is_staff,
+                                    is_superuser: response.user_info.is_superuser
+                                });
                             }
-                        }.bind(this),
-                        error: function(xhr, status, error) {
-                            console.error('❌ Error en login:', error);
-                            console.error('📊 Respuesta completa:', xhr.responseText);
                             
-                            this.handleAjaxError(xhr, status, error);
-                        }.bind(this)
-                    });
-                },
+                            this.clearFormData();
+                            
+                            // ✅ SIN CAMBIOS: Usar response.redirect_url como siempre
+                            setTimeout(() => {
+                                window.location.href = response.redirect_url;
+                            }, 1500);
+                            
+                        } else {
+                            this.handleLoginError(response);
+                        }
+                    }.bind(this),
+                    error: function(xhr, status, error) {
+                        console.error('❌ Error en login:', error);
+                        this.handleAjaxError(xhr, status, error);
+                    }.bind(this)
+                });
+            },
+
                 
                 handleLoginError: function(response) {
                     let errorMessage = response.message || 'Error en las credenciales';

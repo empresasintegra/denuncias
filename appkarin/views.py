@@ -53,7 +53,7 @@ def renderWizzDenuncia(request):
 
 def renderUserDenuncia(request):
 
-    if (request.session.get('categoria_id')!=1):
+    if (request.session.get('categoria_id')==1):
         return render(request, 'terminoDenunciaLeyKarin.html')
    
     return render(request, 'terminoDenuncia.html')

@@ -62,6 +62,7 @@ class ServiceAdminDenunciaAuth(APIView):
         Espera: { "username": "usuario", "password": "contraseña" }
         """
         try:
+            empresa = request.data.get('empresa')
             username = request.data.get('username', '').strip()
             password = request.data.get('password', '')
             
@@ -145,7 +146,7 @@ class ServiceAdminDenunciaAuth(APIView):
                         'is_staff': user.is_staff,
                         'nombre_completo': user.get_full_name() or user.username
                     },
-                    'redirect_url': '/consulta-denuncias/'
+                    'redirect_url': f"/{empresa}/" if empresa else "/"
                 }
                 
                 # Agregar información de categoría si existe

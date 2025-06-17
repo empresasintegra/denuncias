@@ -1728,10 +1728,6 @@
         $(document).ready(function() {
             userInfo = getUserInfo();
             
-            console.log('UserInfo al iniciar:', userInfo);
-            console.log('Es admin:', userInfo.is_admin);
-            console.log('Está autenticado:', userInfo.is_authenticated);
-            
             updateUIForUser();
             initDataTable();
         });

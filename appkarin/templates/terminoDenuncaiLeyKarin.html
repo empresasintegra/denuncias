@@ -1,0 +1,367 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es-CL">
+    <head>
+        <!-- ✅ META TAGS CRÍTICOS PARA ENCODING -->
+        <meta charset="UTF-8" />
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="Formulario de Datos - Empresas Integra" />
+        <meta name="author" content="Empresas Integra" />
+        
+        <!-- ✅ CSRF TOKEN para JavaScript -->
+        {% csrf_token %}
+        <meta name="csrf-token" content="{{ csrf_token }}">
+        
+        <!-- ✅ URLs para JavaScript - AGREGADAS NUEVAS APIs -->
+        <script>
+            // Variables globales para JavaScript
+            window.CSRF_TOKEN = "{{ csrf_token }}";
+            window.USER_SUBMIT_URL = "{% url 'process_user' %}";
+            window.VALIDATE_RUT_URL = "{% url 'validate_rut' %}";          // ⭐ NUEVA
+            window.AUTOCOMPLETE_USER_URL = "{% url 'autocomplete_user' %}"; // ⭐ NUEVA
+        </script>
+        
+        <title>Formulario de Datos - Empresas Integra</title>
+        <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+        
+        <!-- ✅ ESTILOS CSS -->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
+        <link rel="stylesheet" href="{% static 'css/denuncia-styles.css' %}" />
+        
+        <!-- ⭐ NUEVOS ESTILOS PARA VALIDACIÓN DE RUT -->
+        <style type="text/css" charset="utf-8">
+            /* =================================================================
+               🎨 ESTILOS PARA VALIDACIÓN DE RUT EN TIEMPO REAL
+               ================================================================= */
+
+            /* ✅ ESTILOS BASE PARA EL CAMPO RUT */
+            .form-group #rut {
+                transition: all 0.3s ease;
+                border: 2px solid #dee2e6;
+                padding: 12px 16px;
+                border-radius: 8px;
+                font-size: 1rem;
+            }
+
+            .form-group #rut:focus {
+                outline: none;
+                box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+            }
+
+            /* ✅ ESTADOS VISUALES DEL CAMPO RUT */
+
+            /* Estado: Escribiendo */
+            .form-group.rut-validation-typing #rut {
+                border-color: #6c757d;
+                background-color: #f8f9fa;
+            }
+
+            /* Estado: Validando (cargando) */
+            .form-group.rut-validation-loading #rut {
+                border-color: #007bff;
+                background-color: #e3f2fd;
+                background-image: linear-gradient(90deg, transparent, rgba(0, 123, 255, 0.1), transparent);
+                background-size: 200% 100%;
+                animation: loading-shimmer 1.5s infinite;
+            }
+
+            @keyframes loading-shimmer {
+                0% { background-position: -200% 0; }
+                100% { background-position: 200% 0; }
+            }
+
+            /* Estado: RUT válido y disponible */
+            .form-group.rut-validation-valid #rut {
+                border-color: #28a745;
+                background-color: #f8fff9;
+                box-shadow: 0 0 0 0.1rem rgba(40, 167, 69, 0.15);
+            }
+
+            /* Estado: RUT inválido */
+            .form-group.rut-validation-invalid #rut {
+                border-color: #dc3545;
+                background-color: #fff5f5;
+                box-shadow: 0 0 0 0.1rem rgba(220, 53, 69, 0.15);
+            }
+
+            /* Estado: RUT existe en el sistema */
+            .form-group.rut-validation-exists #rut {
+                border-color: #ffc107;
+                background-color: #fffbf0;
+                box-shadow: 0 0 0 0.1rem rgba(255, 193, 7, 0.15);
+            }
+
+            /* Estado: Error de conexión */
+            .form-group.rut-validation-error #rut {
+                border-color: #dc3545;
+                background-color: #fff5f5;
+            }
+
+            /* ✅ ESTILOS PARA MENSAJES DE FEEDBACK */
+            .rut-validation-feedback {
+                font-size: 0.875rem;
+                font-weight: 500;
+                padding: 8px 12px;
+                border-radius: 6px;
+                background-color: rgba(255, 255, 255, 0.8);
+                border: 1px solid transparent;
+                animation: feedback-fade-in 0.3s ease-out;
+            }
+
+            @keyframes feedback-fade-in {
+                from { 
+                    opacity: 0; 
+                    transform: translateY(-10px); 
+                }
+                to { 
+                    opacity: 1; 
+                    transform: translateY(0); 
+                }
+            }
+
+            /* ✅ ESTILOS PARA AUTOCOMPLETADO */
+            .autocomplete-option {
+                background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+                border: 2px solid #1976d2;
+                border-radius: 12px;
+                padding: 16px;
+                margin-top: 12px;
+                box-shadow: 0 4px 12px rgba(25, 118, 210, 0.15);
+                animation: autocomplete-slide-in 0.4s ease-out;
+            }
+
+            @keyframes autocomplete-slide-in {
+                from { 
+                    opacity: 0; 
+                    transform: translateY(-20px) scale(0.95); 
+                }
+                to { 
+                    opacity: 1; 
+                    transform: translateY(0) scale(1); 
+                }
+            }
+
+            .autocomplete-option h6 {
+                color: #1976d2;
+                font-weight: 600;
+                margin-bottom: 8px;
+            }
+
+            .autocomplete-option p {
+                color: #424242;
+                line-height: 1.5;
+                margin-bottom: 12px;
+            }
+
+            .autocomplete-option .btn {
+                background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+                border: none;
+                border-radius: 8px;
+                padding: 8px 16px;
+                font-weight: 500;
+                transition: all 0.2s ease;
+                box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
+            }
+
+            .autocomplete-option .btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(25, 118, 210, 0.4);
+                background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
+            }
+
+            /* ✅ POSICIONAMIENTO RELATIVO PARA LOS ICONOS */
+            .form-group {
+                position: relative;
+            }
+
+            /* ✅ RESPONSIVE DESIGN */
+            @media (max-width: 768px) {
+                .autocomplete-option {
+                    padding: 12px;
+                    margin-top: 8px;
+                }
+                
+                .autocomplete-option .d-flex {
+                    flex-direction: column;
+                    gap: 12px;
+                }
+                
+                .autocomplete-option .btn {
+                    width: 100%;
+                }
+                
+                .rut-validation-feedback {
+                    font-size: 0.8rem;
+                    padding: 6px 10px;
+                }
+            }
+        </style>
+    </head>
+    <body id="page-top">
+        <div class="progress-indicator">
+            <div class="progress-bar"></div>
+        </div>
+
+        <!-- Header -->
+        {% include './headers/denuncia_header.html' %}
+
+        <!-- Formulario -->
+        <div class="form-container">
+            <form id="usuarioForm" action="{% url 'process_user' %}" method="post">
+                {% csrf_token %}
+                
+                <!-- Campo oculto para indicar que siempre es identificado -->
+                <input type="hidden" name="tipo_denuncia" value="identificado">
+                
+                <div class="form-card">
+                    <h2>Información Personal</h2>
+                    <p class="subtitle">
+                        Complete el formulario con sus datos personales. La información proporcionada
+                        será tratada con total confidencialidad y utilizada únicamente para los fines establecidos.
+                    </p>
+
+                    <!-- Sección de Datos Personales (Siempre visible) -->
+                    <div class="datos-personales">
+                        <h3>Datos de Contacto</h3>
+
+                        <!-- ⭐ CAMPO RUT CON VALIDACIÓN EN TIEMPO REAL -->
+                        <div class="form-group">
+                            <label for="rut">
+                                RUT <span class="required">*</span>
+                                <small class="text-muted ml-2">
+                                    <i class="fas fa-info-circle"></i>
+                                    Validaremos su RUT automáticamente si se encuentra registrado
+                                </small>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="rut" 
+                                name="rut" 
+                                class="form-control"
+                                placeholder="Ej: 12345678-9"
+                                maxlength="12"
+                                autocomplete="off"
+                                required
+                            >
+                            <!-- El feedback de validación se insertará aquí automáticamente -->
+                        </div>
+
+                        <div class="form-group">
+                            <label for="nombre_completo">
+                                Nombres <span class="required">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="nombre_completo" 
+                                name="nombre_completo" 
+                                class="form-control"
+                                placeholder="Ingrese su nombre"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="apellidos">
+                                Apellidos <span class="required">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="apellidos" 
+                                name="apellidos" 
+                                class="form-control"
+                                placeholder="Ingrese sus apellidos"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="correo_electronico">
+                                Correo Electrónico <span class="required">*</span>
+                            </label>
+                            <input 
+                                type="email" 
+                                id="correo_electronico" 
+                                name="correo_electronico" 
+                                class="form-control"
+                                placeholder="ejemplo@correo.com"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="celular">Celular <span class="required">*</span></label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">+56 9</span>
+                                </div>
+                                <input 
+                                    type="tel" 
+                                    id="celular" 
+                                    name="celular" 
+                                    class="form-control" 
+                                    maxlength="9" 
+                                    placeholder="1234 5678" 
+                                    required
+                                >
+                            </div>
+                        </div>
+
+                        <!-- ✅ INFORMACIÓN DE PRIVACIDAD MEJORADA -->
+                        <div style="background: #f0f8ff; padding: 1rem; border-radius: 8px; border-left: 4px solid #667eea; margin-top: 1rem;">
+                            <p style="margin: 0; font-size: 0.9rem; color: #4a5568;">
+                                <i class="fas fa-shield-alt" style="color: #667eea; margin-right: 0.5rem;"></i>
+                                <strong>Protección de Datos:</strong> Sus datos serán utilizados únicamente para los fines establecidos 
+                                y serán tratados conforme a nuestra política de privacidad. 
+                                <br><small class="text-muted mt-1 d-block">
+                                    <i class="fas fa-clock me-1"></i>La validación del RUT se realiza en tiempo real para evitar duplicados.
+                                </small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="navigation-container">
+                    <div class="nav-buttons">
+                        <button type="button" class="btn btn-secondary" id="btnAtras">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Atrás
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="btnEnviar">
+                            <i class="fas fa-paper-plane me-2"></i>
+                            Enviar Formulario
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Footer original -->
+        {% include './footer/footer.html' %}
+
+        <!-- ✅ SCRIPTS CON CHARSET CORRECTO -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js" charset="utf-8"></script>
+        <script src="{% static 'js/denuncia-app.js' %}" charset="utf-8"></script>
+        
+        <!-- ✅ SCRIPT DE INICIALIZACIÓN -->
+        <script type="text/javascript" charset="utf-8">
+            $(document).ready(function() {
+                console.log('✅ Página de usuario cargada con validación de RUT');
+                
+                // Verificar que las URLs estén disponibles
+                console.log('🔗 URLs disponibles:');
+                console.log('- USER_SUBMIT_URL:', window.USER_SUBMIT_URL);
+                console.log('- VALIDATE_RUT_URL:', window.VALIDATE_RUT_URL);
+                console.log('- AUTOCOMPLETE_USER_URL:', window.AUTOCOMPLETE_USER_URL);
+                
+                // Configurar encoding para AJAX
+                $.ajaxSetup({
+                    scriptCharset: "utf-8",
+                    contentType: "application/x-www-form-urlencoded; charset=utf-8"
+                });
+            });
+        </script>
+    </body>
+</html>
