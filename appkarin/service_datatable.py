@@ -1,12 +1,17 @@
 # service_datatable_simple.py - API simplificada para DataTable de Denuncias
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.db.models import Q, Count
-from .models import Denuncia, Usuario, AdminDenuncias,Foro
+from .models import Denuncia, Usuario, AdminDenuncias, Foro, Empresa
 import json
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Border, Side, Alignment
+from openpyxl.utils import get_column_letter
+import datetime
+import os
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -192,7 +197,320 @@ class SimpleDenunciaDataTableAPIView(APIView):
         
         # Orden por defecto: fecha descendente
         return queryset.order_by('-fecha')
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ExportDenunciasExcelAPIView(APIView):
+    """
+    API para exportar denuncias a Excel
+    Usa los mismos filtros que SimpleDenunciaDataTableAPIView
+    """
     
+    def post(self, request, *args, **kwargs):
+        try:
+            # Usar la misma lógica de filtrado que SimpleDenunciaDataTableAPIView
+            admin = AdminDenuncias.objects.filter(id=request.user.id).first()
+            
+            # Obtener denuncias con los mismos filtros
+            denuncias_queryset = self._get_filtered_denuncias(request, admin)
+            
+            # Generar Excel
+            excel_file = self._generar_excel_denuncias(denuncias_queryset, request.user)
+            
+            return excel_file
+            
+        except Exception as e:
+            print(f"Error en ExportDenunciasExcelAPIView: {str(e)}")
+            return JsonResponse({
+                'error': f'Error al generar Excel: {str(e)}'
+            }, status=500)
+    
+    def _get_filtered_denuncias(self, request, admin):
+        """Obtener denuncias con los mismos filtros que la DataTable"""
+        # Parsear datos del request
+        dt_data = self._parse_request(request)
+        
+        # Query base con anotaciones
+        denuncias = Denuncia.objects.select_related(
+            'usuario',
+            'item', 
+            'item__categoria',
+            'relacion_empresa',
+            'tiempo',
+            'tipo_empresa'
+        ).annotate(
+            num_archivos=Count('archivo'),
+            num_mensajes_no_leidos=Count(
+                'foro',
+                filter=Q(foro__leido=False, foro__admin=admin)
+            ),
+            num_mensajes_leidos=Count(
+                'foro',
+                filter=Q(foro__leido=True, foro__admin=admin)
+            ),
+            num_mensajes_total=Count(
+                'foro',
+                filter=Q(foro__admin=admin)
+            )
+        )
+        
+        # Aplicar mismos filtros que SimpleDenunciaDataTableAPIView
+        if request.user.is_authenticated:
+            if request.user.rol_categoria:
+                denuncias = denuncias.filter(item__categoria_id=request.user.rol_categoria.id)
+        else:
+            user_info = dt_data.get('user_info', {})
+            user_type = user_info.get('tipo', 'guest')
+            codigo = user_info.get('codigo', '')
+            
+            if user_type == 'anonimo' and codigo:
+                denuncias = denuncias.filter(codigo=codigo)
+            elif user_type == 'identificado' and codigo:
+                denuncias = denuncias.filter(usuario__id=codigo)
+            else:
+                denuncias = denuncias.none()
+        
+        # Aplicar búsqueda si existe
+        search_value = dt_data.get('search', {}).get('value', '')
+        if search_value:
+            denuncias = denuncias.filter(
+                Q(codigo__icontains=search_value) |
+                Q(usuario__nombre__icontains=search_value) |
+                Q(usuario__apellidos__icontains=search_value) |
+                Q(item__enunciado__icontains=search_value) |
+                Q(item__categoria__nombre__icontains=search_value) |
+                Q(descripcion__icontains=search_value) |
+                Q(estado_actual__icontains=search_value)
+            )
+        
+        # Ordenar por fecha descendente
+        return denuncias.order_by('-fecha')
+    
+    def _parse_request(self, request):
+        """Parsear request"""
+        try:
+            if request.content_type == 'application/json':
+                return json.loads(request.body)
+            else:
+                return request.POST.dict()
+        except:
+            return {}
+    
+    def _generar_excel_denuncias(self, denuncias_queryset, user):
+        """Generar archivo Excel con las denuncias"""
+        # Crear workbook
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Reporte de Denuncias"
+        
+        # === Estilos ===
+        titulo_font = Font(name='Calibri', size=16, bold=True, color="FFFFFF")
+        header_font = Font(name='Calibri', size=11, bold=True)
+        normal_font = Font(name='Calibri', size=10)
+        
+        # Colores
+        title_background = PatternFill(start_color="4F81BD", end_color="4F81BD", fill_type="solid")
+        header_fill = PatternFill(start_color="4F81BD", end_color="4F81BD", fill_type="solid")
+        secondary_header_fill = PatternFill(start_color="DCE6F1", end_color="DCE6F1", fill_type="solid")
+        alternating_row_fill = PatternFill(start_color="F2F2F2", end_color="F2F2F2", fill_type="solid")
+        
+        # Bordes
+        thin_border = Border(
+            left=Side(style='thin'),
+            right=Side(style='thin'),
+            top=Side(style='thin'),
+            bottom=Side(style='thin')
+        )
+        
+        # === Título Principal ===
+        ws['A1'] = "REPORTE DE DENUNCIAS"
+        ws['A1'].font = titulo_font
+        ws['A1'].alignment = Alignment(horizontal='center', vertical='center')
+        ws['A1'].fill = title_background
+        ws.merge_cells('A1:P1')  # Amplio hasta columna P
+        
+        # Aplicar bordes al título
+        for col in range(1, 17):  # A hasta P
+            cell = ws.cell(row=1, column=col)
+            cell.border = thin_border
+        
+        # Establecer altura de fila
+        ws.row_dimensions[1].height = 30
+        
+        # === Información del Reporte ===
+        ws['A2'] = "INFORMACIÓN DEL REPORTE"
+        ws['A2'].font = header_font
+        ws['A2'].fill = secondary_header_fill
+        ws['A2'].alignment = Alignment(horizontal='center', vertical='center')
+        ws.merge_cells('A2:P2')
+        
+        # Fecha de generación
+        ws['A3'] = "Fecha de Generación:"
+        ws['B3'] = datetime.datetime.now().strftime('%d/%m/%Y %H:%M')
+        ws['A4'] = "Usuario:"
+        ws['B4'] = user.username if user.is_authenticated else "Consulta Pública"
+        ws['A5'] = "Total de Registros:"
+        ws['B5'] = denuncias_queryset.count()
+        
+        # Aplicar estilos a información del reporte
+        for row in range(2, 6):
+            for col in range(1, 17):
+                cell = ws.cell(row=row, column=col)
+                cell.border = thin_border
+                if col == 1:  # Columna A - etiquetas
+                    cell.font = header_font
+                    cell.fill = secondary_header_fill
+                    cell.alignment = Alignment(horizontal='right', vertical='center')
+                else:  # Otras columnas
+                    cell.font = normal_font
+                    cell.alignment = Alignment(horizontal='left', vertical='center')
+        
+        # Combinar celdas para valores
+        for row in range(3, 6):
+            ws.merge_cells(f'B{row}:P{row}')
+        
+        # === Encabezados de Columnas ===
+        header_row = 7
+        
+        headers = [
+            ('A', 'Código'),
+            ('B', 'Fecha'),
+            ('C', 'Categoría'),
+            ('D', 'Tipo de Denuncia'),
+            ('E', 'Usuario'),
+            ('F', 'Anónimo'),
+            ('G', 'Estado'),
+            ('H', 'Relación Empresa'),
+            ('I', 'Tiempo Ocurrencia'),
+            ('J', 'Empresa'),
+            ('K', 'Archivos'),
+            ('L', 'Msg. Leídos'),
+            ('M', 'Msg. No Leídos'),
+            ('N', 'Total Msg.'),
+            ('O', 'Descripción'),
+            ('P', 'Desc. Relación')
+        ]
+        
+        # Aplicar encabezados
+        for col, text in headers:
+            ws[f'{col}{header_row}'] = text
+            ws[f'{col}{header_row}'].font = header_font
+            ws[f'{col}{header_row}'].border = thin_border
+            ws[f'{col}{header_row}'].fill = header_fill
+            ws[f'{col}{header_row}'].alignment = Alignment(horizontal='center', vertical='center')
+        
+        # Establecer altura de encabezado
+        ws.row_dimensions[header_row].height = 25
+        
+        # === Datos de las Denuncias ===
+        data_start_row = header_row + 1
+        
+        for i, denuncia in enumerate(denuncias_queryset):
+            row = data_start_row + i
+            
+            # Aplicar fondo alternado
+            row_fill = alternating_row_fill if i % 2 == 1 else None
+            
+            # Formatear fecha
+            try:
+                fecha_formateada = denuncia.fecha.strftime("%d/%m/%Y") if denuncia.fecha else ""
+            except:
+                fecha_formateada = str(denuncia.fecha) if denuncia.fecha else ""
+            
+            # Datos de la fila
+            row_data = [
+                ('A', denuncia.codigo),
+                ('B', fecha_formateada),
+                ('C', denuncia.item.categoria.nombre),
+                ('D', denuncia.item.enunciado),
+                ('E', denuncia.usuario.nombre_completo if not denuncia.usuario.anonimo else 'Anónimo'),
+                ('F', 'Sí' if denuncia.usuario.anonimo else 'No'),
+                ('G', denuncia.estado_actual),
+                ('H', denuncia.relacion_empresa.rol),
+                ('I', denuncia.tiempo.intervalo),
+                ('J', denuncia.tipo_empresa.nombre if denuncia.tipo_empresa else ''),
+                ('K', denuncia.num_archivos),
+                ('L', denuncia.num_mensajes_leidos),
+                ('M', denuncia.num_mensajes_no_leidos),
+                ('N', denuncia.num_mensajes_total),
+                ('O', denuncia.descripcion[:100] + '...' if len(denuncia.descripcion) > 100 else denuncia.descripcion),
+                ('P', (denuncia.descripcion_relacion[:100] + '...' if len(denuncia.descripcion_relacion) > 100 else denuncia.descripcion_relacion) if denuncia.descripcion_relacion else '')
+            ]
+            
+            # Aplicar datos y estilos
+            for col, value in row_data:
+                cell = ws[f'{col}{row}']
+                cell.value = value
+                cell.font = normal_font
+                cell.border = thin_border
+                if row_fill:
+                    cell.fill = row_fill
+                
+                # Alineación específica por tipo de dato
+                if col in ['K', 'L', 'M', 'N']:  # Números
+                    cell.alignment = Alignment(horizontal='center', vertical='center')
+                elif col in ['O', 'P']:  # Descripciones largas
+                    cell.alignment = Alignment(horizontal='left', vertical='top', wrap_text=True)
+                else:
+                    cell.alignment = Alignment(horizontal='left', vertical='center')
+        
+        # === Resumen Final ===
+        summary_row = data_start_row + denuncias_queryset.count() + 2
+        
+        ws[f'A{summary_row}'] = f"Reporte generado automáticamente el {datetime.datetime.now().strftime('%d/%m/%Y %H:%M')}"
+        ws[f'A{summary_row}'].font = Font(name='Calibri', size=9, italic=True)
+        ws[f'A{summary_row}'].alignment = Alignment(horizontal='center', vertical='center')
+        ws.merge_cells(f'A{summary_row}:P{summary_row}')
+        
+        # === Ajustar Anchos de Columnas ===
+        column_widths = {
+            'A': 15,  # Código
+            'B': 12,  # Fecha
+            'C': 20,  # Categoría
+            'D': 30,  # Tipo de Denuncia
+            'E': 25,  # Usuario
+            'F': 10,  # Anónimo
+            'G': 15,  # Estado
+            'H': 20,  # Relación Empresa
+            'I': 15,  # Tiempo
+            'J': 15,  # Empresa
+            'K': 10,  # Archivos
+            'L': 12,  # Msg. Leídos
+            'M': 12,  # Msg. No Leídos
+            'N': 12,  # Total Msg.
+            'O': 40,  # Descripción
+            'P': 40   # Desc. Relación
+        }
+        
+        for col, width in column_widths.items():
+            ws.column_dimensions[col].width = width
+        
+        # === Configuración de Página ===
+        ws.page_setup.orientation = ws.ORIENTATION_LANDSCAPE
+        ws.page_setup.paperSize = ws.PAPERSIZE_LETTER
+        ws.page_setup.fitToPage = True
+        ws.page_setup.fitToWidth = 1
+        ws.page_setup.fitToHeight = 0  # Permitir múltiples páginas en altura
+        
+        ws.page_margins.left = 0.5
+        ws.page_margins.right = 0.5
+        ws.page_margins.top = 0.5
+        ws.page_margins.bottom = 0.5
+        
+        # === Generar nombre de archivo y guardar ===
+        timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f'Reporte_Denuncias_{timestamp}.xlsx'
+        
+        # Crear respuesta HTTP
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        # Guardar el workbook directamente en la respuesta
+        wb.save(response)
+        
+        return response
 
 
 class DataTableActions(APIView):

@@ -1,0 +1,854 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="Sesión Expirada - Portal de Denuncias - Empresas Integra" />
+    <meta name="author" content="Empresas Integra" />
+    <title>Sesión Expirada - Portal de Denuncias</title>
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: #2d3748;
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #fed7d7 0%, #fc8181 20%, #feb2b2 50%, #fed7d7 100%);
+            min-height: 100vh;
+        }
+
+        /* Animaciones */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                max-height: 500px;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes gradient {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            25% {
+                transform: translateX(-5px);
+            }
+            75% {
+                transform: translateX(5px);
+            }
+        }
+
+        @keyframes warning-glow {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(239, 68, 68, 0.6);
+            }
+        }
+
+        /* Header con Navbar - Versión Warning */
+        .header {
+            background: linear-gradient(-45deg, #dc2626, #b91c1c, #ef4444, #f87171);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            padding: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Navbar */
+        .navbar {
+            position: relative;
+            z-index: 10;
+            padding: 1.5rem 0;
+        }
+
+        .navbar-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+            color: white;
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: translateY(-2px) scale(1.05);
+        }
+
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 12px;
+        }
+
+        .brand-text {
+            color: white;
+            font-weight: 700;
+            font-size: 1.3rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .brand-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.85rem;
+            font-weight: 400;
+            margin-top: -2px;
+        }
+
+        /* Botones del navbar - Versión Warning */
+        .navbar-buttons {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn-home {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .btn-home::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-home:hover::before {
+            left: 100%;
+        }
+
+        .btn-home:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            color: white;
+            text-decoration: none;
+        }
+
+        /* Menu hamburguesa para móviles */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+        }
+
+        .mobile-menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .mobile-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .mobile-menu.show {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .mobile-menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .mobile-menu .btn-home {
+            color: #dc2626;
+            background: rgba(220, 38, 38, 0.1);
+            border-color: #dc2626;
+            width: 100%;
+            max-width: 250px;
+            justify-content: center;
+        }
+
+        /* Sección principal de advertencia */
+        .warning-section {
+            min-height: 70vh;
+            background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 50%, #fed7d7 100%);
+            padding: 4rem 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .warning-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            animation: fadeInUp 1s ease-out 0.3s both;
+            text-align: center;
+        }
+
+        .warning-icon {
+            font-size: 5rem;
+            color: #dc2626;
+            margin-bottom: 2rem;
+            animation: pulse 2s infinite;
+            text-shadow: 0 4px 20px rgba(220, 38, 38, 0.3);
+        }
+
+        .warning-title {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .warning-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            border-radius: 2px;
+        }
+
+        .warning-card {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(220, 38, 38, 0.2);
+            margin: 2rem 0;
+            border: 2px solid rgba(220, 38, 38, 0.1);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: warning-glow 3s ease-in-out infinite;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .warning-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            border-radius: 20px 20px 0 0;
+        }
+
+        .warning-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 80px rgba(220, 38, 38, 0.3);
+        }
+
+        .warning-message {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #dc2626;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .warning-description {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #4a5568;
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+
+        .warning-reasons {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-left: 4px solid #dc2626;
+        }
+
+        .warning-reasons h4 {
+            color: #dc2626;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .warning-reasons ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .warning-reasons li {
+            padding: 0.5rem 0;
+            color: #7f1d1d;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .warning-reasons li::before {
+            content: '⚠️';
+            font-size: 1rem;
+        }
+
+        /* Sección de acciones */
+        .actions-section {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            padding: 3rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .actions-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="10" cy="50" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="90" cy="30" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        }
+
+        .actions-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .actions-title {
+            color: white;
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .actions-buttons {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            animation: fadeInUp 1s ease-out 0.6s both;
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1.25rem 2.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 50px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+            min-width: 220px;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-action::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-action:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ffffff, #f3f4f6);
+            color: #dc2626;
+            border: 2px solid white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(255, 255, 255, 0.4);
+            color: #dc2626;
+            background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(255, 255, 255, 0.2);
+            color: white;
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .btn-icon {
+            font-size: 1.2rem;
+        }
+
+        /* Footer */
+        .footer {
+            background: linear-gradient(135deg, #7f1d1d, #991b1b);
+            padding: 3rem 0;
+            position: relative;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            text-align: center;
+        }
+
+        .footer-text {
+            color: #fca5a5;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Notificación */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            z-index: 10000;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar-container {
+                padding: 0 1rem;
+            }
+
+            .brand-text {
+                font-size: 1.1rem;
+            }
+
+            .brand-subtitle {
+                font-size: 0.8rem;
+            }
+
+            .navbar-buttons {
+                display: none;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .logo {
+                width: 50px;
+                height: 50px;
+            }
+
+            .warning-title {
+                font-size: 2.5rem;
+            }
+
+            .warning-icon {
+                font-size: 4rem;
+            }
+
+            .warning-card {
+                padding: 2rem;
+                margin: 1rem;
+            }
+
+            .warning-message {
+                font-size: 1.3rem;
+                flex-direction: column;
+            }
+
+            .actions-buttons {
+                flex-direction: column;
+                padding: 0 1rem;
+            }
+
+            .btn-action {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .navbar-container {
+                gap: 0.5rem;
+            }
+
+            .brand-text {
+                font-size: 1rem;
+            }
+
+            .brand-subtitle {
+                display: none;
+            }
+
+            .warning-title {
+                font-size: 2rem;
+            }
+
+            .warning-card {
+                padding: 1.5rem;
+            }
+
+            .warning-description {
+                font-size: 1rem;
+            }
+        }
+
+        /* Efectos adicionales */
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header con Navbar -->
+    <header class="header">
+        <nav class="navbar">
+            <div class="navbar-container">
+                <!-- Brand/Logo -->
+
+                <!-- Botones Desktop -->
+                <div class="navbar-buttons">
+                    <a href="{% url 'hub' %}" class="btn-home">
+                        <i class="fas fa-home"></i>
+                        Volver al hub
+                    </a>
+                </div>
+
+                <!-- Botón menú móvil -->
+                <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+
+            <!-- Menú móvil -->
+            <div class="mobile-menu" id="mobileMenu">
+                <div class="mobile-menu-buttons">
+                    <a href="{% url 'hub' %}" class="btn-home">
+                        <i class="fas fa-home"></i>
+                        Volver al Hub
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Sección principal de advertencia -->
+    <section class="warning-section">
+        <div class="warning-container">
+            <div class="warning-icon floating">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            
+            <h1 class="warning-title">Sesión Inválida</h1>
+            
+            <div class="warning-card">
+                <div class="warning-message">
+                    <i class="fas fa-times-circle"></i>
+                    Su sesión de denuncia ha expirado o es inválida
+                </div>
+                
+                <div class="warning-description">
+                    <p>No se pudo procesar su solicitud debido a que la sesión de denuncia actual no es válida o ha caducado. Esto puede suceder por razones de seguridad para proteger la confidencialidad de la información.</p>
+                </div>
+
+                <div class="warning-reasons">
+                    <h4>
+                        <i class="fas fa-info-circle"></i>
+                        Posibles causas:
+                    </h4>
+                    <ul>
+                        <li>La sesión ha permanecido inactiva por mucho tiempo</li>
+                        <li>Se ha accedido desde múltiples pestañas o dispositivos</li>
+                        <li>La información de seguridad no coincide</li>
+                        <li>Se ha intentado acceder a una URL no válida</li>
+                        <li>Problemas temporales de conectividad</li>
+                    </ul>
+                </div>
+
+                <div class="warning-description">
+                    <p><strong>Por su seguridad y confidencialidad</strong>, todas las sesiones de denuncia tienen un tiempo límite y medidas de protección adicionales. Si necesita realizar una denuncia, deberá iniciar un nuevo proceso.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección de acciones -->
+    <section class="actions-section">
+        <div class="actions-container">
+            <h2 class="actions-title">¿Qué puede hacer ahora?</h2>
+            <div class="actions-buttons">
+                <a href="{% url 'hub' %}" class="btn-action btn-primary">
+                    <i class="fas fa-home btn-icon"></i>
+                    Ir al hub
+                </a>
+                <a href="{% url 'items' %}" class="btn-action btn-secondary">
+                    <i class="fas fa-plus-circle btn-icon"></i>
+                    Nueva Denuncia
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <p class="footer-text">
+                Copyright © Somos un grupo de empresas destinadas a suplir y atender de forma integral las necesidades 
+                de servicios de la gran industria del sector público y privado, a través de la diversificación de nuestros negocios.
+            </p>
+        </div>
+    </footer>
+
+    <!-- Notificación -->
+    <div id="notification" class="notification"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <script>
+        // Función para mostrar/ocultar menú móvil
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            const toggleBtn = document.querySelector('.mobile-menu-toggle i');
+            
+            if (mobileMenu.classList.contains('show')) {
+                mobileMenu.classList.remove('show');
+                toggleBtn.classList.remove('fa-times');
+                toggleBtn.classList.add('fa-bars');
+            } else {
+                mobileMenu.classList.add('show');
+                toggleBtn.classList.remove('fa-bars');
+                toggleBtn.classList.add('fa-times');
+            }
+        }
+
+        // Cerrar menú móvil al hacer clic fuera
+        document.addEventListener('click', function(e) {
+            const mobileMenu = document.getElementById('mobileMenu');
+            const toggleBtn = document.querySelector('.mobile-menu-toggle');
+            
+            if (!toggleBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
+                mobileMenu.classList.remove('show');
+                document.querySelector('.mobile-menu-toggle i').classList.remove('fa-times');
+                document.querySelector('.mobile-menu-toggle i').classList.add('fa-bars');
+            }
+        });
+
+        function mostrarNotificacion(mensaje, tipo) {
+            const notification = document.getElementById('notification');
+            notification.textContent = mensaje;
+            notification.className = `notification ${tipo}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 4000);
+        }
+
+        // Cerrar menú móvil al presionar Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const mobileMenu = document.getElementById('mobileMenu');
+                if (mobileMenu.classList.contains('show')) {
+                    toggleMobileMenu();
+                }
+            }
+        });
+
+        // Auto-redirect después de cierto tiempo (opcional)
+        let countdownSeconds = 60;
+        
+        function updateCountdown() {
+            // Esta función se puede usar para mostrar un contador regresivo si se desea
+            // Por ahora está comentada para no interferir con la UX
+        }
+
+        // Animación de entrada
+        document.addEventListener('DOMContentLoaded', function() {
+            // Efecto de shake en el icono de advertencia
+            const warningIcon = document.querySelector('.warning-icon');
+            
+            setTimeout(() => {
+                warningIcon.style.animation = 'shake 0.5s ease-in-out';
+                setTimeout(() => {
+                    warningIcon.style.animation = 'pulse 2s infinite';
+                }, 500);
+            }, 1000);
+
+            // Mostrar notificación de advertencia
+            setTimeout(() => {
+                mostrarNotificacion('Su sesión ha expirado por seguridad', 'error');
+            }, 2000);
+        });
+
+        console.log('🚨 Página de advertencia de sesión inválida cargada');
+    </script>
+</body>
+</html>

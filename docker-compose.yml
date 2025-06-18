@@ -15,7 +15,7 @@ services:
       - DEBUG=1
       - SECRET_KEY=your-secret-key-here-change-in-production
       - ADMIN_URL=5sTUWfXtDNg2XAAz/
-      - DB_NAME=denunciaskarin
+      - DB_NAME=denunciaskarin2
       - DB_USER=postgres
       - DB_PASSWORD=root
       - DB_HOST=host.docker.internal  # Para conectar al PostgreSQL del host

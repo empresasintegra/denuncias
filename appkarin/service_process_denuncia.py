@@ -5,9 +5,12 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.db import transaction
 from django.shortcuts import redirect
+from django.conf import settings
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
 from .models import (
     Categoria, Item, RelacionEmpresa, Tiempo, Usuario, 
-    Denuncia, Empresa
+    Denuncia, Empresa, Archivo
 )
 from .serializers import (
     ItemSelectionSerializer, DenunciaCreateSerializer, 
@@ -22,7 +25,11 @@ from .utils import (
 import time
 import secrets
 import string
+import os
+import uuid
+import mimetypes
 from datetime import datetime
+from pathlib import Path
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -39,6 +46,25 @@ class ServiceProcessDenuncia(APIView):
     - ValidateRutAPIView
     - AutocompleteUserDataAPIView
     """
+    
+    # ===== CONFIGURACIÓN DE ARCHIVOS =====
+    UPLOAD_FOLDER = 'denuncias/archivos'  # Carpeta dentro de MEDIA_ROOT
+    MAX_FILE_SIZE = 500 * 1024 * 1024  # 500MB
+    ALLOWED_EXTENSIONS = {
+        '.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png', 
+        '.gif', '.xlsx', '.xls', '.txt'
+    }
+    ALLOWED_MIME_TYPES = {
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'text/plain'
+    }
     
     def post(self, request, step=None):
         """
@@ -99,6 +125,7 @@ class ServiceProcessDenuncia(APIView):
             'success': False,
             'message': 'Método no permitido'
         }, status=405)
+
     # ===== PASO 1: INICIACIÓN DE LA DENUNCIA =====
     def _process_initialize(self,request):
        
@@ -114,8 +141,6 @@ class ServiceProcessDenuncia(APIView):
                 'message': 'Item seleccionado correctamente',
                 'redirect_url': '/denuncia/Paso1/',
             })
-
-
 
     # ===== PASO 2: SELECCIÓN DE ITEMS =====
     def _process_items(self, request):
@@ -150,10 +175,11 @@ class ServiceProcessDenuncia(APIView):
             'errors': serializer.errors
         }, status=400)
     
-    # ===== PASO 2: WIZARD DE DENUNCIA =====
+    # ===== PASO 2: WIZARD DE DENUNCIA CON ARCHIVOS =====
+    @transaction.atomic
     def _process_wizard(self, request):
         """
-        Procesa la información del wizard de denuncia (Paso 2)
+        Procesa la información del wizard de denuncia (Paso 2) incluyendo archivos
         """
         # Verificar que haya item seleccionado
         item_id = request.session.get('denuncia_item_id')
@@ -171,28 +197,196 @@ class ServiceProcessDenuncia(APIView):
         serializer = DenunciaCreateSerializer(data=data)
         
         if serializer.is_valid():
+            print("✅ Datos del wizard validados")
+            
+            # ===== PROCESAR ARCHIVOS (OPCIONAL) =====
+            archivos_procesados = []
+            archivos_errors = []
+            
+            # Obtener archivos del request - puede estar vacío
+            archivos = request.FILES.getlist('archivos[]')
+            print(f"📁 Archivos recibidos: {len(archivos)}")
+            
+            # ✅ PROCESAR SOLO SI HAY ARCHIVOS
+            if archivos and len(archivos) > 0:
+                print("📎 Procesando archivos adjuntos...")
+                for archivo in archivos:
+                    try:
+                        # Validar archivo
+                        archivo_validado = self._validate_file(archivo)
+                        if archivo_validado['valid']:
+                            # Guardar archivo físicamente
+                            archivo_guardado = self._save_file(archivo)
+                            archivos_procesados.append(archivo_guardado)
+                            print(f"✅ Archivo guardado: {archivo.name}")
+                        else:
+                            archivos_errors.append(archivo_validado['error'])
+                            print(f"❌ Archivo inválido: {archivo.name} - {archivo_validado['error']}")
+                    
+                    except Exception as e:
+                        error_msg = f"Error al procesar {archivo.name}: {str(e)}"
+                        archivos_errors.append(error_msg)
+                        print(f"❌ {error_msg}")
+                        
+                # Si hay errores críticos de archivos Y se intentaron subir archivos, retornar error
+                if archivos_errors and not archivos_procesados:
+                    return Response({
+                        'success': False,
+                        'message': 'Errores al procesar archivos',
+                        'errors': archivos_errors
+                    }, status=400)
+            else:
+                print("📝 Denuncia sin archivos adjuntos - continuando normalmente")
+                # ✅ SIN ARCHIVOS ES VÁLIDO - continuar proceso normal
+            
             # Guardar datos en sesión para el siguiente paso
-            print("validate")
             request.session.update({
                 'denuncia_relacion_id': serializer.validated_data['denuncia_relacion'],
                 'denuncia_tiempo_id': serializer.validated_data['denuncia_tiempo'],
                 'denuncia_descripcion': serializer.validated_data['descripcion'],
-                'denuncia_descripcion_relacion': serializer.validated_data.get('descripcion_relacion', '') if serializer.validated_data.get('descripcion_relacion', '') !=None else None
+                'denuncia_descripcion_relacion': serializer.validated_data.get('descripcion_relacion', '') if serializer.validated_data.get('descripcion_relacion', '') != None else None,
+                'archivos_procesados': archivos_procesados  # Guardar info de archivos
             })
 
-            print("validated?")
+            print("✅ Datos guardados en sesión")
             request.session.modified = True
             
-            return Response({
+            response_data = {
                 'success': True,
                 'message': 'Información guardada correctamente',
                 'redirect_url': '/denuncia/Paso3/'
-            })
+            }
+            
+            # ✅ AGREGAR INFORMACIÓN DE ARCHIVOS SOLO SI SE PROCESARON
+            if archivos_procesados and len(archivos_procesados) > 0:
+                response_data['archivos'] = {
+                    'procesados': len(archivos_procesados),
+                    'total': len(archivos)
+                }
+                print(f"📎 Respuesta del wizard incluye info de {len(archivos_procesados)} archivos")
+            
+            # ✅ INCLUIR WARNINGS DE ARCHIVOS SI LOS HAY (pero no bloquear el proceso)
+            if archivos_errors:
+                response_data['archivos_warnings'] = archivos_errors
+                print(f"⚠️ Warnings de archivos incluidos en respuesta: {len(archivos_errors)}")
+            
+            return Response(response_data)
         
         return Response({
             'success': False,
             'errors': serializer.errors
         }, status=400)
+    
+    # ===== FUNCIONES DE MANEJO DE ARCHIVOS =====
+    
+    def _validate_file(self, archivo):
+        """
+        Valida un archivo subido
+        """
+        # Validar tamaño
+        if archivo.size > self.MAX_FILE_SIZE:
+            return {
+                'valid': False,
+                'error': f'El archivo {archivo.name} excede el tamaño máximo (500MB)'
+            }
+        
+        # Validar extensión
+        file_extension = Path(archivo.name).suffix.lower()
+        if file_extension not in self.ALLOWED_EXTENSIONS:
+            return {
+                'valid': False,
+                'error': f'Tipo de archivo no permitido: {file_extension}'
+            }
+        
+        # Validar MIME type (seguridad adicional)
+        mime_type, _ = mimetypes.guess_type(archivo.name)
+        if mime_type and mime_type not in self.ALLOWED_MIME_TYPES:
+            return {
+                'valid': False,
+                'error': f'Tipo MIME no permitido: {mime_type}'
+            }
+        
+        # Validar que el archivo no esté vacío
+        if archivo.size == 0:
+            return {
+                'valid': False,
+                'error': f'El archivo {archivo.name} está vacío'
+            }
+        
+        return {'valid': True}
+    
+    def _save_file(self, archivo):
+        """
+        Guarda un archivo en el servidor y retorna la información
+        """
+        # Generar nombre único para evitar colisiones
+        file_extension = Path(archivo.name).suffix.lower()
+        unique_filename = f"{uuid.uuid4().hex}{file_extension}"
+        
+        # Crear estructura de carpetas por fecha
+        fecha_actual = datetime.now()
+        folder_path = os.path.join(
+            self.UPLOAD_FOLDER,
+            str(fecha_actual.year),
+            f"{fecha_actual.month:02d}"
+        )
+        
+        # Ruta completa del archivo
+        file_path = os.path.join(folder_path, unique_filename)
+        
+        # Crear directorio si no existe
+        full_directory = os.path.join(settings.MEDIA_ROOT, folder_path)
+        os.makedirs(full_directory, exist_ok=True)
+        
+        # Guardar archivo usando Django's file storage
+        saved_path = default_storage.save(file_path, ContentFile(archivo.read()))
+        
+        # Generar URL accesible
+        file_url = os.path.join(settings.MEDIA_URL, saved_path)
+        
+        return {
+            'original_name': archivo.name,
+            'saved_name': unique_filename,
+            'path': saved_path,
+            'url': file_url,
+            'size': archivo.size,
+            'mime_type': archivo.content_type
+        }
+    
+    def _create_archivo_records(self, denuncia, archivos_info):
+        """
+        Crea registros en la base de datos para los archivos.
+        ✅ Maneja correctamente listas vacías (retorna lista vacía)
+        """
+        archivos_creados = []
+        
+        # ✅ SI NO HAY ARCHIVOS, RETORNAR LISTA VACÍA (no es error)
+        if not archivos_info or len(archivos_info) == 0:
+            print("📝 No hay archivos para registrar en base de datos")
+            return archivos_creados
+        
+        for archivo_info in archivos_info:
+            try:
+                archivo_record = Archivo.objects.create(
+                    denuncia=denuncia,
+                    url=archivo_info['url'],
+                    nombre=archivo_info['original_name'],
+                    descripción=f"Archivo adjunto: {archivo_info['original_name']}",
+                    Peso=archivo_info['size']
+                )
+                archivos_creados.append(archivo_record)
+                print(f"✅ Registro de archivo creado: {archivo_record.nombre}")
+                
+            except Exception as e:
+                print(f"❌ Error al crear registro para {archivo_info['original_name']}: {str(e)}")
+                # Opcional: eliminar archivo físico si no se pudo crear el registro
+                try:
+                    default_storage.delete(archivo_info['path'])
+                    print(f"🗑️ Archivo físico eliminado: {archivo_info['path']}")
+                except Exception as delete_error:
+                    print(f"⚠️ No se pudo eliminar archivo huérfano: {delete_error}")
+        
+        return archivos_creados
     
     # ===== PASO 3: REGISTRO DE USUARIO Y CREACIÓN DE DENUNCIA =====
     @transaction.atomic
@@ -239,7 +433,7 @@ class ServiceProcessDenuncia(APIView):
             # Crear o actualizar usuario
             usuario = user_serializer.update_or_create()
             print("id usuario ")
-            # Generar código único
+            
             # Crear denuncia
             print("create?")
             print (request.session['empresa_id'])
@@ -253,8 +447,19 @@ class ServiceProcessDenuncia(APIView):
                 descripcion_relacion=request.session.get('denuncia_descripcion_relacion', '') if request.session['denuncia_descripcion_relacion'] else ''
             )
             
-            # Limpiar sesión
-            for key in required_session_keys:
+            # ===== PROCESAR ARCHIVOS SI EXISTEN =====
+            archivos_procesados = request.session.get('archivos_procesados', [])
+            archivos_creados = []
+            
+            if archivos_procesados and len(archivos_procesados) > 0:
+                print(f"📁 Creando registros para {len(archivos_procesados)} archivos")
+                archivos_creados = self._create_archivo_records(denuncia, archivos_procesados)
+                print(f"✅ {len(archivos_creados)} archivos registrados en base de datos")
+            else:
+                print("📝 Denuncia creada sin archivos adjuntos")
+            
+            # Limpiar sesión (incluyendo archivos si los había)
+            for key in required_session_keys + ['archivos_procesados']:
                 request.session.pop(key, None)
             
             # Guardar código para mostrar en página final
@@ -262,15 +467,28 @@ class ServiceProcessDenuncia(APIView):
 
             print(request.session['codigo'])
             
-            return Response({
+            response_data = {
                 'success': True,
                 'message': 'Denuncia creada exitosamente',
                 'data': {
                     'codigo': request.session['codigo'],
-                    'es_anonima': usuario.anonimo
+                    'es_anonima': usuario.anonimo,
+                    'denuncia_id': denuncia.codigo
                 },
                 'redirect_url': '/denuncia/final/'
-            })
+            }
+            
+            # ✅ AGREGAR INFORMACIÓN DE ARCHIVOS SOLO SI EXISTEN
+            if archivos_creados and len(archivos_creados) > 0:
+                response_data['data']['archivos'] = {
+                    'total': len(archivos_creados),
+                    'nombres': [archivo.nombre for archivo in archivos_creados]
+                }
+                print(f"📎 Respuesta incluye info de {len(archivos_creados)} archivos")
+            else:
+                print("📝 Respuesta sin información de archivos (no se adjuntaron)")
+            
+            return Response(response_data)
         
         return Response({
             'success': False,

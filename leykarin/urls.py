@@ -12,7 +12,11 @@ from appkarin import views
 from appkarin.service_admin_auth import ServiceAdminDenunciaAuth
 from appkarin.service_process_denuncia import ServiceProcessDenuncia
 from appkarin.service_consolidated import DenunciaManagementViewSet, DenunciaQueryAPI
-from appkarin.service_datatable import SimpleDenunciaDataTableAPIView
+from appkarin.service_datatable import SimpleDenunciaDataTableAPIView, ExportDenunciasExcelAPIView
+from django.conf import settings
+from django.conf.urls.static import static
+
+
 
 # Configurar router para ViewSets
 router = DefaultRouter()
@@ -119,6 +123,8 @@ urlpatterns = [
     path('api/descargar-denuncia/', 
          DenunciaManagementViewSet.as_view({'post': 'descargar'}), 
          name='descargar-denuncia'),
+
+     
     
     # API de consultas complejas
     path('api/denuncias/query/<str:action>/', 
@@ -132,6 +138,10 @@ urlpatterns = [
     path('api/datatable/denuncias/simple/', 
          csrf_exempt(SimpleDenunciaDataTableAPIView.as_view()), 
          name='datatable_simple'),
+
+     path('api/datatable/denuncias/export/excel/', 
+     csrf_exempt(ExportDenunciasExcelAPIView.as_view()), 
+     name='datatable_export_excel'),
 
     # =================================================================
     # 🌐 VISTAS (TEMPLATES)
@@ -155,3 +165,6 @@ urlpatterns = [
     
     path(settings.ADMIN_URL, admin.site.urls),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

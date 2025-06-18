@@ -38,29 +38,32 @@ def renderItemsDenuncia(request):
 
 def renderWizzDenuncia(request):
     """Vista única del wizard que carga todos los datos necesarios"""
-    categorias = Categoria.objects.all().prefetch_related('item_set')
-    relacion_empresas = RelacionEmpresa.objects.all()
-    tiempos = Tiempo.objects.all()
-    wizard_data = request.session.get('wizard_data', {})
-    
-    context = {
-        'categorias': categorias,
-        'relacion_empresas': relacion_empresas,
-        'tiempos': tiempos,
-        'wizard_data': wizard_data,
-    }
-    return render(request, 'denunciaWizzard.html', context)
+    if( request.session.get('denuncia_categoria_id')):
+        categorias = Categoria.objects.all().prefetch_related('item_set')
+        relacion_empresas = RelacionEmpresa.objects.all()
+        tiempos = Tiempo.objects.all()
+        wizard_data = request.session.get('wizard_data', {})
+        
+        context = {
+            'categorias': categorias,
+            'relacion_empresas': relacion_empresas,
+            'tiempos': tiempos,
+            'wizard_data': wizard_data,
+        }
+
+        return render(request, 'denunciaWizzard.html', context)
+    else:
+        return render(request, 'warning.html')
 
 def renderUserDenuncia(request):
-    print(request.session.get('denuncia_categoria_id'))
 
-    if (request.session.get('denuncia_categoria_id')==1):
-        print("true")
-        context={'seleccionable':False}
-        return render(request, 'terminoDenunciaLeyKarin.html',context)
-    
-    context={'seleccionable':True}
-    return render(request, 'terminoDenuncia.html',context)
+
+    if(request.session.get('denuncia_categoria_id')):
+        if (request.session.get('denuncia_categoria_id')==1):
+            return render(request, 'terminoDenunciaLeyKarin.html')
+        return render(request, 'terminoDenuncia.html')
+    else:
+        return render(request, 'warning.html')
 
 def renderCodeDenuncia(request):
 
