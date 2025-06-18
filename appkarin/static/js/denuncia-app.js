@@ -291,9 +291,8 @@ const DenunciaApp = {
             form.submit(function (e) {
                 e.preventDefault();
                 console.log('📤 Enviando formulario de items...');
-
                 // Validar que se haya seleccionado algo
-                if (!$('input[name="denuncia_item"]:checked').length && '{{seleccionable}}'== true ) {
+                if (!$('input[name="denuncia_item"]:checked').length) {
                     DenunciaApp.common.showError('Debe seleccionar el tipo de denuncia');
                     return;
                 }
@@ -881,8 +880,16 @@ const DenunciaApp = {
                     continue;
                 }
 
-                DenunciaApp.vars.selectedFiles.push(file);
-                this.displayFile(file, DenunciaApp.vars.selectedFiles.length - 1);
+                if ($('.file-item').length <5){
+                    console.log($('.file-item').length)
+                    DenunciaApp.vars.selectedFiles.push(file);
+                    this.displayFile(file, DenunciaApp.vars.selectedFiles.length - 1);
+                }
+                else{
+                    DenunciaApp.common.showError('No se puede ingresar mas archivos');
+                    continue;
+                }
+                
                 console.log(`✅ Archivo agregado: ${file.name}`);
             }
         },
@@ -1492,15 +1499,19 @@ const DenunciaApp = {
                 e.preventDefault();
                 console.log('📤 Enviando formulario de usuario...');
 
-                const tipoSeleccionado = document.querySelector('input[name="tipo_denuncia"]:checked');
-                if (!tipoSeleccionado && '{{seleccionable}}'== true ) {
-                    DenunciaApp.common.showError('Por favor, seleccione el tipo de denuncia');
-                    return;
-                }
+                const existeInput= document.querySelector('input[name="tipo_denuncia"]');
 
-                if (tipoSeleccionado.value === 'identificado') {
-                    if (!this.validateIdentifiedForm()) {
+                if(existeInput){
+                    const tipoSeleccionado = document.querySelector('input[name="tipo_denuncia"]:checked');
+                    if (!tipoSeleccionado ) {
+                        DenunciaApp.common.showError('Por favor, seleccione el tipo de denuncia');
                         return;
+                    }   
+
+                    if (tipoSeleccionado.value === 'identificado') {
+                        if (!this.validateIdentifiedForm()) {
+                            return;
+                        }
                     }
                 }
 
