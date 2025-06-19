@@ -287,14 +287,38 @@ class ExportDenunciasExcelAPIView(APIView):
         return denuncias.order_by('-fecha')
     
     def _parse_request(self, request):
-        """Parsear request"""
+        """Parsear request de forma segura"""
         try:
-            if request.content_type == 'application/json':
-                return json.loads(request.body)
+            # Si viene como JSON
+            if hasattr(request, 'content_type') and request.content_type == 'application/json':
+                if hasattr(request, 'body') and request.body:
+                    parsed_data = json.loads(request.body)
+                    # ✅ VERIFICAR QUE SEA UN DICCIONARIO
+                    if isinstance(parsed_data, dict):
+                        return parsed_data
+                    else:
+                        print(f"Warning: JSON parsed data is not a dict: {type(parsed_data)}")
+                        return {}
+                else:
+                    return {}
+            # Si viene como form data
             else:
-                return request.POST.dict()
-        except:
+                if hasattr(request, 'POST') and request.POST:
+                    post_data = request.POST.dict()
+                    # ✅ VERIFICAR QUE SEA UN DICCIONARIO
+                    if isinstance(post_data, dict):
+                        return post_data
+                    else:
+                        print(f"Warning: POST.dict() is not a dict: {type(post_data)}")
+                        return {}
+                else:
+                    return {}
+        except json.JSONDecodeError as e:
+            print(f"JSON decode error: {e}")
             return {}
+        except Exception as e:
+            print(f"Error parsing request: {e}")
+            return {}  # ✅ SIEMPRE DEVOLVER DICCIONARIO
     
     def _generar_excel_denuncias(self, denuncias_queryset, user):
         """Generar archivo Excel con las denuncias"""

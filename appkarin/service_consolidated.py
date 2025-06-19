@@ -48,7 +48,7 @@ class DenunciaManagementViewSet(ViewSet):
     def detalle(self, request, codigo=None):
         """
         GET /api/denuncias/{codigo}/detalle/
-        Obtiene el detalle completo de una denuncia
+        Obtiene el detalle completo de una denuncia incluyendo archivos
         """
         try:
             denuncia = self.get_denuncia(codigo)
@@ -63,6 +63,9 @@ class DenunciaManagementViewSet(ViewSet):
                 if categoria and denuncia.item.categoria != categoria:
                     return Response({'error': 'Sin permisos para esta categoría'}, status=403)
             
+            # ✅ NUEVO: Obtener archivos de la denuncia
+            archivos = denuncia.archivo_set.all()
+            
             # Serializar datos
             data = {
                 'codigo': denuncia.codigo,
@@ -70,10 +73,22 @@ class DenunciaManagementViewSet(ViewSet):
                 'categoria': denuncia.item.categoria.nombre,
                 'tipo_denuncia': denuncia.item.enunciado,
                 'descripcion': denuncia.descripcion,
+                'descripcion_relacion': denuncia.descripcion_relacion or '',
                 'usuario': denuncia.usuario.nombre_completo if not denuncia.usuario.anonimo else 'Anónimo',
+                'usuario_anonimo': denuncia.usuario.anonimo,
                 'estado': denuncia.estado_actual,
                 'relacion_empresa': denuncia.relacion_empresa.rol,
-                'tiempo': denuncia.tiempo.intervalo
+                'tiempo': denuncia.tiempo.intervalo,
+                'empresa': denuncia.tipo_empresa.nombre,
+                # ✅ NUEVO: Incluir archivos
+                'archivos': [{
+                    'id': archivo.id,
+                    'nombre': archivo.nombre,
+                    'descripcion': archivo.descripción,
+                    'peso': archivo.Peso,
+                    'url_relativa': archivo.url
+                } for archivo in archivos],
+                'total_archivos': archivos.count()
             }
             
             return Response(data)
@@ -330,6 +345,83 @@ class DenunciaManagementViewSet(ViewSet):
         os.remove(path_pdf)
     
         return response
+    
+    @action(detail=False, methods=['get'])
+    def descargar_archivo(self, request):
+        """
+        GET /api/descargar-archivo/?archivo_id=123
+        Descarga un archivo específico de una denuncia
+        """
+        try:
+            from django.http import FileResponse
+            from django.conf import settings
+            import os
+            import mimetypes
+            
+            archivo_id = request.GET.get('archivo_id')
+            
+            if not archivo_id:
+                return Response({'error': 'ID de archivo requerido'}, status=400)
+            
+            # Obtener archivo con su denuncia
+            try:
+                from .models import Archivo
+                archivo = Archivo.objects.select_related('denuncia').get(id=archivo_id)
+            except Archivo.DoesNotExist:
+                return Response({'error': 'Archivo no encontrado'}, status=404)
+            
+            # Verificar permisos
+            if request.user.is_authenticated:
+                has_permission, categoria = self.check_admin_permissions(request)
+                if not has_permission:
+                    return Response({'error': 'Sin permisos'}, status=403)
+                
+                if categoria and archivo.denuncia.item.categoria != categoria:
+                    return Response({'error': 'Sin permisos para esta categoría'}, status=403)
+            
+            # ✅ SOLUCIÓN: Limpiar la URL antes de construir la ruta
+            archivo_url = archivo.url
+            
+            # Si la URL empieza con /media/, quitarlo
+            if archivo_url.startswith('/media/'):
+                archivo_url = archivo_url[7:]  # Quitar '/media/'
+            elif archivo_url.startswith('media/'):
+                archivo_url = archivo_url[6:]  # Quitar 'media/'
+            
+            # Ahora construir la ruta correcta
+            file_path = os.path.join(settings.MEDIA_ROOT, archivo_url)
+            
+            # ✅ DEBUG: Imprimir rutas para verificar
+            print(f"DEBUG - archivo.url original: {archivo.url}")
+            print(f"DEBUG - archivo_url limpia: {archivo_url}")
+            print(f"DEBUG - MEDIA_ROOT: {settings.MEDIA_ROOT}")
+            print(f"DEBUG - file_path final: {file_path}")
+            print(f"DEBUG - archivo existe: {os.path.exists(file_path)}")
+            
+            # Verificar que el archivo existe
+            if not os.path.exists(file_path):
+                return Response({
+                    'error': f'Archivo no encontrado en el sistema: {file_path}'
+                }, status=404)
+            
+            # Detectar tipo MIME
+            mime_type, _ = mimetypes.guess_type(file_path)
+            if not mime_type:
+                mime_type = 'application/octet-stream'
+            
+            # Servir archivo
+            response = FileResponse(
+                open(file_path, 'rb'),
+                content_type=mime_type,
+                as_attachment=True,
+                filename=archivo.nombre
+            )
+            
+            return response
+        
+        except Exception as e:
+            print(f"ERROR en descargar_archivo: {str(e)}")
+            return Response({'error': f'Error al descargar archivo: {str(e)}'}, status=500)
         #eliminar_qr(url)
             
     #return redirect('users:list-trabajador')

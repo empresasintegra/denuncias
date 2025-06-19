@@ -34,7 +34,10 @@ def renderItemsDenuncia(request):
     print(request)
     categorias = Categoria.objects.all().prefetch_related('item_set')
     context = {'categorias': categorias}
-    return render(request, 'InicioDenuncia.html', context)
+    
+    if request.session.get('empresa_id'):
+        return render(request, 'inicioDenuncia.html', context)
+    return render(request, 'warning.html', context)
 
 def renderWizzDenuncia(request):
     """Vista única del wizard que carga todos los datos necesarios"""
