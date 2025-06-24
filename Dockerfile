@@ -1,14 +1,11 @@
-# Usar Python 3.11 como imagen base
+# Dockerfile para producción
 FROM python:3.11-slim
 
-# Establecer variables de entorno
+# Variables de entorno para producción
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Establecer directorio de trabajo
-WORKDIR /app
-
-# Instalar dependencias del sistema necesarias para PostgreSQL y LibreOffice
+# Instalar dependencias del sistema
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         postgresql-client \
@@ -16,24 +13,37 @@ RUN apt-get update \
         libpq-dev \
         git \
         curl \
-        libreoffice     \
+        libreoffice \
+        gettext \
+        netcat-openbsd \
     && rm -rf /var/lib/apt/lists/*
 
-# Copiar archivos de requirements primero (para aprovechar el cache de Docker)
+# Crear usuario no-root
+RUN adduser --disabled-password --gecos '' appuser
+
+# Crear directorios de trabajo
+WORKDIR /app
+RUN mkdir -p /app/staticfiles /app/media
+RUN chown -R appuser:appuser /app
+
+# Copiar y instalar dependencias
 COPY requirements.txt /app/
+RUN pip install --no-cache-dir --upgrade pip
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir gunicorn
 
-# Actualizar pip e instalar dependencias de Python
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
-
-# Copiar el proyecto
+# Copiar código de la aplicación
 COPY . /app/
+RUN chown -R appuser:appuser /app
 
-# Dar permisos de ejecución a manage.py
-RUN chmod +x manage.py
+# Cambiar al usuario no-root
+USER appuser
 
-# Exponer puerto 8000
+# Recopilar archivos estáticos
+RUN python manage.py collectstatic --noinput
+
+# Exponer puerto
 EXPOSE 8000
 
 # Comando por defecto
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["sh", "-c", "python manage.py migrate && gunicorn --bind 0.0.0.0:8000 --workers 3 --timeout 120 --access-logfile - --error-logfile - leykarin.wsgi:application"]

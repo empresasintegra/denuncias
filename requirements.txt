@@ -17,3 +17,10 @@ six==1.17.0
 sqlparse==0.5.3
 typing_extensions==4.14.0
 tzdata==2025.2
+
+
+# Producción
+gunicorn==21.2.0
+gevent==23.9.1
+whitenoise==6.6.0
+redis==5.0.1
