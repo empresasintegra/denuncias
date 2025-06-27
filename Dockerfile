@@ -1,9 +1,10 @@
-# Dockerfile para producción
+# Dockerfile
 FROM python:3.11-slim
 
-# Variables de entorno para producción
+# Variables de entorno
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV DJANGO_SETTINGS_MODULE=leykarin.settings.production
 
 # Instalar dependencias del sistema
 RUN apt-get update \
@@ -26,7 +27,7 @@ WORKDIR /app
 RUN mkdir -p /app/staticfiles /app/media
 RUN chown -R appuser:appuser /app
 
-# Copiar y instalar dependencias
+# Copiar requirements y instalar dependencias Python
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
@@ -39,11 +40,12 @@ RUN chown -R appuser:appuser /app
 # Cambiar al usuario no-root
 USER appuser
 
-# Recopilar archivos estáticos
-RUN python manage.py collectstatic --noinput
+# Script de entrada
+COPY docker-entrypoint.sh /app/
+RUN chmod +x /app/docker-entrypoint.sh
 
 # Exponer puerto
 EXPOSE 8000
 
 # Comando por defecto
-CMD ["sh", "-c", "python manage.py migrate && gunicorn --bind 0.0.0.0:8000 --workers 3 --timeout 120 --access-logfile - --error-logfile - leykarin.wsgi:application"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]

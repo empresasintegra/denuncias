@@ -1,3 +1,4 @@
+# docker-compose.production.yml
 version: '3.8'
 
 services:
@@ -8,6 +9,8 @@ services:
     volumes:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
+    env_file:
+      - .env.production
     networks:
       - app-network
 
