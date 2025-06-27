@@ -21,7 +21,7 @@ DATABASES = {
         'HOST': os.getenv('DB_HOST'),
         'PORT': os.getenv('DB_PORT', '25060'),
         'OPTIONS': {
-            'sslmode': 'require',  # DigitalOcean requiere SSL
+            'sslmode': 'require',
         },
     }
 }
@@ -45,22 +45,34 @@ MEDIA_ROOT = '/app/media'
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# SECURITY HEADERS (opcionales)
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
+# ✅ CONFIGURACIÓN PARA SSL MANEJADO POR DIGITALOCEAN
+# Django confía en el proxy de DigitalOcean para HTTPS
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
 
-# CSRF Configuration para tus dominios
+# CSRF Configuration
 CSRF_TRUSTED_ORIGINS = [
     'https://denunciasenlinea.cl',
     'https://www.denunciasenlinea.cl',
+    'http://denunciasenlinea.cl',        # Fallback HTTP
+    'http://www.denunciasenlinea.cl',    # Fallback HTTP
     'http://134.209.46.183',
     'http://138.197.63.32',
-    'cloud.digitalocean.com',
+    'https://cloud.digitalocean.com',
+    'http://cloud.digitalocean.com',
 ]
 
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
-SECURE_SSL_REDIRECT = True
+# ✅ SSL SETTINGS PARA PROXY
+CSRF_COOKIE_SECURE = True      # DigitalOcean maneja SSL
+SESSION_COOKIE_SECURE = True   # DigitalOcean maneja SSL
+SECURE_SSL_REDIRECT = False    # DigitalOcean maneja la redirección
+
+# SECURITY HEADERS
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_HSTS_SECONDS = 31536000  # 1 año
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 
 # LOGGING
 LOGGING = {
