@@ -49,6 +49,19 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
+# CSRF Configuration para tus dominios
+CSRF_TRUSTED_ORIGINS = [
+    'https://denunciasenlinea.cl',
+    'https://www.denunciasenlinea.cl',
+    'http://134.209.46.183',
+    'http://138.197.63.32',
+    'cloud.digitalocean.com',
+]
+
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+SECURE_SSL_REDIRECT = True
+
 # LOGGING
 LOGGING = {
     'version': 1,
