@@ -131,8 +131,12 @@ class ServiceProcessDenuncia(APIView):
        
         empresa=request.data['empresa']
         empresa="".join(empresa.split())
-
+        
+        print("process")
         empresa_filtrada=Empresa.objects.filter(nombre=empresa).first()
+
+        print("empresa_filtrada")
+        print(empresa_filtrada)
         request.session['empresa_id']=empresa_filtrada.id
         print(empresa_filtrada.id)
 
@@ -465,7 +469,6 @@ class ServiceProcessDenuncia(APIView):
             # Guardar código para mostrar en página final
             request.session['codigo'] = denuncia.codigo if usuario.anonimo else usuario.id
 
-            print(request.session['codigo'])
             
             response_data = {
                 'success': True,
@@ -475,7 +478,6 @@ class ServiceProcessDenuncia(APIView):
                     'es_anonima': usuario.anonimo,
                     'denuncia_id': denuncia.codigo
                 },
-                'redirect_url': '/denuncia/final/'
             }
             
             # ✅ AGREGAR INFORMACIÓN DE ARCHIVOS SOLO SI EXISTEN

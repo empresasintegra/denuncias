@@ -1,39 +1,39 @@
-# Dockerfile (versión minimalista)
+# Usar Python 3.11 como imagen base
 FROM python:3.11-slim
 
+# Establecer variables de entorno
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV DJANGO_SETTINGS_MODULE=leykarin.settings.production
 
-# Instalar dependencias
-RUN apt-get update && apt-get install -y \
-    postgresql-client \
-    build-essential \
-    libpq-dev \
-    netcat-openbsd \
-    && rm -rf /var/lib/apt/lists/*
-
+# Establecer directorio de trabajo
 WORKDIR /app
 
-# Instalar dependencias Python
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt gunicorn
+# Instalar dependencias del sistema necesarias para PostgreSQL y LibreOffice
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        postgresql-client \
+        build-essential \
+        libpq-dev \
+        git \
+        curl \
+        libreoffice     \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copiar aplicación
-COPY . .
+# Copiar archivos de requirements primero (para aprovechar el cache de Docker)
+COPY requirements.txt /app/
 
-# Script de inicio inline
-RUN echo '#!/bin/bash\n\
-set -e\n\
-echo "🚀 Iniciando aplicación Django..."\n\
-while ! nc -z $DB_HOST $DB_PORT; do sleep 2; done\n\
-echo "✅ Base de datos lista!"\n\
-python manage.py migrate --noinput\n\
-python manage.py collectstatic --noinput\n\
-echo "🎉 ¡Aplicación lista!"\n\
-exec gunicorn --bind 0.0.0.0:8000 --workers 3 leykarin.wsgi:application' > /app/start.sh
+# Actualizar pip e instalar dependencias de Python
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
 
-RUN chmod +x /app/start.sh
+# Copiar el proyecto
+COPY . /app/
 
+# Dar permisos de ejecución a manage.py
+RUN chmod +x manage.py
+
+# Exponer puerto 8000
 EXPOSE 8000
-CMD ["/app/start.sh"]
+
+# Comando por defecto
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

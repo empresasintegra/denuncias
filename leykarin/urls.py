@@ -13,6 +13,7 @@ from appkarin.service_admin_auth import ServiceAdminDenunciaAuth
 from appkarin.service_process_denuncia import ServiceProcessDenuncia
 from appkarin.service_consolidated import DenunciaManagementViewSet, DenunciaQueryAPI
 from appkarin.service_datatable import SimpleDenunciaDataTableAPIView, ExportDenunciasExcelAPIView
+from appkarin.service_email import EmailSenderAPIView
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -144,6 +145,12 @@ urlpatterns = [
      path('api/datatable/denuncias/export/excel/', 
      csrf_exempt(ExportDenunciasExcelAPIView.as_view()), 
      name='datatable_export_excel'),
+
+
+     #Api Correos
+     path('api/email/send/',
+          csrf_exempt(EmailSenderAPIView.as_view()), 
+          name='email-sender'),
 
     # =================================================================
     # 🌐 VISTAS (TEMPLATES)

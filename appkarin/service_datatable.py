@@ -7,7 +7,6 @@ from django.utils.decorators import method_decorator
 from django.db.models import Q, Count
 from .models import Denuncia, Usuario, AdminDenuncias, Foro, Empresa
 import json
-import openpyxl
 from openpyxl.styles import Font, PatternFill, Border, Side, Alignment
 from openpyxl.utils import get_column_letter
 import datetime
