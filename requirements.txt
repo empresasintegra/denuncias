@@ -18,6 +18,10 @@ sqlparse==0.5.3
 typing_extensions==4.14.0
 tzdata==2025.2
 
+# Microsoft Graph API - Email
+azure-identity==1.19.0
+msgraph-sdk==1.10.0
+httpx==0.28.1
 
 # Producción
 gunicorn==21.2.0
@@ -25,3 +29,6 @@ gevent==23.9.1
 whitenoise==6.6.0
 redis==5.0.1
 psycopg2-binary==2.9.10
+
+#zona horaria
+pytz==2023.3

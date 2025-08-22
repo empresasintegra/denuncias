@@ -1,6 +1,28 @@
-version: '3.8'
+
 
 services:
+  db:
+    image: postgres:16
+    container_name: karin_postgres
+    environment:
+      POSTGRES_DB: KarinDenuncias
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d KarinDenuncias"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - app-network
+
   web:
     build: .
     container_name: karin_django
@@ -15,13 +37,22 @@ services:
       - DEBUG=1
       - SECRET_KEY=your-secret-key-here-change-in-production
       - ADMIN_URL=5sTUWfXtDNg2XAAz/
-      - DB_NAME=denunciaskarin2
+      - DB_NAME=KarinDenuncias
       - DB_USER=postgres
       - DB_PASSWORD=root
-      - DB_HOST=host.docker.internal  # Para conectar al PostgreSQL del host
+      - DB_HOST=db
       - DB_PORT=5432
+    depends_on:
+      db:
+        condition: service_healthy
     restart: unless-stopped
-    extra_hosts:
-      - "host.docker.internal:host-gateway"  # Permite acceso al host
+    networks:
+      - app-network
 
-# Elimina completamente los servicios db, volumes y networks si usas esta opción
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge

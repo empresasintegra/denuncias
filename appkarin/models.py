@@ -27,8 +27,6 @@ class Categoria(models.Model):
         verbose_name = "Categoria"
         verbose_name_plural = "Categorias"
 
-    
-
 
 class Item(models.Model):
     enunciado = models.CharField(max_length=500)

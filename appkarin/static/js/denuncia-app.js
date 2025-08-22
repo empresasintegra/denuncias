@@ -1544,13 +1544,6 @@ const DenunciaApp = {
                         if (response.success) {
                             btnEnviar.innerHTML = '<i class="fas fa-check me-2"></i>¡Enviado!';
                             
-                            setTimeout(() => {
-                                if (response.redirect_url) {
-                                    window.location.href = response.redirect_url;
-                                } else {
-                                    window.location.href = '/denuncia/final/';
-                                }
-                            }, 1000);
                         } else {
                             DenunciaApp.common.showError(response.message || 'Error al procesar los datos');
                             btnEnviar.innerHTML = originalText;
@@ -1564,6 +1557,33 @@ const DenunciaApp = {
                         btnEnviar.disabled = false;
                     }
                 });
+
+
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/api/email/send/',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    beforeSend: function() {
+                        console.log('🔄 Enviando datos de usuario...');
+                    },
+
+                    success: function(response){
+                        console.log(response.message)
+
+                        setTimeout(() => {
+                                if (response.redirect_url) {
+                                    window.location.href = response.redirect_url;
+                                } else {
+                                    window.location.href = '/denuncia/final/';
+                                }
+                            }, 1000);
+                    }
+
+                    
+                })
             });
         },
 
