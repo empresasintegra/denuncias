@@ -157,7 +157,7 @@ urlpatterns = [
     # =================================================================
     
     # Páginas principales
-    path ('<str:empresa>/',views.renderHome,name='home'),
+    path ('index/<str:empresa>/',views.renderHome,name='home'),
     path('', views.renderHub, name='hub'),
     path('denuncia/Paso1/', views.renderItemsDenuncia, name='items'),
     path('denuncia/Paso2/', views.renderWizzDenuncia, name='denuncia_wizzard'),

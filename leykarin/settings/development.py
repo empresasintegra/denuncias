@@ -12,8 +12,11 @@ DATABASES = {
         'NAME': os.getenv('DB_NAME', 'denunciaskarin2'),
         'USER': os.getenv('DB_USER', 'postgres'),
         'PASSWORD': os.getenv('DB_PASSWORD', 'root'),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'HOST': os.getenv('DB_HOST', 'db'),
         'PORT': os.getenv('DB_PORT', '5432'),
+        'OPTIONS': {
+            'sslmode': 'disable',  
+        }
     }
 }
 
