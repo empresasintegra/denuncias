@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (
-    Tiempo, Categoria, Item, RelacionEmpresa, Usuario,AdminDenuncias, 
+    Tiempo, Categoria, Item, RelacionEmpresa, Usuario, Empresa, AdminDenuncias, 
     Denuncia, Archivo,Foro, 
     DenunciaEstado, EstadosDenuncia
 )
@@ -31,6 +31,12 @@ class RelacionEmpresaAdmin(admin.ModelAdmin):
     list_display = ['rol']
     search_fields = ['rol']
     ordering = ['rol']
+
+@admin.register(Empresa)
+class EmpresaAdmin(admin.ModelAdmin):
+    list_display = ['nombre', 'descripcion']
+    search_fields = ['nombre', 'descripcion']
+    ordering = ['nombre']
 
 @admin.register(Usuario)
 class UsuarioAdmin(admin.ModelAdmin):
