@@ -11,6 +11,9 @@ if not SECRET_KEY:
 # HOSTS
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
+# URL de admin
+ADMIN_URL = os.getenv('ADMIN_URL', 'admin/')
+
 # DATABASE EXTERNA DE DIGITALOCEAN
 DATABASES = {
     'default': {
