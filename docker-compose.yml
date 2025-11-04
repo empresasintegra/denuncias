@@ -21,7 +21,9 @@ services:
       - app-network
 
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.local  # ✅ Ahora sí usa Dockerfile.local
     container_name: karin_django
     command: >
       sh -c "python manage.py migrate &&

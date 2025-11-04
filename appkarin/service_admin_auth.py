@@ -59,61 +59,90 @@ class ServiceAdminDenunciaAuth(APIView):
     def _handle_login(self, request):
         """
         Maneja el login de administradores
-        Espera: { "username": "usuario", "password": "contraseña" }
+        Espera: { "username": "usuario o email", "password": "contraseña" }
+        Soporta login con username O email
         """
         try:
             empresa = request.data.get('empresa')
-            username = request.data.get('username', '').strip()
+            username_or_email = request.data.get('username', '').strip()
             password = request.data.get('password', '')
             
-            if not username or not password:
+            if not username_or_email or not password:
                 return Response({
                     'success': False,
-                    'message': 'Usuario y contraseña son requeridos',
+                    'message': 'Usuario/Email y contraseña son requeridos',
                     'error_code': 'MISSING_CREDENTIALS'
                 }, status=400)
             
-            # Primero intentar autenticación normal de Django
-            print(f"🔐 Intentando autenticar a: {username}")
-            user = authenticate(request, username=username, password=password)
+            print(f"🔐 Intentando autenticar con: {username_or_email}")
             
-            # Si la autenticación normal falla, verificar si es problema de contraseña no hasheada
-            if user is None:
+            # ⭐ PASO 1: Determinar si es username o email y obtener el username real
+            actual_username = None
+            user_obj = None
+            
+            # Intentar encontrar el usuario por username o email
+            try:
+                # Opción 1: Es un email
+                if '@' in username_or_email:
+                    print(f"📧 Detectado como email, buscando usuario...")
+                    user_obj = AdminDenuncias.objects.get(email=username_or_email)
+                    actual_username = user_obj.username
+                    print(f"✅ Usuario encontrado por email: {actual_username}")
+                else:
+                    # Opción 2: Es un username
+                    print(f"👤 Detectado como username")
+                    user_obj = AdminDenuncias.objects.get(username=username_or_email)
+                    actual_username = username_or_email
+                    print(f"✅ Usuario encontrado por username: {actual_username}")
+                    
+            except AdminDenuncias.DoesNotExist:
+                print(f"❌ No se encontró usuario con: {username_or_email}")
+                # No revelar si el usuario existe o no (seguridad)
+                return Response({
+                    'success': False,
+                    'message': 'Credenciales incorrectas',
+                    'error_code': 'INVALID_CREDENTIALS'
+                }, status=401)
+            except AdminDenuncias.MultipleObjectsReturned:
+                print(f"⚠️ Múltiples usuarios con el mismo email: {username_or_email}")
+                return Response({
+                    'success': False,
+                    'message': 'Error en la configuración de usuarios. Contacte al administrador.',
+                    'error_code': 'DUPLICATE_EMAIL'
+                }, status=500)
+            
+            # ⭐ PASO 2: Intentar autenticación con el username real
+            print(f"🔓 Autenticando con username: {actual_username}")
+            user = authenticate(request, username=actual_username, password=password)
+            
+            # ⭐ PASO 3: Si falla, verificar si es contraseña no hasheada
+            if user is None and user_obj is not None:
                 print("❌ Autenticación normal falló, verificando contraseñas no hasheadas...")
                 
-                try:
-                    # Buscar el usuario manualmente
-                    admin_user = AdminDenuncias.objects.get(username=username)
+                # Verificar si la contraseña está hasheada
+                is_hashed = user_obj.password.startswith(('pbkdf2_', 'bcrypt', 'argon2'))
+                
+                if not is_hashed:
+                    print("⚠️ Contraseña en texto plano detectada")
                     
-                    # Verificar si la contraseña está hasheada
-                    is_hashed = admin_user.password.startswith(('pbkdf2_', 'bcrypt', 'argon2'))
-                    
-                    if not is_hashed:
-                        print("⚠️ Contraseña en texto plano detectada")
+                    # Comparar contraseña en texto plano
+                    if user_obj.password == password:
+                        print("✅ Contraseña correcta, hasheando...")
                         
-                        # Comparar contraseña en texto plano
-                        if admin_user.password == password:
-                            print("✅ Contraseña correcta, hasheando...")
-                            
-                            # Hashear la contraseña para futuras autenticaciones
-                            admin_user.set_password(password)
-                            admin_user.save()
-                            print("✅ Contraseña hasheada y guardada")
-                            
-                            # Ahora intentar autenticar de nuevo
-                            user = authenticate(request, username=username, password=password)
-                        else:
-                            print("❌ Contraseña incorrecta")
+                        # Hashear la contraseña para futuras autenticaciones
+                        user_obj.set_password(password)
+                        user_obj.save()
+                        print("✅ Contraseña hasheada y guardada")
+                        
+                        # Ahora intentar autenticar de nuevo
+                        user = authenticate(request, username=actual_username, password=password)
                     else:
-                        # La contraseña está hasheada pero no coincide
-                        print("❌ Contraseña hasheada pero incorrecta")
-                        
-                except AdminDenuncias.DoesNotExist:
-                    print(f"❌ Usuario '{username}' no existe")
-                except Exception as e:
-                    print(f"❌ Error verificando usuario: {str(e)}")
+                        print("❌ Contraseña incorrecta")
+                else:
+                    # La contraseña está hasheada pero no coincide
+                    print("❌ Contraseña hasheada pero incorrecta")
             
-            # Verificar el resultado final
+            # ⭐ PASO 4: Verificar el resultado final
             if user is not None:
                 # Verificar que el usuario esté activo
                 if not user.is_active:
@@ -125,14 +154,14 @@ class ServiceAdminDenunciaAuth(APIView):
                 
                 # Verificar que sea staff o superuser
                 if not (user.is_staff or user.is_superuser):
-                    print(f"⚠️ Usuario {username} no es staff. Actualizando...")
+                    print(f"⚠️ Usuario {actual_username} no es staff. Actualizando...")
                     # Auto-corregir si no es staff
                     user.is_staff = True
                     user.save()
                 
                 # Login exitoso
                 login(request, user)
-                print(f"✅ Login exitoso para: {username}")
+                print(f"✅ Login exitoso para: {actual_username}")
                 
                 # Preparar datos de respuesta
                 response_data = {
@@ -165,14 +194,16 @@ class ServiceAdminDenunciaAuth(APIView):
                 request.session['admin_id'] = user.id
                 request.session['admin_username'] = user.username
                 request.session['is_django_user'] = True
-                request.session.save()
+                request.session.modified = True  # ✅ FORZAR DETECCIÓN DE CAMBIOS
+                request.session.save()  # ✅ GUARDAR INMEDIATAMENTE
                 
                 return Response(response_data)
             
             # Si llegamos aquí, las credenciales son inválidas
+            print(f"❌ Autenticación falló para: {username_or_email}")
             return Response({
                 'success': False,
-                'message': 'Usuario o contraseña incorrectos',
+                'message': 'Credenciales incorrectas',
                 'error_code': 'INVALID_CREDENTIALS'
             }, status=401)
             
@@ -183,6 +214,8 @@ class ServiceAdminDenunciaAuth(APIView):
             }, status=400)
         except Exception as e:
             print(f"❌ Error en login: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return Response({
                 'success': False,
                 'message': f'Error en login: {str(e)}'

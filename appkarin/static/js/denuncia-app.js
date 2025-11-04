@@ -1528,7 +1528,10 @@ const DenunciaApp = {
                     const celularFormateado = `+569${celularLimpio}`;
                     formData.set('celular', celularFormateado);
                 }
+                
+                console.log('🔵 Paso 1: Creando usuario y denuncia...');
 
+                // ✅ PRIMER REQUEST: Crear usuario y denuncia
                 $.ajax({
                     type: 'POST',
                     url: form.action,
@@ -1539,51 +1542,95 @@ const DenunciaApp = {
                         console.log('🔄 Enviando datos de usuario...');
                     },
                     success: function(response) {
-                        console.log('✅ Respuesta recibida:', response);
+                        console.log('✅ Respuesta de usuario recibida:', response);
                         
                         if (response.success) {
-                            btnEnviar.innerHTML = '<i class="fas fa-check me-2"></i>¡Enviado!';
+                            // ⭐ EXTRAER CÓDIGO DE LA RESPUESTA
+                            const codigo = response.data.codigo;
+                            const esAnonima = response.data.es_anonima;
+                            
+                            console.log(`🎫 Código generado: ${codigo}`);
+                            console.log(`🔒 Es anónima: ${esAnonima}`);
+                            
+                            btnEnviar.innerHTML = '<i class="fas fa-check me-2"></i>Usuario creado, enviando email...';
+                            
+                            // ⭐ ESPERAR 300ms para asegurar que la sesión se guarde
+                            setTimeout(function() {
+                                // ✅ SEGUNDO REQUEST: Enviar email (SOLO SI NO ES ANÓNIMA)
+                                if (!esAnonima) {
+                                    const emailData = new FormData();
+                                    emailData.set('correo_electronico', formData.get('correo_electronico'));
+                                    emailData.set('codigo', codigo);  // ⭐ ENVIAR CÓDIGO EXPLÍCITAMENTE
+                                    
+                                    console.log('🔵 Paso 2: Enviando email...');
+                                    
+                                    $.ajax({
+                                        type: 'POST',
+                                        url: '/api/email/send/',
+                                        data: emailData,
+                                        processData: false,
+                                        contentType: false,
+                                        beforeSend: function() {
+                                            console.log('📧 Enviando email de confirmación...');
+                                        },
+                                        success: function(emailResponse) {
+                                            console.log('✅ Email enviado:', emailResponse.message);
+                                            
+                                            btnEnviar.innerHTML = '<i class="fas fa-check me-2"></i>¡Completado!';
+                                            
+                                            // Redirigir después de 500ms
+                                            setTimeout(() => {
+                                                if (emailResponse.redirect_url) {
+                                                    console.log('🔀 Redirigiendo a:', emailResponse.redirect_url);
+                                                    window.location.href = emailResponse.redirect_url;
+                                                } else {
+                                                    window.location.href = '/denuncia/final/';
+                                                }
+                                            }, 500);
+                                        },
+                                        error: function(xhr, status, error) {
+                                            console.log('❌ Error enviando email:', error);
+                                            console.log('❌ Response:', xhr.responseJSON);
+                                            
+                                            // Aunque falle el email, redirigir igual
+                                            alert('Denuncia creada correctamente, pero hubo un error al enviar el email de confirmación.');
+                                            
+                                            setTimeout(() => {
+                                                window.location.href = '/denuncia/final/';
+                                            }, 500);
+                                        }
+                                    });
+                                } else {
+                                    // Usuario anónimo - redirigir directamente
+                                    console.log('⚠️ Usuario anónimo, sin email');
+                                    btnEnviar.innerHTML = '<i class="fas fa-check me-2"></i>¡Completado!';
+                                    
+                                    setTimeout(() => {
+                                        window.location.href = '/denuncia/final/';
+                                    }, 500);
+                                }
+                            }, 300); // ⭐ Delay de 300ms para asegurar guardado de sesión
                             
                         } else {
+                            console.error('❌ Error en la respuesta:', response.message);
                             DenunciaApp.common.showError(response.message || 'Error al procesar los datos');
                             btnEnviar.innerHTML = originalText;
                             btnEnviar.disabled = false;
                         }
                     },
                     error: function(xhr, status, error) {
-                        console.log('❌ Error AJAX:', error);
-                        DenunciaApp.common.showError('Error al enviar los datos. Por favor, inténtelo nuevamente.');
+                        console.log('❌ Error AJAX en usuario:', error);
+                        console.log('❌ Response:', xhr.responseJSON);
+                        
+                        const errorMsg = xhr.responseJSON && xhr.responseJSON.message 
+                            ? xhr.responseJSON.message 
+                            : 'Error al enviar los datos. Por favor, inténtelo nuevamente.';
+                        
+                        DenunciaApp.common.showError(errorMsg);
                         btnEnviar.innerHTML = originalText;
                         btnEnviar.disabled = false;
                     }
                 });
-
-
-
-                $.ajax({
-                    type: 'POST',
-                    url: '/api/email/send/',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    beforeSend: function() {
-                        console.log('🔄 Enviando datos de usuario...');
-                    },
-
-                    success: function(response){
-                        console.log(response.message)
-
-                        setTimeout(() => {
-                                if (response.redirect_url) {
-                                    window.location.href = response.redirect_url;
-                                } else {
-                                    window.location.href = '/denuncia/final/';
-                                }
-                            }, 1000);
-                    }
-
-                    
-                })
             });
         },
 

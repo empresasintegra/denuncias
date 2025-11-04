@@ -11,6 +11,7 @@ from django.core.files.base import ContentFile
 from appkarin.emailSDK.email_sdk import EmailSDK
 from .models import Categoria
 from datetime import datetime, timedelta
+from .models import AdminDenuncias
 
 @method_decorator(csrf_exempt, name='dispatch')
 class EmailSenderAPIView(APIView):
@@ -23,6 +24,8 @@ class EmailSenderAPIView(APIView):
         POST /api/email/send/  
         """
         try:
+            print("Iniciando proceso de envío de email...")
+            print('Datos recibidos:', request.data)
             # ✅ Obtener email
             if request.data.get('correo_electronico'):
                 email = request.data.get('correo_electronico')
@@ -54,8 +57,17 @@ class EmailSenderAPIView(APIView):
             
             # ✅ Código de denuncia (puedes obtenerlo del request o generar uno temporal)
 
-            print(request.session['codigo'])
-            codigo = request.session['codigo']  # Usar código real si está disponible
+            
+            codigo = request.session.get('codigo')
+
+            # Verificar que el código exista
+            if not codigo:
+                print("❌ Error: No se encontró código en sesión")
+                return Response({
+                    'success': False,
+                    'message': 'Error: No se pudo obtener el código de denuncia',
+                    'redirect_url': '/denuncia/Paso1/'
+                }, status=400)
             
             # ✅ Debug de fecha/hora
             print(f"📅 Fecha: {dia} de {mes} de {anio}")
@@ -97,18 +109,32 @@ class EmailSenderAPIView(APIView):
                 </div>
             </div>
             '''
+
+            print("✅ Template HTML creado")
+            print(request.session.get('denuncia_categoria_id'))
+            id=request.session.get('denuncia_categoria_id')
+            print('Categoria ID:', id)
+            Administradores=AdminDenuncias.objects.filter(rol_categoria__id=id)
             
+            print('Administradores a notificar:', Administradores)
+            cc=[]
+
+            for admin in Administradores:
+                cc.append(admin.email)
+
             # ✅ Crear y enviar email
             emailSDK = EmailSDK(
                 email,
                 'Denuncia Registrada - Empresas Integra',  # Asunto más descriptivo
                 template_html,
-                "integra17@empresasintegra.cl"
+                "soporte@empresasintegra.onmicrosoft.com",
+                cc=cc
             )
             
             emailSDK.send_mail()
             print("email enviado")
-
+            print('Email enviado a:', email)
+            print('email que envía',emailSDK.sender)
             response_data = {
                 'success': True,
                 'message': 'Email enviado correctamente',
