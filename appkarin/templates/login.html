@@ -2,6 +2,9 @@
 <!DOCTYPE html>
 <html lang="es">
     <head>
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+        <meta http-equiv="Pragma" content="no-cache">
+        <meta http-equiv="Expires" content="0">
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="description" content="Iniciar Sesión - Empresas Integra" />
@@ -291,11 +294,9 @@
                     const nextPath = urlParams.get('next');
                     
                     if (!nextPath) {
-                        console.log('🔍 No se encontró parámetro "next" en la URL');
                         return null;
                     }
                     
-                    console.log('📍 Parámetro next encontrado:', nextPath);
                     
                     // Expresión regular para capturar /primera_parte/segunda_parte/
                     const pathMatch = nextPath.match(/^\/([^\/\?#]+)(?:\/([^\/\?#]+))?\/?/);
@@ -310,7 +311,6 @@
                     
                     // Validar que no sea una ruta excluida
                     if (excluded.includes(empresa.toLowerCase())) {
-                        console.log('🚫 Empresa excluida:', empresa);
                         return null;
                     }
                     
@@ -325,7 +325,6 @@
                         rawNext: nextPath
                     };
                     
-                    console.log('✅ Información de redirección extraída:', result);
                     return result;
                     
                 } catch (error) {
@@ -384,7 +383,6 @@
                  * Inicializar la aplicación
                  */
                 init: function() {
-                    console.log('🚀 Inicializando AdminLoginApp...');
                     
                     // Obtener información de redirección
                     this.state.redirectInfo = getRedirectInfoFromNext();
@@ -395,7 +393,6 @@
                     // Verificar autenticación existente
                     this.checkAuthOnLoad();
                     
-                    console.log('✅ AdminLoginApp inicializado correctamente');
                 },
                 
                 /**
@@ -434,6 +431,9 @@
                 checkAuthOnLoad: function() {
                     const self = this;
                     
+                    // 🔧 AGREGAR: Resetear loading state por si viene del cache
+                    this.setLoadingState(false);
+                    
                     $.ajax({
                         url: '{% url "admin_check_auth_api" %}',
                         type: 'GET',
@@ -442,17 +442,18 @@
                                 console.log('👤 Usuario ya autenticado:', response.user_info?.username);
                                 self.showAlert('Ya tiene una sesión activa. Redirigiendo...', 'success');
                                 
-                                // Usar redirectUrl si está disponible
                                 const redirectUrl = self.state.redirectInfo?.redirectUrl || 
-                                                   response.redirect_url || 
-                                                   '{% url "consulta_denuncias" %}';
+                                                response.redirect_url || 
+                                                '{% url "consulta_denuncias" %}';
                                 
                                 setTimeout(() => {
-                                    window.location.href = redirectUrl;
+                                    window.location.replace = redirectUrl;
                                 }, 1500);
                             }
                         },
                         error: function(xhr) {
+                            // 🔧 AGREGAR: Asegurar que el formulario esté habilitado
+                            self.setLoadingState(false);
                             console.log('🔍 Usuario no autenticado - Esperando credenciales');
                         }
                     });

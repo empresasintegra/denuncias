@@ -13,19 +13,21 @@ import re
 # =================================================================
 
 def renderHome(request,empresa):
+    print("Empresa solicitada:", empresa)
+    _empresa=Empresa.objects.filter(nombre=empresa).first()
+    if not _empresa:
+        return render(request, 'notfound.html')
 
-    _empresa=empresa
+    url_logo=f'assets/Logo{empresa}.png'
 
-    url_logo=f'assets/Logo{_empresa}.png'
-
-    if (_empresa !='ByF'):
-        _empresa = re.sub(r'(?<![A-Z\W])(?=[A-Z])', ' ', _empresa)
+    if (empresa !='ByF'):
+        empresa = re.sub(r'(?<![A-Z\W])(?=[A-Z])', ' ', empresa)
     else:
-        _empresa = 'B y F'
+        empresa = 'B y F'
 
     context= {
         'url_logo':url_logo,
-        'empresa':_empresa
+        'empresa':empresa
     }
 
     return render(request, 'index.html',context)
@@ -136,7 +138,7 @@ def renderHub(request):
     nombre_empresas=[]
     url_logos = []
     descripciones=[]
-    redirect_urls = []  # Agregar esta lista
+    redirect_urls = []
     
     for empresa in empresas:
         if (empresa.nombre !='ByF'):
@@ -145,10 +147,9 @@ def renderHub(request):
             nombre_empresas.append('B y F')
 
         url_logos.append(f'assets/Logo{empresa.nombre}.png')
-        redirect_urls.append(f'/{empresa.nombre}/')  # Usar la URL que ya tienes configurada
+        redirect_urls.append(f'/{empresa.nombre.lower()}/')  # ← .lower() agregado
         descripciones.append(empresa.descripcion)
 
-    # Cambiar el zip para incluir las URLs
     cards_data = zip(nombre_empresas, descripciones, url_logos, redirect_urls)
 
     context = {
