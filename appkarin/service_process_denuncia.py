@@ -404,8 +404,7 @@ class ServiceProcessDenuncia(APIView):
         """
         # Verificar datos previos en sesión
         required_session_keys = [
-            'denuncia_item_id', 'denuncia_relacion_id', 
-            'denuncia_categoria_id','denuncia_categoria_nombre',
+            'denuncia_item_id', 'denuncia_relacion_id','denuncia_categoria_nombre',
             'denuncia_tiempo_id', 'denuncia_descripcion'
         ]
 

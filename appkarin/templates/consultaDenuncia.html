@@ -9,13 +9,12 @@
     <title>Consulta de Denuncias - Empresas Integra</title>
     <link rel="icon" type="image/x-icon" href="{% static 'assets/logo.jpeg'%}">
     
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
-    
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -23,104 +22,66 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Estilos personalizados -->
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/denuncia-styles.css' %}" />
-    
     <style>
         :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --danger-gradient: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-            --success-gradient: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
-            --warning-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --dark: #1f2937;
+            --light: #f3f4f6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background: #f7fafc;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-        }
-
-        /* Header con gradiente animado */
-        .page-header {
-            background: var(--primary-gradient);
-            background-size: 400% 400%;
-            animation: gradient 15s ease infinite;
-            padding: 2rem 0;
-            color: white;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        @keyframes gradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        .page-title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin: 0;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .page-subtitle {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            margin-top: 0.5rem;
+            padding: 20px;
         }
 
         /* Contenedor principal */
         .main-container {
             max-width: 1400px;
-            margin: -2rem auto 3rem;
-            padding: 0 1rem;
-            position: relative;
-            z-index: 10;
-        }
-
-        /* Card principal */
-        .table-card {
+            margin: 0 auto;
             background: white;
             border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        /* Header */
+        .page-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
             padding: 2rem;
-            margin-bottom: 2rem;
-            border: 1px solid rgba(255, 255, 255, 0.8);
+            text-align: center;
         }
 
-        /* Información del usuario */
-        .user-info-card {
-            background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
-            border-radius: 15px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            border: 1px solid #e2e8f0;
-        }
-
-        .user-info-card h5 {
-            color: #2d3748;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .user-info-card .info-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+        .page-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
             margin-bottom: 0.5rem;
-            color: #4a5568;
         }
 
-        .user-info-card .info-value {
-            font-weight: 600;
-            color: #2d3748;
+        .page-header p {
+            opacity: 0.9;
+            margin: 0;
         }
 
-        /* ===== NUEVO DISEÑO PARA CONTROLES DE TABLA ===== */
+        /* Content */
+        .content-wrapper {
+            padding: 2rem;
+        }
+
+        /* Controles de tabla */
         .table-controls {
             display: flex;
             justify-content: space-between;
@@ -130,386 +91,231 @@
             gap: 1rem;
         }
 
-        .search-excel-container {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            flex: 1;
-            justify-content: flex-end;
-        }
-
         .btn-excel {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
             color: white;
             border: none;
             padding: 0.6rem 1.5rem;
-            border-radius: 25px;
+            border-radius: 50px;
             font-weight: 600;
-            font-size: 0.9rem;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 0.5rem;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-            text-decoration: none;
+            cursor: pointer;
         }
 
         .btn-excel:hover {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
-            color: white;
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
         }
 
-        .btn-excel:active {
-            transform: translateY(0);
+        .btn-excel:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
-        .btn-excel.loading {
-            opacity: 0.7;
-            pointer-events: none;
-        }
-
-        /* DataTable customizado */
-        .dataTables_wrapper {
-            padding: 0 !important;
-        }
-
-        .dataTables_wrapper .dataTables_filter {
-            float: none !important;
-            text-align: right !important;
-            margin: 0 !important;
-        }
-
-        .dataTables_wrapper .dataTables_filter label {
-            font-weight: 600 !important;
-            color: #4a5568 !important;
-            display: flex !important;
-            align-items: center !important;
-            gap: 0.5rem !important;
-            margin: 0 !important;
-        }
-
-        .dataTables_wrapper .dataTables_filter input[type="search"] {
-            border: 2px solid #e2e8f0 !important;
-            border-radius: 25px !important;
-            padding: 0.6rem 1.5rem !important;
-            font-size: 0.95rem !important;
-            transition: all 0.3s ease !important;
-            width: 300px !important;
-            margin-left: 0.5rem !important;
-            background: white !important;
-            box-shadow: none !important;
-            outline: none !important;
-        }
-
-        .dataTables_wrapper .dataTables_filter input[type="search"]:focus {
-            border-color: #667eea !important;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
-            outline: none !important;
-        }
-
-        .dataTables_wrapper .dataTables_length {
-            float: left !important;
-            margin: 0 !important;
-        }
-
-        .dataTables_wrapper .dataTables_length select {
-            border: 2px solid #e2e8f0 !important;
-            border-radius: 8px !important;
-            padding: 0.4rem !important;
-            margin: 0 0.5rem !important;
-        }
-
-        .dataTables_wrapper .dataTables_info {
-            padding-top: 1rem !important;
-            color: #4a5568 !important;
-        }
-
-        .dataTables_wrapper .dataTables_paginate {
-            padding-top: 1rem !important;
+        /* Tabla personalizada */
+        .table-wrapper {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
         }
 
         table.dataTable {
-            border-collapse: collapse !important;
             width: 100% !important;
+            border-collapse: collapse;
+        }
+
+        table.dataTable thead {
+            background: var(--light);
         }
 
         table.dataTable thead th {
-            background: #f8fafc;
-            color: #2d3748;
             font-weight: 600;
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            color: var(--dark);
             padding: 1rem;
-            border-bottom: 2px solid #e2e8f0;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #e5e7eb;
         }
 
         table.dataTable tbody tr {
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
 
         table.dataTable tbody tr:hover {
-            background: #f7fafc;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            background: #f9fafb;
         }
 
         table.dataTable tbody td {
             padding: 1rem;
             vertical-align: middle;
-            border-bottom: 1px solid #edf2f7;
+            color: var(--dark);
         }
 
-        /* ===== BADGES PARA USUARIOS NORMALES ===== */
+        /* Badges de estado */
         .badge-estado {
-            padding: 0.5rem 1rem;
+            padding: 0.4rem 0.8rem;
             border-radius: 50px;
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.875rem;
             display: inline-flex;
             align-items: center;
-            gap: 0.3rem;
+            gap: 0.25rem;
             transition: all 0.3s ease;
         }
 
         .badge-pendiente {
-            background: var(--warning-gradient);
+            background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%);
             color: white;
         }
 
         .badge-revision {
-            background: var(--primary-gradient);
+            background: linear-gradient(135deg, var(--info) 0%, #2563eb 100%);
             color: white;
         }
 
         .badge-resuelto {
-            background: var(--success-gradient);
+            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
             color: white;
         }
 
-        /* ===== NUEVO DISEÑO: ESTADO INTERACTIVO PARA ADMIN ===== */
-        .estado-admin-container {
-            position: relative;
-            display: inline-block;
-        }
-
-        .estado-badge-clickable {
-            padding: 0.5rem 1rem;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
+        /* Estado clickeable para admin */
+        .badge-estado.clickeable {
             cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
             position: relative;
-            user-select: none;
         }
 
-        /* Estados específicos para admin */
-        .estado-badge-clickable.estado-1 {
-            background: var(--warning-gradient);
-            color: white;
+        .badge-estado.clickeable:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
 
-        .estado-badge-clickable.estado-2 {
-            background: var(--primary-gradient);
-            color: white;
-        }
-
-        .estado-badge-clickable.estado-3 {
-            background: var(--success-gradient);
-            color: white;
-        }
-
-        /* Efectos hover para admin */
-        .estado-badge-clickable:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            border-color: rgba(255, 255, 255, 0.5);
-        }
-
-        .estado-badge-clickable:hover::after {
-            content: '✏️ Click para cambiar';
+        /* Dropdown de estados */
+        .estado-dropdown {
             position: absolute;
-            top: -2.5rem;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            white-space: nowrap;
-            z-index: 1000;
-            animation: tooltipFadeIn 0.2s ease;
-        }
-
-        @keyframes tooltipFadeIn {
-            from { opacity: 0; transform: translateX(-50%) translateY(-5px); }
-            to { opacity: 1; transform: translateX(-50%) translateY(0); }
-        }
-
-        .estado-badge-clickable:active {
-            transform: translateY(0);
-        }
-
-        /* Select desplegable mejorado */
-        .estado-select-dropdown {
-            position: fixed !important; /* Cambio a fixed para evitar problemas de overflow */
             background: white;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.25), 0 5px 15px rgba(0, 0, 0, 0.1);
-            z-index: 9999 !important;
-            min-width: 160px;
-            overflow: hidden;
-            animation: dropdownSlideIn 0.2s ease;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            z-index: 1050;
+            min-width: 180px;
+            margin-top: 5px;
         }
 
-        @keyframes dropdownSlideIn {
-            from { 
-                opacity: 0; 
-                transform: translateX(-50%) translateY(-10px) scale(0.95);
-            }
-            to { 
-                opacity: 1; 
-                transform: translateX(-50%) translateY(0) scale(1);
-            }
-        }
-
-        .estado-option {
-            padding: 0.75rem 1rem;
+        .estado-dropdown .dropdown-item {
+            padding: 0.5rem 1rem;
             cursor: pointer;
-            transition: all 0.2s ease;
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            border: none;
-            background: none;
-            width: 100%;
-            text-align: left;
-            font-weight: 600;
-            color: #2d3748;
-            /* Evitar que capture eventos del buscador */
-            pointer-events: auto;
+            transition: all 0.2s ease;
+            color: var(--dark);
+            text-decoration: none;
         }
 
-        .estado-option:hover {
-            background: #f7fafc;
+        .estado-dropdown .dropdown-item:hover {
+            background: #f3f4f6;
         }
 
-        .estado-option.selected {
-            background: #edf2f7;
-            color: #667eea;
-        }
-
-        /* Asegurar que el dropdown no interfiera con otros elementos */
-        .estado-select-dropdown * {
-            pointer-events: auto;
-        }
-
-        /* Loading state */
-        .estado-badge-clickable.loading {
-            opacity: 0.7;
-            pointer-events: none;
-        }
-
-        .estado-badge-clickable.loading::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            right: 0.5rem;
-            transform: translateY(-50%);
-            width: 12px;
-            height: 12px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-top: 2px solid white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
+        .estado-dropdown .dropdown-item.active {
+            background: var(--primary);
+            color: white;
         }
 
         /* Botones de acción */
         .btn-action {
             padding: 0.4rem 0.8rem;
-            border-radius: 6px;
             border: none;
-            font-weight: 600;
-            font-size: 0.8rem;
-            transition: all 0.3s ease;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
-            gap: 0.3rem;
+            gap: 0.25rem;
             margin: 0.1rem;
         }
 
-        .btn-descripcion {
-            background: linear-gradient(135deg, #4c6ef5, #364fc7);
+        .btn-ver {
+            background: var(--info);
             color: white;
         }
 
-        .btn-descripcion:hover {
-            background: linear-gradient(135deg, #3b5bdb, #2c51c7);
-            color: white;
+        .btn-ver:hover {
+            background: #2563eb;
             transform: translateY(-1px);
         }
 
         .btn-mensaje {
-            background: linear-gradient(135deg, #20c997, #17a2b8);
+            background: var(--primary);
             color: white;
         }
 
         .btn-mensaje:hover {
-            background: linear-gradient(135deg, #1ba085, #138496);
-            color: white;
+            background: #5b67d8;
             transform: translateY(-1px);
         }
 
         .btn-descargar {
-            background: linear-gradient(135deg, #fd7e14, #e8590c);
+            background: var(--warning);
             color: white;
         }
 
         .btn-descargar:hover {
-            background: linear-gradient(135deg, #e8590c, #d63384);
-            color: white;
+            background: #d97706;
             transform: translateY(-1px);
         }
 
-        /* Paginación personalizada */
-        .dataTables_paginate .pagination {
-            margin: 0;
-        }
-
-        .page-link {
-            border: none;
-            color: #4a5568;
-            font-weight: 500;
+        /* DataTables personalización */
+        .dataTables_wrapper .dataTables_filter input {
+            border: 2px solid #e5e7eb;
+            border-radius: 50px;
             padding: 0.5rem 1rem;
-            margin: 0 0.25rem;
-            border-radius: 8px;
+            margin-left: 0.5rem;
+            outline: none;
             transition: all 0.3s ease;
         }
 
-        .page-link:hover {
-            background: #edf2f7;
-            color: #2d3748;
+        .dataTables_wrapper .dataTables_filter input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        .page-item.active .page-link {
-            background: var(--primary-gradient);
-            color: white;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        .dataTables_wrapper .dataTables_length select {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 0.4rem;
+            margin: 0 0.5rem;
+            outline: none;
         }
 
-        /* Estilos para modals */
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            border-radius: 6px;
+            margin: 0 2px;
+            transition: all 0.2s ease;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            background: var(--primary) !important;
+            border-color: var(--primary) !important;
+            color: white !important;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background: var(--light) !important;
+            border-color: var(--light) !important;
+            color: var(--dark) !important;
+        }
+
+        /* Modales */
         .modal-header {
-            background: var(--primary-gradient);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             color: white;
             border-bottom: none;
         }
@@ -518,207 +324,32 @@
             filter: invert(1);
         }
 
-        .modal-title {
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
         .modal-body {
             padding: 2rem;
         }
 
-        .denuncia-info {
-            background: #f8fafc;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-left: 4px solid #667eea;
-        }
-
-        .denuncia-info h6 {
-            color: #2d3748;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .denuncia-info p {
-            color: #4a5568;
-            margin: 0;
-            line-height: 1.6;
-        }
-
-        .mensaje-content {
-            background: #e6fffa;
-            border: 1px solid #81e6d9;
-            border-radius: 8px;
-            padding: 1.5rem;
-            border-left: 4px solid #38b2ac;
-        }
-
-        .loading-content {
-            text-align: center;
-            padding: 2rem;
-            color: #4a5568;
-        }
-
-        .loading-content i {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-            animation: spin 1s linear infinite;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .page-title {
-                font-size: 2rem;
-            }
-            
-            .table-card {
-                padding: 1rem;
-            }
-            
-            .table-controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .search-excel-container {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 0.75rem;
-            }
-            
-            .dataTables_wrapper .dataTables_filter input[type="search"] {
-                width: 100% !important;
-                margin-left: 0 !important;
-            }
-
-            .dataTables_wrapper .dataTables_filter {
-                text-align: left !important;
-            }
-
-            .dataTables_wrapper .dataTables_filter label {
-                width: 100% !important;
-                flex-direction: column !important;
-                align-items: flex-start !important;
-            }
-
-            .btn-action {
-                font-size: 0.7rem;
-                padding: 0.3rem 0.6rem;
-            }
-
-            .btn-excel {
-                justify-content: center;
-            }
-        }
-
-        /* Loading overlay */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-        }
-
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid #e2e8f0;
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Botón volver */
-        .btn-back {
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .btn-back:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-            color: white;
-        }
-
-        /* Notificación toast */
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 10000;
-        }
-
-        .toast {
-            background: white;
-            border: none;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-        }
-
-        .toast-header {
-            background: var(--success-gradient);
-            color: white;
-            border-bottom: none;
-        }
-
-        .toast-header.error {
-            background: var(--danger-gradient);
-        }
-
-        /* ===== ESTILOS PARA CHAT/FORO ===== */
-
+        /* Chat/Mensaje estilos */
         .chat-container {
             height: 400px;
             overflow-y: auto;
-            background: #f8fafc;
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 1rem;
         }
 
         .chat-messages {
-            padding: 1rem;
             display: flex;
             flex-direction: column;
             gap: 1rem;
         }
 
-        .chat-header {
-            background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
-            color: #4a5568;
-            font-size: 0.9rem;
-        }
-
-        /* Mensaje individual */
         .message-item {
             display: flex;
             margin-bottom: 1rem;
-            animation: messageSlideIn 0.3s ease-out;
+            animation: slideIn 0.3s ease;
         }
 
-        @keyframes messageSlideIn {
+        @keyframes slideIn {
             from {
                 opacity: 0;
                 transform: translateY(10px);
@@ -729,140 +360,202 @@
             }
         }
 
-        /* Mensaje del usuario (derecha) */
+        .message-bubble {
+            max-width: 70%;
+            padding: 0.75rem 1rem;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+
         .message-user {
             justify-content: flex-end;
         }
 
         .message-user .message-bubble {
-            background: var(--primary-gradient);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             color: white;
             border-radius: 18px 18px 4px 18px;
-            margin-left: 20%;
         }
 
-        .message-user .message-avatar {
-            order: 2;
-            margin-left: 0.75rem;
-            margin-right: 0;
-        }
-
-        /* Mensaje del admin (izquierda) */
         .message-admin {
             justify-content: flex-start;
         }
 
         .message-admin .message-bubble {
             background: white;
-            color: #2d3748;
-            border: 1px solid #e2e8f0;
+            border: 1px solid #e5e7eb;
+            color: var(--dark);
             border-radius: 18px 18px 18px 4px;
-            margin-right: 20%;
         }
 
-        .message-admin .message-avatar {
-            order: 1;
-            margin-right: 0.75rem;
-            margin-left: 0;
-        }
-
-        /* Burbuja del mensaje */
-        .message-bubble {
-            max-width: 80%;
-            padding: 0.75rem 1rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            word-wrap: break-word;
-        }
-
-        .message-content {
-            line-height: 1.4;
-            margin: 0;
-        }
-
-        .message-meta {
+        .message-time {
             font-size: 0.75rem;
-            opacity: 0.8;
+            opacity: 0.7;
             margin-top: 0.25rem;
+        }
+
+        .chat-input-area {
+            border-top: 1px solid #e5e7eb;
+            padding: 1rem;
+            background: white;
+        }
+
+        .chat-textarea {
+            width: 100%;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 0.75rem;
+            resize: none;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .chat-textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .empty-chat {
+            text-align: center;
+            padding: 3rem;
+            color: #718096;
+        }
+
+        /* Info sobre archivos */
+        .archivo-item {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .message-time {
-            font-weight: 500;
+        .archivo-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .message-author {
-            font-weight: 600;
+        .archivo-icon {
+            font-size: 1.25rem;
+            color: var(--primary);
         }
 
-        /* Avatar */
-        .message-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+        /* Loading */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.1rem;
-            flex-shrink: 0;
+            z-index: 9999;
+            display: none;
         }
 
-        .avatar-user {
-            background: var(--primary-gradient);
-            color: white;
+        .loading-overlay.show {
+            display: flex;
         }
 
-        .avatar-admin {
-            background: linear-gradient(135deg, #20c997, #17a2b8);
-            color: white;
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--light);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
         }
 
-        /* Área de input */
-        .chat-input-container {
-            background: white;
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
-        .chat-textarea {
-            border: 2px solid #e2e8f0;
+        /* Toast notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+        }
+
+        /* Info cards */
+        .info-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
             border-radius: 12px;
-            padding: 0.75rem;
-            resize: none;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e5e7eb;
         }
 
-        .chat-textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .chat-textarea::placeholder {
-            color: #a0aec0;
-        }
-
-        /* Estado vacío */
-        .empty-chat {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: #718096;
-        }
-
-        .empty-chat i {
-            font-size: 3rem;
+        .info-card h5 {
+            color: var(--dark);
+            font-weight: 600;
             margin-bottom: 1rem;
-            opacity: 0.5;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        /* Loading en envío */
-        .sending {
-            opacity: 0.7;
-            pointer-events: none;
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            color: #6b7280;
         }
 
-        /* Responsive para chat */
+        .info-value {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        /* Descripción detallada */
+        .descripcion-section {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--primary);
+        }
+
+        .descripcion-section h6 {
+            color: var(--dark);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .descripcion-section p {
+            color: #4a5568;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* Responsive */
         @media (max-width: 768px) {
+            .page-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .content-wrapper {
+                padding: 1rem;
+            }
+
+            .table-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn-action {
+                font-size: 0.75rem;
+                padding: 0.3rem 0.6rem;
+            }
+
             .modal-dialog.modal-xl {
                 margin: 0.5rem;
             }
@@ -870,128 +563,80 @@
             .chat-container {
                 height: 300px;
             }
-            
-            .message-bubble {
-                max-width: 85%;
-            }
-            
-            .message-user .message-bubble {
-                margin-left: 15%;
-            }
-            
-            .message-admin .message-bubble {
-                margin-right: 15%;
-            }
-            
-            .chat-header {
-                font-size: 0.8rem;
-            }
-            
-            .chat-header .row > div {
-                margin-bottom: 0.5rem;
-            }
-        }
-
-        /* Scrollbar personalizado */
-        .chat-container::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .chat-container::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-
-        .chat-container::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 3px;
-        }
-
-        .chat-container::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
         }
     </style>
 </head>
 <body>
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner"></div>
+        <div class="spinner"></div>
     </div>
 
-    <!-- Header -->
-    <div class="page-header">
-        <div class="container">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="page-title">
-                        <i class="fas fa-clipboard-list"></i> Consulta de Denuncias
-                    </h1>
-                    <p class="page-subtitle" id="pageSubtitle">Visualización de denuncias</p>
-                </div>
-                <a href="/" class="btn-back">
-                    <i class="fas fa-arrow-left"></i> Volver
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Contenido Principal -->
+    <!-- Contenedor Principal -->
     <div class="main-container">
-        <!-- Información del usuario (se muestra condicionalmente) -->
-        <div class="user-info-card" id="userInfoCard" style="display: none;">
-            <h5><i class="fas fa-user-circle"></i> Información de Consulta</h5>
-            <div class="info-item" id="userCodeRow">
-                <i class="fas fa-hashtag"></i>
-                <span>Código:</span>
-                <span class="info-value" id="userCode"></span>
-            </div>
-            <div class="info-item" id="userNameRow" style="display: none;">
-                <i class="fas fa-user"></i>
-                <span>Usuario:</span>
-                <span class="info-value" id="userName"></span>
-            </div>
-            <div class="info-item" id="userCategoryRow" style="display: none;">
-                <i class="fas fa-tag"></i>
-                <span>Categoría:</span>
-                <span class="info-value" id="userCategory"></span>
-            </div>
+        <!-- Header -->
+        <div class="page-header">
+            <h1><i class="fas fa-clipboard-list"></i> Consulta de Denuncias</h1>
+            <p id="pageSubtitle">Sistema de gestión de denuncias</p>
         </div>
 
-        <!-- Tabla de denuncias -->
-        <div class="table-card">
+        <!-- Content -->
+        <div class="content-wrapper">
+            <!-- Info Card (para usuarios autenticados) -->
+            <div class="info-card" id="userInfoCard" style="display: none;">
+                <h5><i class="fas fa-user-circle"></i> Información de Usuario</h5>
+                <div class="info-item" id="userCodeRow">
+                    <i class="fas fa-hashtag"></i>
+                    <span>Código:</span>
+                    <span class="info-value" id="userCode"></span>
+                </div>
+                <div class="info-item" id="userNameRow" style="display: none;">
+                    <i class="fas fa-user"></i>
+                    <span>Usuario:</span>
+                    <span class="info-value" id="userName"></span>
+                </div>
+                <div class="info-item" id="userCategoryRow" style="display: none;">
+                    <i class="fas fa-tag"></i>
+                    <span>Categoría:</span>
+                    <span class="info-value" id="userCategory"></span>
+                </div>
+            </div>
+
             <!-- Controles de tabla -->
             <div class="table-controls">
-                <div id="table-length-container"></div>
-                <div class="search-excel-container">
-                    <div id="table-search-container"></div>
-                    <button class="btn-excel" id="btnGenerarExcel">
+                <div id="tableLength"></div>
+                <div class="d-flex gap-2">
+                    <div id="tableSearch"></div>
+                    <button class="btn-excel" id="btnExcel">
                         <i class="fas fa-file-excel"></i>
-                        <span>Generar Excel</span>
+                        Exportar Excel
                     </button>
                 </div>
             </div>
-            
-            <div class="table-responsive">
-                <table id="denunciasTable" class="table table-hover" style="width:100%">
+
+            <!-- Tabla -->
+            <div class="table-wrapper">
+                <table id="denunciasTable" class="table table-striped" style="width:100%">
                     <thead>
                         <tr>
                             <th>Código</th>
                             <th>Fecha</th>
                             <th>Categoría</th>
-                            <th>Tipo Denuncia</th>
+                            <th>Tipo</th>
                             <th>Usuario</th>
                             <th>Estado</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Los datos se cargarán dinámicamente -->
+                        <!-- Los datos se cargarán aquí -->
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- Modal - Leer Descripción -->
+    <!-- Modal Descripción -->
     <div class="modal fade" id="modalDescripcion" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -1002,58 +647,49 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body" id="modalDescripcionBody">
-                    <div class="loading-content">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>Cargando descripción...</p>
+                    <div class="text-center py-4">
+                        <div class="spinner"></div>
+                        <p class="mt-3">Cargando información...</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal - Foro de Mensajes -->
-    <div class="modal fade" id="modalMensaje" tabindex="-1">
+    <!-- Modal Mensajes/Chat -->
+    <div class="modal fade" id="modalMensajes" tabindex="-1">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">
-                        <i class="fas fa-comments"></i> Foro de la Denuncia <span id="modalDenunciaCodigo"></span>
+                        <i class="fas fa-comments"></i> Foro de la Denuncia <span id="mensajeDenunciaCodigo"></span>
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-0">
-                    <!-- Área de mensajes (chat) -->
                     <div class="chat-container" id="chatContainer">
                         <div class="chat-messages" id="chatMessages">
-                            <!-- Loading inicial -->
-                            <div class="loading-content text-center py-5" id="chatLoading">
-                                <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
-                                <p>Cargando mensajes...</p>
-                            </div>
+                            <!-- Los mensajes se cargarán aquí -->
                         </div>
                     </div>
-                    
-                    <!-- Área para escribir nuevo mensaje -->
-                    <div class="chat-input-container border-top p-3" id="chatInputContainer">
-                        <form id="formNuevoMensaje" class="d-flex gap-2">
-                            <div class="flex-grow-1">
+                    <div class="chat-input-area">
+                        <form id="formMensaje">
+                            <div class="d-flex gap-2">
                                 <textarea 
-                                    id="nuevoMensajeTexto" 
-                                    class="form-control chat-textarea" 
-                                    placeholder="Escriba su mensaje aquí..."
+                                    id="mensajeTexto" 
+                                    class="chat-textarea flex-grow-1" 
+                                    placeholder="Escribir mensaje..."
                                     rows="2"
                                     maxlength="1000"
                                     required></textarea>
-                                <small class="text-muted">
-                                    <span id="contadorCaracteres">0</span>/1000 caracteres
-                                </small>
-                            </div>
-                            <div class="d-flex flex-column justify-content-end">
-                                <button type="submit" class="btn btn-primary" id="btnEnviarMensaje">
+                                <button type="submit" class="btn btn-primary">
                                     <i class="fas fa-paper-plane"></i>
-                                    <span class="d-none d-md-inline ms-1">Enviar</span>
+                                    Enviar
                                 </button>
                             </div>
+                            <small class="text-muted">
+                                <span id="charCount">0</span>/1000 caracteres
+                            </small>
                         </form>
                     </div>
                 </div>
@@ -1061,7 +697,7 @@
         </div>
     </div>
 
-    <!-- Modal - Confirmar Descarga -->
+    <!-- Modal Descarga -->
     <div class="modal fade" id="modalDescarga" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -1072,29 +708,29 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="denuncia-info">
+                    <div class="descripcion-section">
                         <h6>Información de la Denuncia</h6>
                         <p><strong>Código:</strong> <span id="descargaCodigo"></span></p>
                         <p><strong>Fecha:</strong> <span id="descargaFecha"></span></p>
                         <p><strong>Categoría:</strong> <span id="descargaCategoria"></span></p>
                     </div>
-                    <p>¿Está seguro que desea descargar el reporte completo de esta denuncia?</p>
+                    <p>¿Confirma que desea descargar el reporte completo de esta denuncia en formato PDF?</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-primary" id="btnConfirmarDescarga">
-                        <i class="fas fa-download"></i> Descargar
+                        <i class="fas fa-download"></i> Descargar PDF
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Toast para notificaciones -->
+    <!-- Toast Container -->
     <div class="toast-container">
-        <div id="notificationToast" class="toast" role="alert">
+        <div id="toastNotification" class="toast" role="alert">
             <div class="toast-header">
-                <i class="fas fa-check-circle me-2"></i>
+                <i class="fas fa-info-circle me-2"></i>
                 <strong class="me-auto">Notificación</strong>
                 <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
             </div>
@@ -1102,1038 +738,29 @@
         </div>
     </div>
 
-    <!-- Footer -->
-    {% include './footer/footer.html' %}
-
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- DataTables JS -->
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
-    
-    <!-- SheetJS para exportar Excel -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <script>
-        // Variables globales
+        // ============================================
+        // CONFIGURACIÓN GLOBAL Y VARIABLES
+        // ============================================
+        
         let userInfo = null;
         let dataTable = null;
         let currentDenunciaId = null;
-        let currentDropdown = null; // Para controlar el dropdown abierto
-
-        // Función para obtener el tipo de usuario y código
-        function getUserInfo() {
-            let codigo = '{{ codigo|default:"" }}';
-            
-            const isAuthenticated = '{{ request.user.is_authenticated|yesno:"true,false" }}' === 'true';
-            const adminCategory = '{{ request.user.rol_categoria.nombre|default:"" }}';
-            const isSuperuser = '{{ request.user.is_superuser|yesno:"true,false" }}' === 'true';
-            
-            let userInfo = {
-                codigo: codigo,
-                tipo: 'guest',
-                nombre: '',
-                categoria: adminCategory,
-                categoria_id: '{{ request.user.rol_categoria.id|default:"" }}',
-                is_superuser: isSuperuser,
-                is_admin: false,
-                is_authenticated: isAuthenticated
-            };
-            
-            if (isAuthenticated) {
-                userInfo.tipo = 'admin';
-                userInfo.is_admin = true;
-                userInfo.nombre = '{{ request.user.username|default:"Admin" }}';
-            } else if (codigo) {
-                if (codigo.length === 5 && !codigo.includes('-')) {
-                    userInfo.tipo = 'identificado';
-                    userInfo.nombre = '{{ request.session.user_name|default:"" }}';
-                } else {
-                    userInfo.tipo = 'anonimo';
-                }
-            }
-            
-            return userInfo;
-        }
-
-        // Función para formatear fecha
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('es-CL', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        }
-
-        // ✅ FUNCIÓN CORREGIDA: getEstadoBadge
-        function getEstadoBadge(estado) {
-            const estadoValue = typeof estado === 'string' ? 
-                (estado === 'PENDIENTE' ? '1' : estado === 'EN_REVISION' ? '2' : '3') : 
-                estado.toString();
-            
-            const badges = {
-                '1': '<span class="badge-estado badge-pendiente"><i class="fas fa-clock"></i> Pendiente</span>',
-                '2': '<span class="badge-estado badge-revision"><i class="fas fa-search"></i> En Revisión</span>',
-                '3': '<span class="badge-estado badge-resuelto"><i class="fas fa-check"></i> Resuelto</span>'
-            };
-            
-            return badges[estadoValue] || `<span class="badge-estado">${estado}</span>`;
-        }
-
-        // ✅ NUEVA FUNCIÓN: Estado interactivo para Admin con hover
-        function getEstadoInteractivo(estado, denunciaId) {
-            if (!userInfo.is_admin) {
-                return getEstadoBadge(estado);
-            }
-
-            const estadoValue = typeof estado === 'string' ? 
-                (estado === 'PENDIENTE' ? '1' : estado === 'EN_REVISION' ? '2' : '3') : 
-                estado.toString();
-
-            const estadoTextos = {
-                '1': '<i class="fas fa-clock"></i> Pendiente',
-                '2': '<i class="fas fa-search"></i> En Revisión', 
-                '3': '<i class="fas fa-check"></i> Resuelto'
-            };
-
-            return `
-                <div class="estado-admin-container">
-                    <div class="estado-badge-clickable estado-${estadoValue}" 
-                         data-denuncia-id="${denunciaId}" 
-                         data-estado-actual="${estadoValue}"
-                         onclick="toggleEstadoDropdown(this)">
-                        ${estadoTextos[estadoValue]}
-                    </div>
-                </div>
-            `;
-        }
-
-        // ✅ NUEVA FUNCIÓN: Toggle dropdown de estados
-        function toggleEstadoDropdown(badgeElement) {
-            // Cerrar dropdown existente si hay uno
-            if (currentDropdown && currentDropdown !== badgeElement) {
-                closeCurrentDropdown();
-            }
-
-            const existingDropdown = document.querySelector('.estado-select-dropdown');
-            
-            if (existingDropdown) {
-                // Si ya existe, lo cerramos
-                closeCurrentDropdown();
-                return;
-            }
-
-            // Crear nuevo dropdown
-            const denunciaId = badgeElement.dataset.denunciaId;
-            const estadoActual = badgeElement.dataset.estadoActual;
-
-            // Calcular posición para positioning fixed
-            const rect = badgeElement.getBoundingClientRect();
-            const dropdownTop = rect.bottom + 8; // 8px de separación
-            const dropdownLeft = rect.left + (rect.width / 2); // Centrado
-
-            const dropdown = document.createElement('div');
-            dropdown.className = 'estado-select-dropdown';
-            dropdown.style.top = dropdownTop + 'px';
-            dropdown.style.left = dropdownLeft + 'px';
-            dropdown.style.transform = 'translateX(-50%)'; // Centrar horizontalmente
-            dropdown.innerHTML = `
-                <button class="estado-option ${estadoActual === '1' ? 'selected' : ''}" 
-                        onclick="cambiarEstado('${denunciaId}', '1', this)">
-                    🕐 Pendiente
-                </button>
-                <button class="estado-option ${estadoActual === '2' ? 'selected' : ''}" 
-                        onclick="cambiarEstado('${denunciaId}', '2', this)">
-                    🔍 En Revisión
-                </button>
-                <button class="estado-option ${estadoActual === '3' ? 'selected' : ''}" 
-                        onclick="cambiarEstado('${denunciaId}', '3', this)">
-                    ✅ Resuelto
-                </button>
-            `;
-
-            // Agregar al body para posicionamiento fixed
-            document.body.appendChild(dropdown);
-            currentDropdown = badgeElement;
-
-            // Cerrar dropdown al hacer click fuera o scroll
-            setTimeout(() => {
-                document.addEventListener('click', handleOutsideClick);
-                window.addEventListener('scroll', closeCurrentDropdown, true);
-                window.addEventListener('resize', closeCurrentDropdown);
-            }, 100);
-        }
-
-        // ✅ NUEVA FUNCIÓN: Cerrar dropdown actual
-        function closeCurrentDropdown() {
-            if (currentDropdown) {
-                const dropdown = document.querySelector('.estado-select-dropdown');
-                if (dropdown) {
-                    dropdown.remove();
-                }
-                currentDropdown = null;
-                document.removeEventListener('click', handleOutsideClick);
-                window.removeEventListener('scroll', closeCurrentDropdown, true);
-                window.removeEventListener('resize', closeCurrentDropdown);
-            }
-        }
-
-        // ✅ NUEVA FUNCIÓN: Manejar clicks fuera del dropdown
-        function handleOutsideClick(event) {
-            const dropdown = document.querySelector('.estado-select-dropdown');
-            if (currentDropdown && 
-                !currentDropdown.contains(event.target) && 
-                (!dropdown || !dropdown.contains(event.target))) {
-                closeCurrentDropdown();
-            }
-        }
-
-        // ✅ FUNCIÓN MEJORADA: Cambiar estado
-        async function cambiarEstado(denunciaId, nuevoEstado, optionElement) {
-            if (!userInfo.is_admin) {
-                showNotification('No tienes permisos para cambiar estados', 'error');
-                return;
-            }
-
-            // Obtener el badge principal
-            const badgeElement = currentDropdown;
-            const estadoAnterior = badgeElement.dataset.estadoActual;
-
-            // Cerrar dropdown inmediatamente
-            closeCurrentDropdown();
-
-            // Si es el mismo estado, no hacer nada
-            if (estadoAnterior === nuevoEstado) {
-                return;
-            }
-
-            // Mostrar loading en el badge
-            badgeElement.classList.add('loading');
-
-            try {
-                const response = await fetch('/api/cambiar-estado-denuncia/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
-                    },
-                    body: JSON.stringify({
-                        denuncia_id: denunciaId,
-                        nuevo_estado: nuevoEstado
-                    })
-                });
-
-                const data = await response.json();
-
-                if (response.ok && data.success) {
-                    // Actualizar el badge
-                    badgeElement.dataset.estadoActual = nuevoEstado;
-                    badgeElement.className = `estado-badge-clickable estado-${nuevoEstado}`;
-                    
-                    const estadoTextos = {
-                        '1': '<i class="fas fa-clock"></i> Pendiente',
-                        '2': '<i class="fas fa-search"></i> En Revisión', 
-                        '3': '<i class="fas fa-check"></i> Resuelto'
-                    };
-                    
-                    badgeElement.innerHTML = estadoTextos[nuevoEstado];
-                    
-                    // Efecto de éxito visual
-                    badgeElement.style.transform = 'scale(1.1)';
-                    setTimeout(() => {
-                        badgeElement.style.transform = '';
-                    }, 300);
-                    
-                    showNotification('Estado actualizado correctamente', 'success');
-                } else {
-                    throw new Error(data.message || 'Error al actualizar estado');
-                }
-            } catch (error) {
-                console.error('Error al cambiar estado:', error);
-                showNotification('Error al cambiar estado: ' + error.message, 'error');
-            } finally {
-                // Quitar loading
-                badgeElement.classList.remove('loading');
-            }
-        }
-
-        // ✅ NUEVA FUNCIÓN: Generar Excel
-        async function generarExcel() {
-            const btnExcel = document.getElementById('btnGenerarExcel');
-            
-            // Mostrar loading
-            btnExcel.classList.add('loading');
-            btnExcel.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Generando...</span>';
-            btnExcel.disabled = true;
-
-            try {
-                // ✅ FORMATO CORRECTO: Simular datos de DataTables
-                const datatablesData = {
-                    draw: 1,
-                    start: 0,
-                    length: -1, // -1 para obtener todos los registros
-                    search: {
-                        value: dataTable.search() || '',  // ✅ Formato correcto
-                        regex: false
-                    },
-                    order: dataTable.order().map(orderItem => ({
-                        column: orderItem[0],
-                        dir: orderItem[1]
-                    })),
-                    columns: [
-                        {data: 'codigo', name: 'codigo', searchable: true, orderable: true},
-                        {data: 'fecha', name: 'fecha', searchable: false, orderable: true},
-                        {data: 'categoria_nombre', name: 'categoria_nombre', searchable: true, orderable: true},
-                        {data: 'item_enunciado', name: 'item_enunciado', searchable: true, orderable: true},
-                        {data: 'usuario_nombre', name: 'usuario_nombre', searchable: true, orderable: true},
-                        {data: 'estado_actual', name: 'estado_actual', searchable: false, orderable: true},
-                        {data: 'codigo', name: 'acciones', searchable: false, orderable: false}
-                    ],
-                    user_info: userInfo  // ✅ Mantener user_info
-                };
-
-                console.log('Enviando datos para Excel:', datatablesData);
-
-                // ✅ PETICIÓN CORREGIDA: Esperar archivo, no JSON
-                const response = await fetch('/api/datatable/denuncias/export/excel/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
-                    },
-                    body: JSON.stringify(datatablesData)
-                });
-
-                console.log('Respuesta recibida:', response.status, response.headers.get('content-type'));
-
-                if (!response.ok) {
-                    // Si hay error, intentar leer como JSON
-                    let errorMessage = 'Error al generar Excel';
-                    try {
-                        const errorData = await response.json();
-                        errorMessage = errorData.error || errorMessage;
-                    } catch {
-                        errorMessage = `Error HTTP ${response.status}`;
-                    }
-                    throw new Error(errorMessage);
-                }
-
-                // ✅ MANEJO CORRECTO: Descargar archivo Excel
-                const blob = await response.blob();
-                
-                // Verificar que realmente sea un Excel
-                const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('spreadsheet')) {
-                    // Si no es Excel, puede ser un JSON de error
-                    const text = await blob.text();
-                    console.error('Respuesta inesperada:', text);
-                    throw new Error('La respuesta no es un archivo Excel válido');
-                }
-
-                // Crear URL y descargar
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                
-                // Obtener nombre del archivo del header o crear uno
-                const disposition = response.headers.get('Content-Disposition');
-                let filename = 'denuncias_export.xlsx';
-                
-                if (disposition && disposition.includes('filename=')) {
-                    const matches = disposition.match(/filename="?([^"]+)"?/);
-                    if (matches && matches[1]) {
-                        filename = matches[1];
-                    }
-                } else {
-                    // Crear nombre con fecha
-                    const fechaActual = new Date().toISOString().split('T')[0];
-                    const tipoUsuario = userInfo.is_admin ? 'admin' : 'consulta';
-                    filename = `denuncias_${tipoUsuario}_${fechaActual}.xlsx`;
-                }
-                
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                
-                // Limpiar
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-
-                showNotification(`Excel generado: ${filename}`, 'success');
-
-            } catch (error) {
-                console.error('Error al generar Excel:', error);
-                showNotification('Error al generar Excel: ' + error.message, 'error');
-            } finally {
-                // Restaurar botón
-                btnExcel.classList.remove('loading');
-                btnExcel.innerHTML = '<i class="fas fa-file-excel"></i> <span>Generar Excel</span>';
-                btnExcel.disabled = false;
-            }
-        }
-
-        // Función para abrir modal de descripción
-        // ===== FRONTEND SIMPLIFICADO =====
-
-        // ✅ FUNCIÓN SIMPLE: Abrir modal de descripción (sin cambios en la lógica)
-        async function abrirModalDescripcion(denunciaId) {
-            currentDenunciaId = denunciaId;
-            const modal = new bootstrap.Modal(document.getElementById('modalDescripcion'));
-            const modalBody = document.getElementById('modalDescripcionBody');
-            
-            modalBody.innerHTML = `
-                <div class="loading-content">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <p>Cargando descripción...</p>
-                </div>
-            `;
-            
-            modal.show();
-
-            try {
-                const response = await fetch(`/api/denuncia-detalle/${denunciaId}/`, {
-                    headers: {
-                        'X-CSRFToken': getCookie('csrftoken')
-                    }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    modalBody.innerHTML = generarContenidoDescripcion(data);
-                } else {
-                    throw new Error('Error al cargar la descripción');
-                }
-            } catch (error) {
-                modalBody.innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        Error al cargar la descripción: ${error.message}
-                    </div>
-                `;
-            }
-        }
-
-        // ✅ FUNCIÓN SIMPLE: Generar contenido con archivos
-        function generarContenidoDescripcion(data) {
-            let archivosHtml = '';
-            
-            if (data.archivos && data.archivos.length > 0) {
-                archivosHtml = `
-                    <div class="archivos-section">
-                        <h6><i class="fas fa-paperclip"></i> Archivos Adjuntos (${data.total_archivos})</h6>
-                        ${data.archivos.map(archivo => `
-                            <div class="archivo-item">
-                                <div class="archivo-header">
-                                    <div class="archivo-nombre">
-                                        <i class="fas ${getArchivoIcon(archivo.nombre)} archivo-icon"></i>
-                                        ${escapeHtml(archivo.nombre)}
-                                    </div>
-                                    <span class="archivo-peso">${archivo.peso_formateado}</span>
-                                </div>
-                                ${archivo.descripcion ? `
-                                    <div class="archivo-descripcion">
-                                        ${escapeHtml(archivo.descripcion)}
-                                    </div>
-                                ` : ''}
-                                
-                                <!-- ✅ ENLACE DIRECTO - MUY SIMPLE -->
-                                <a href="/api/descargar-archivo/?archivo_id=${archivo.id}" 
-                                class="btn-descargar-archivo"
-                                target="_blank"
-                                onclick="mostrarDescargaEnProceso(this)">
-                                    <i class="fas fa-download"></i>
-                                    Descargar
-                                </a>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-            } else {
-                archivosHtml = `
-                    <div class="archivos-section">
-                        <h6><i class="fas fa-paperclip"></i> Archivos Adjuntos</h6>
-                        <div class="no-archivos">
-                            <i class="fas fa-inbox"></i>
-                            <p>No hay archivos adjuntos en esta denuncia</p>
-                        </div>
-                    </div>
-                `;
-            }
-
-            return `
-                <div class="denuncia-info">
-                    <h6>Información General</h6>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p><strong>Código:</strong> ${data.codigo}</p>
-                            <p><strong>Fecha:</strong> ${formatDate(data.fecha)}</p>
-                            <p><strong>Estado:</strong> ${data.estado}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Categoría:</strong> ${data.categoria}</p>
-                            <p><strong>Empresa:</strong> ${data.empresa}</p>
-                            <p><strong>Usuario:</strong> ${data.usuario}</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="denuncia-info">
-                    <h6>Tipo de Denuncia</h6>
-                    <p>${data.tipo_denuncia}</p>
-                </div>
-                <div class="denuncia-info">
-                    <h6>Descripción Detallada</h6>
-                    <p>${data.descripcion || 'No hay descripción disponible'}</p>
-                    ${data.descripcion_relacion ? `
-                        <h6 class="mt-3">Descripción de Relación</h6>
-                        <p>${data.descripcion_relacion}</p>
-                    ` : ''}
-                </div>
-                <div class="denuncia-info">
-                    <h6>Detalles Adicionales</h6>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p><strong>Relación con Empresa:</strong> ${data.relacion_empresa}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Tiempo de Ocurrencia:</strong> ${data.tiempo}</p>
-                        </div>
-                    </div>
-                </div>
-                ${archivosHtml}
-            `;
-        }
-
-        // ✅ FUNCIÓN SIMPLE: Feedback visual para descarga
-        function mostrarDescargaEnProceso(enlace) {
-            const originalContent = enlace.innerHTML;
-            
-            // Mostrar loading
-            enlace.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Descargando...';
-            enlace.style.pointerEvents = 'none';
-            
-            // Restaurar después de un momento
-            setTimeout(() => {
-                enlace.innerHTML = originalContent;
-                enlace.style.pointerEvents = 'auto';
-                showNotification('Descarga iniciada', 'success');
-            }, 1500);
-        }
-
-        // ✅ FUNCIÓN SIMPLE: Obtener icono por extensión (sin cambios)
-        function getArchivoIcon(nombreArchivo) {
-            const extension = nombreArchivo.toLowerCase().split('.').pop();
-            
-            const iconMap = {
-                'pdf': 'fa-file-pdf',
-                'doc': 'fa-file-word', 'docx': 'fa-file-word',
-                'xls': 'fa-file-excel', 'xlsx': 'fa-file-excel',
-                'ppt': 'fa-file-powerpoint', 'pptx': 'fa-file-powerpoint',
-                'jpg': 'fa-file-image', 'jpeg': 'fa-file-image', 'png': 'fa-file-image', 'gif': 'fa-file-image',
-                'mp4': 'fa-file-video', 'avi': 'fa-file-video',
-                'mp3': 'fa-file-audio', 'wav': 'fa-file-audio',
-                'zip': 'fa-file-archive', 'rar': 'fa-file-archive',
-                'txt': 'fa-file-alt'
-            };
-            
-            return iconMap[extension] || 'fa-file';
-        }
-
-        // ✅ FUNCIÓN HELPER: Escape HTML (sin cambios)
-        function escapeHtml(text) {
-            if (!text) return '';
-            const map = {
-                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
-            };
-            return text.toString().replace(/[&<>"']/g, m => map[m]);
-        }
-
-        // ✅ FUNCIÓN DE DEBUG Y FALLBACK PARA EL BUSCADOR
-        function debugBuscador() {
-            const searchInput = $('.dataTables_filter input');
-            console.log('=== DEBUG BUSCADOR ===');
-            console.log('Es admin:', userInfo.is_admin);
-            console.log('Input encontrado:', searchInput.length);
-            console.log('Eventos actuales:', $._data(searchInput[0], 'events'));
-            console.log('DataTable inicializado:', !!dataTable);
-            
-            if (searchInput.length === 0) {
-                console.log('ERROR: Input de búsqueda no encontrado');
-                return false;
-            }
-            
-            // Test del buscador
-            const testValue = 'TEST123';
-            searchInput.val(testValue);
-            dataTable.search(testValue).draw();
-            
-            setTimeout(() => {
-                const resultados = dataTable.rows({search: 'applied'}).count();
-                console.log('Test búsqueda - Resultados:', resultados);
-                
-                // Limpiar test
-                searchInput.val('');
-                dataTable.search('').draw();
-            }, 500);
-            
-            return true;
-        }
-
-        // ✅ FUNCIÓN PARA FORZAR RECONEXIÓN DEL BUSCADOR
-        function forzarReconexionBuscador() {
-            setTimeout(() => {
-                const searchInput = $('.dataTables_filter input');
-                
-                if (searchInput.length === 0) {
-                    console.log('No se encontró input, reintentando...');
-                    setTimeout(forzarReconexionBuscador, 200);
-                    return;
-                }
-                
-                // Remover todos los eventos
-                searchInput.off();
-                
-                // Agregar evento simple y directo
-                searchInput.on('input', function() {
-                    const valor = this.value;
-                    if (dataTable && dataTable.search() !== valor) {
-                        dataTable.search(valor).draw();
-                    }
-                });
-                
-                console.log('Buscador reconectado por fallback');
-                
-                // Test después de reconectar
-                setTimeout(debugBuscador, 100);
-            }, 100);
-        }
-        function getActionButtons(codigo, denunciaId) {
-            return `
-                <div class="d-flex flex-wrap gap-1">
-                    <button class="btn-action btn-descripcion" onclick="abrirModalDescripcion('${denunciaId}')">
-                        <i class="fas fa-file-alt"></i> Descripción
-                    </button>
-                    <button class="btn-action btn-mensaje" onclick="abrirModalMensaje('${denunciaId}')">
-                        <i class="fas fa-envelope"></i> Mensaje
-                    </button>
-                    <button class="btn-action btn-descargar" onclick="abrirModalDescarga('${denunciaId}', '${codigo}')">
-                        <i class="fas fa-download"></i> Descargar
-                    </button>
-                </div>
-            `;
-        }
-
-        // ===== FUNCIONES PARA CHAT/FORO =====
-
-        async function abrirModalMensaje(denunciaId) {
-            currentDenunciaId = denunciaId;
-            const modal = new bootstrap.Modal(document.getElementById('modalMensaje'));
-            
-            document.getElementById('modalDenunciaCodigo').textContent = `(${denunciaId})`;
-            
-            document.getElementById('chatMessages').innerHTML = `
-                <div class="loading-content text-center py-5">
-                    <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
-                    <p>Cargando mensajes...</p>
-                </div>
-            `;
-            
-            modal.show();
-            
-            try {
-                const response = await fetch(`/api/denuncia-mensaje/${denunciaId}/`, {
-                    headers: { 'X-CSRFToken': getCookie('csrftoken') }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    cargarMensajesEnChat(data.mensajes || []);
-                } else {
-                    throw new Error('Error al cargar mensajes');
-                }
-
-            } catch (error) {
-                console.error('Error al cargar chat:', error);
-                document.getElementById('chatMessages').innerHTML = `
-                    <div class="alert alert-danger text-center">
-                        <i class="fas fa-exclamation-triangle mb-2"></i><br>
-                        Error al cargar los mensajes: ${error.message}
-                    </div>
-                `;
-            }
-        }
-
-        async function enviarNuevoMensaje(texto) {
-            if (!currentDenunciaId || !texto.trim()) return;
-
-            try {
-                const response = await fetch('/api/denuncia-envio-mensaje/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
-                    },
-                    body: JSON.stringify({
-                        denuncia_codigo: currentDenunciaId,
-                        mensaje: texto.trim()
-                    })
-                });
-
-                const data = await response.json();
-
-                if (response.ok && data.success) {
-                    const nuevoMensaje = {
-                        mensaje: texto.trim(),
-                        es_admin: userInfo.is_admin,
-                        admin_nombre: userInfo.is_admin ? userInfo.nombre : null,
-                        fecha: data.fecha
-                    };
-                    
-                    agregarMensajeAlChat(nuevoMensaje);
-                    
-                    document.getElementById('nuevoMensajeTexto').value = '';
-                    actualizarContadorCaracteres();
-                    
-                    showNotification('Mensaje enviado correctamente', 'success');
-                } else {
-                    throw new Error(data.message || 'Error al enviar mensaje');
-                }
-            } catch (error) {
-                console.error('Error al enviar mensaje:', error);
-                showNotification('Error al enviar mensaje: ' + error.message, 'error');
-            }
-        }
-
-        function cargarMensajesEnChat(mensajes) {
-            const chatMessages = document.getElementById('chatMessages');
-            
-            if (!mensajes || mensajes.length === 0) {
-                chatMessages.innerHTML = `
-                    <div class="empty-chat">
-                        <i class="fas fa-comments"></i>
-                        <h5>No hay mensajes</h5>
-                        <p>Sea el primero en escribir un mensaje en este foro</p>
-                    </div>
-                `;
-                return;
-            }
-
-            const mensajesHTML = mensajes.map(mensaje => crearMensajeHTML(mensaje)).join('');
-            chatMessages.innerHTML = mensajesHTML;
-            
-            scrollToBottom();
-        }
-
-        function crearMensajeHTML(mensaje) {
-            const esAdmin = mensaje.es_admin || mensaje.admin_id;
-            const claseMessage = esAdmin ? 'message-admin' : 'message-user';
-            const claseAvatar = esAdmin ? 'avatar-admin' : 'avatar-user';
-            const iconoAvatar = esAdmin ? 'fas fa-user-shield' : 'fas fa-user';
-            const autor = esAdmin ? (mensaje.admin_nombre || 'Administrador') : 'Usuario';
-            
-            return `
-                <div class="message-item ${claseMessage}">
-                    <div class="message-avatar ${claseAvatar}">
-                        <i class="${iconoAvatar}"></i>
-                    </div>
-                    <div class="message-bubble">
-                        <div class="message-content">${escapeHtml(mensaje.mensaje)}</div>
-                        <div class="message-meta">
-                            <span class="message-author">${autor}</span>
-                        </div>
-                        <div class="message-meta">
-                            <span class="message-time">${formatDate(mensaje.fecha || mensaje.created_at)}</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function agregarMensajeAlChat(mensaje) {
-            const chatMessages = document.getElementById('chatMessages');
-            
-            if (chatMessages.querySelector('.empty-chat')) {
-                chatMessages.innerHTML = '';
-            }
-            
-            const mensajeHTML = crearMensajeHTML(mensaje);
-            chatMessages.insertAdjacentHTML('beforeend', mensajeHTML);
-            
-            scrollToBottom();
-        }
-
-        function scrollToBottom() {
-            const chatContainer = document.getElementById('chatContainer');
-            setTimeout(() => {
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            }, 100);
-        }
-
-        function actualizarContadorCaracteres() {
-            const textarea = document.getElementById('nuevoMensajeTexto');
-            const contador = document.getElementById('contadorCaracteres');
-            contador.textContent = textarea.value.length;
-        }
-
-        function escapeHtml(text) {
-            const map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
-            };
-            return text.replace(/[&<>"']/g, m => map[m]);
-        }
-
-        // ===== EVENT LISTENERS =====
-
-        document.getElementById('formNuevoMensaje').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const textarea = document.getElementById('nuevoMensajeTexto');
-            const btnEnviar = document.getElementById('btnEnviarMensaje');
-            const texto = textarea.value.trim();
-            
-            if (!texto) {
-                textarea.focus();
-                return;
-            }
-            
-            btnEnviar.disabled = true;
-            btnEnviar.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            
-            try {
-                await enviarNuevoMensaje(texto);
-            } finally {
-                btnEnviar.disabled = false;
-                btnEnviar.innerHTML = '<i class="fas fa-paper-plane"></i><span class="d-none d-md-inline ms-1">Enviar</span>';
-            }
-        });
-
-        document.getElementById('nuevoMensajeTexto').addEventListener('input', actualizarContadorCaracteres);
-
-        document.getElementById('nuevoMensajeTexto').addEventListener('keydown', function(e) {
-            if (e.ctrlKey && e.key === 'Enter') {
-                e.preventDefault();
-                document.getElementById('formNuevoMensaje').dispatchEvent(new Event('submit'));
-            }
-        });
-
-        // Event listener para el botón de Excel
-        document.getElementById('btnGenerarExcel').addEventListener('click', generarExcel);
-
-        // Función para abrir modal de descarga
-        async function abrirModalDescarga(denunciaId, codigo) {
-            currentDenunciaId = denunciaId;
-            const modal = new bootstrap.Modal(document.getElementById('modalDescarga'));
-            
-            try {
-                const response = await fetch(`/api/denuncia-info/${denunciaId}/`, {
-                    headers: {
-                        'X-CSRFToken': getCookie('csrftoken')
-                    }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    document.getElementById('descargaCodigo').textContent = data.codigo;
-                    document.getElementById('descargaFecha').textContent = formatDate(data.fecha);
-                    document.getElementById('descargaCategoria').textContent = data.categoria;
-                } else {
-                    document.getElementById('descargaCodigo').textContent = codigo;
-                    document.getElementById('descargaFecha').textContent = 'N/A';
-                    document.getElementById('descargaCategoria').textContent = 'N/A';
-                }
-            } catch (error) {
-                console.error('Error al cargar info para descarga:', error);
-            }
-            
-            modal.show();
-        }
-
-        document.getElementById('btnConfirmarDescarga').addEventListener('click', async function() {
-            if (!currentDenunciaId) return;
-
-            try {
-                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Descargando...';
-                this.disabled = true;
-                
-                const response = await fetch(`/api/descargar-denuncia/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
-                    },
-                    body: JSON.stringify({
-                        denuncia_id: currentDenunciaId,
-                        admin_id: parseInt('{{admin_id}}', 10) || null
-                    })
-                })
-
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.style.display = 'none';
-                    a.href = url;
-                    a.download = `denuncia_${currentDenunciaId}.pdf`;
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    document.body.removeChild(a);
-
-                    showNotification('Descarga iniciada correctamente', 'success');
-                    
-                    bootstrap.Modal.getInstance(document.getElementById('modalDescarga')).hide();
-                } else {
-                    throw new Error('Error al generar el archivo');
-                }
-            } catch (error) {
-                console.error('Error en descarga:', error);
-                showNotification('Error al descargar: ' + error.message, 'error');
-            } finally {
-                this.innerHTML = '<i class="fas fa-download"></i> Descargar';
-                this.disabled = false;
-            }
-        });
-
-        // Función para inicializar DataTable
-        function initDataTable() {
-            console.log('UserInfo en initDataTable:', userInfo);
-
-            dataTable = $('#denunciasTable').DataTable({
-                processing: true,
-                serverSide: true,
-                responsive: true,
-                searching: true,
-                dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>><"row"<"col-sm-12"tr>><"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
-                ajax: {
-                    url: '/api/datatable/denuncias/simple/',
-                    type: 'POST',
-                    data: function(d) {
-                        d.user_info = userInfo;
-                        return JSON.stringify(d);
-                    },
-                    contentType: 'application/json',
-                    headers: {
-                        'X-CSRFToken': getCookie('csrftoken')
-                    },
-                    error: function(xhr, error, code) {
-                        console.error('Error en DataTable:', error, xhr.responseText);
-                        showNotification('Error al cargar las denuncias: ' + error, 'error');
-                        $('#loadingOverlay').fadeOut();
-                    }
-                },
-                columns: [
-                    { 
-                        data: 'codigo',
-                        name: 'codigo',
-                        className: 'text-center font-monospace',
-                        searchable: true,
-                        orderable: true
-                    },
-                    { 
-                        data: 'fecha',
-                        name: 'fecha',
-                        searchable: false,
-                        orderable: true,
-                        render: function(data) {
-                            return formatDate(data);
-                        }
-                    },
-                    { 
-                        data: 'categoria_nombre',
-                        name: 'categoria_nombre',
-                        searchable: true,
-                        orderable: true
-                    },
-                    { 
-                        data: 'item_enunciado',
-                        name: 'item_enunciado', 
-                        searchable: true,
-                        orderable: true
-                    },
-                    { 
-                        data: 'usuario_nombre',
-                        name: 'usuario_nombre',
-                        searchable: true,
-                        orderable: true,
-                        render: function(data, type, row) {
-                            if (row.usuario_anonimo) {
-                                return `<i class="fas fa-user-secret text-muted"></i> Anónimo`;
-                            }
-                            return data || 'N/A';
-                        }
-                    },
-                    { 
-                        data: 'estado_actual',
-                        name: 'estado_actual',
-                        className: 'text-center',
-                        searchable: false,
-                        orderable: true,
-                        render: function(data, type, row) {
-                            return getEstadoInteractivo(data, row.codigo);
-                        }
-                    },
-                    { 
-                        data: 'codigo',
-                        name: 'acciones',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center',
-                        render: function(data, type, row) {
-                            return getActionButtons(data, row.codigo);
-                        }
-                    }
-                ],
-                order: [[1, 'desc']],
-                pageLength: 25,
-                lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
-                language: {
-                    search: "Buscar:",
-                    searchPlaceholder: "Buscar denuncias...",
-                    lengthMenu: "Mostrar _MENU_ registros",
-                    info: "Mostrando _START_ a _END_ de _TOTAL_ denuncias",
-                    infoEmpty: "Mostrando 0 a 0 de 0 denuncias",
-                    infoFiltered: "(filtrado de _MAX_ total denuncias)",
-                    paginate: {
-                        first: "Primero",
-                        last: "Último", 
-                        next: "Siguiente",
-                        previous: "Anterior"
-                    },
-                    processing: "Procesando...",
-                    loadingRecords: "Cargando...",
-                    zeroRecords: "No se encontraron denuncias que coincidan con su búsqueda"
-                },
-                drawCallback: function(settings) {
-                    $('#loadingOverlay').fadeOut();
-                    
-                    // Cerrar cualquier dropdown abierto cuando se redibuje la tabla
-                    closeCurrentDropdown();
-                },
-                initComplete: function(settings, json) {
-                    // Solo personalizar el input de búsqueda, sin mover elementos
-                    const searchInput = $('#table-search-container input');
-                    searchInput.attr('placeholder', 'Buscar denuncias...');
-                    searchInput.addClass('form-control');
-                    
-                    console.log('DataTable inicializado. Es admin:', userInfo.is_admin);
-                    console.log('Input de búsqueda encontrado:', searchInput.length);
-                }
-            });
-        }
-
+        let currentDropdown = null;
+        let currentDenunciaData = null;
+
+        // ============================================
+        // FUNCIONES HELPER
+        // ============================================
+        
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
@@ -2149,18 +776,18 @@
             return cookieValue;
         }
 
-        function showNotification(message, type = 'success') {
-            const toast = document.getElementById('notificationToast');
-            const toastHeader = toast.querySelector('.toast-header');
+        function showNotification(message, type = 'info') {
+            const toast = document.getElementById('toastNotification');
             const toastBody = toast.querySelector('.toast-body');
+            const toastHeader = toast.querySelector('.toast-header');
             
-            toastHeader.className = `toast-header ${type}`;
+            const icon = type === 'error' ? 'fa-exclamation-triangle' : 
+                         type === 'success' ? 'fa-check-circle' : 'fa-info-circle';
+            toastHeader.querySelector('i').className = `fas ${icon} me-2`;
             
-            if (type === 'error') {
-                toastHeader.querySelector('i').className = 'fas fa-exclamation-triangle me-2';
-            } else {
-                toastHeader.querySelector('i').className = 'fas fa-check-circle me-2';
-            }
+            toastHeader.style.background = type === 'error' ? '#ef4444' : 
+                                          type === 'success' ? '#10b981' : '#3b82f6';
+            toastHeader.style.color = 'white';
             
             toastBody.textContent = message;
             
@@ -2168,55 +795,888 @@
             bsToast.show();
         }
 
+        function showLoading() {
+            document.getElementById('loadingOverlay').classList.add('show');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.remove('show');
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('es-CL', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.toString().replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // ============================================
+        // OBTENER INFORMACIÓN DE USUARIO
+        // ============================================
+        
+        function getUserInfo() {
+            const codigo = '{{ codigo|default:"" }}';
+            const isAuthenticated = '{{ request.user.is_authenticated|yesno:"true,false" }}' === 'true';
+            const username = '{{ request.user.username|default:"" }}';
+            const categoria = '{{ request.user.rol_categoria.nombre|default:"" }}';
+            const categoriaId = '{{ request.user.rol_categoria.id|default:"" }}';
+            const isSuperuser = '{{ request.user.is_superuser|yesno:"true,false" }}' === 'true';
+            
+            // Determinar el tipo correcto
+            let tipo = 'publico';
+            if (isAuthenticated) {
+                tipo = 'admin';
+            } else if (codigo) {
+                // Determinar si es anónimo o identificado basado en el código
+                tipo = codigo.startsWith('DN-') ? 'anonimo' : 'identificado';
+            }
+            
+            return {
+                codigo: codigo,
+                tipo: tipo,
+                nombre: username,
+                categoria: categoria,
+                categoria_id: categoriaId,
+                is_admin: isAuthenticated,
+                is_superuser: isSuperuser
+            };
+        }
+
         function updateUIForUser() {
-            const userCard = $('#userInfoCard');
-            const subtitle = $('#pageSubtitle');
+            const infoCard = document.getElementById('userInfoCard');
+            const subtitle = document.getElementById('pageSubtitle');
             
-            console.log('Actualizando UI para usuario:', userInfo);
-            
-            if (userInfo.tipo === 'anonimo') {
-                subtitle.text('Mis denuncias anónimas');
-                $('#userCode').text(userInfo.codigo);
-                userCard.show();
-            } else if (userInfo.tipo === 'identificado') {
-                subtitle.text('Mis denuncias');
-                $('#userCode').text(userInfo.codigo);
-                if (userInfo.nombre) {
-                    $('#userName').text(userInfo.nombre);
-                    $('#userNameRow').show();
-                }
-                userCard.show();
-            } else if (userInfo.tipo === 'admin' && userInfo.is_admin) {
+            if (userInfo.tipo === 'admin') {
+                subtitle.textContent = `Gestión de Denuncias - ${userInfo.categoria || 'Todas'}`;
+                document.getElementById('userName').textContent = userInfo.nombre;
+                document.getElementById('userNameRow').style.display = 'block';
+                
                 if (userInfo.categoria) {
-                    subtitle.text(`Gestión de Denuncias - ${userInfo.categoria}`);
-                    $('#userCategory').text(userInfo.categoria);
-                    $('#userCategoryRow').show();
-                } else if (userInfo.is_superuser) {
-                    subtitle.text('Gestión de Denuncias - Todas las categorías');
-                    $('#userCategory').text('Superadministrador');
-                    $('#userCategoryRow').show();
-                } else {
-                    subtitle.text('Gestión de Denuncias');
+                    document.getElementById('userCategory').textContent = userInfo.categoria;
+                    document.getElementById('userCategoryRow').style.display = 'block';
                 }
-                
-                if (userInfo.nombre) {
-                    $('#userName').text(userInfo.nombre);
-                    $('#userNameRow').show();
-                }
-                
-                userCard.show();
+                infoCard.style.display = 'block';
+            } else if (userInfo.codigo) {
+                subtitle.textContent = 'Mis denuncias';
+                document.getElementById('userCode').textContent = userInfo.codigo;
+                infoCard.style.display = 'block';
             } else {
-                subtitle.text('Todas las denuncias');
+                subtitle.textContent = 'Consulta pública de denuncias';
             }
         }
 
-        // Inicialización
-        $(document).ready(function() {
-            userInfo = getUserInfo();
+        // ============================================
+        // FUNCIONES DE RENDERIZADO PARA DATATABLE
+        // ============================================
+        
+        function getNormalizedEstado(estado) {
+            // Convertir a string y limpiar
+            const estadoStr = String(estado).trim();
             
-            updateUIForUser();
-            initDataTable();
+            // Primero intentar como número
+            const estadoNum = parseInt(estadoStr);
+            if (!isNaN(estadoNum)) {
+                switch(estadoNum) {
+                    case 1:
+                        return { value: '1', text: 'Pendiente', icon: 'clock', class: 'badge-pendiente' };
+                    case 2:
+                        return { value: '2', text: 'En Revisión', icon: 'search', class: 'badge-revision' };
+                    case 3:
+                        return { value: '3', text: 'Resuelto', icon: 'check', class: 'badge-resuelto' };
+                }
+            }
+            
+            // Si no es número, intentar como string
+            const estadoUpper = estadoStr.toUpperCase();
+            
+            // Quitar tildes para comparación
+            const sinTildes = estadoUpper
+                .replace(/Á/g, 'A')
+                .replace(/É/g, 'E')
+                .replace(/Í/g, 'I')
+                .replace(/Ó/g, 'O')
+                .replace(/Ú/g, 'U');
+            
+            if (sinTildes === 'PENDIENTE') {
+                return { value: '1', text: 'Pendiente', icon: 'clock', class: 'badge-pendiente' };
+            } else if (sinTildes === 'EN_REVISION' || sinTildes === 'EN REVISION' || sinTildes.includes('REVISION')) {
+                return { value: '2', text: 'En Revisión', icon: 'search', class: 'badge-revision' };
+            } else if (sinTildes === 'RESUELTO' || sinTildes === 'RESUELTA') {
+                return { value: '3', text: 'Resuelto', icon: 'check', class: 'badge-resuelto' };
+            }
+            
+            // Default
+            console.warn('Estado no reconocido:', estado, '- usando Pendiente por defecto');
+            return { value: '1', text: 'Pendiente', icon: 'clock', class: 'badge-pendiente' };
+        }
+
+        function renderEstado(data, type, row) {
+            if (!data) {
+                data = '1';
+            }
+            
+            const estado = getNormalizedEstado(data);
+            
+            // Si es admin, hacer clickeable
+            if (userInfo.is_admin) {
+                return `
+                    <span class="badge-estado ${estado.class} clickeable" 
+                          data-denuncia="${row.codigo}"
+                          data-estado="${estado.value}"
+                          onclick="mostrarOpcionesEstado(this, event)">
+                        <i class="fas fa-${estado.icon}"></i> ${estado.text}
+                    </span>
+                `;
+            }
+            
+            // Usuario normal
+            return `
+                <span class="badge-estado ${estado.class}">
+                    <i class="fas fa-${estado.icon}"></i> ${estado.text}
+                </span>
+            `;
+        }
+
+        function renderUsuario(data, type, row) {
+            if (row.usuario_anonimo) {
+                return '<i class="fas fa-user-secret text-muted"></i> Anónimo';
+            }
+            return data || 'N/A';
+        }
+
+        function renderAcciones(data, type, row) {
+            return `
+                <div class="btn-group btn-group-sm" role="group">
+                    <button class="btn-action btn-ver" 
+                            onclick="verDescripcion('${row.codigo}')" 
+                            title="Ver descripción">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn-action btn-mensaje" 
+                            onclick="abrirMensajes('${row.codigo}')" 
+                            title="Ver mensajes">
+                        <i class="fas fa-comments"></i>
+                    </button>
+                    <button class="btn-action btn-descargar" 
+                            onclick="prepararDescarga('${row.codigo}')" 
+                            title="Descargar">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </div>
+            `;
+        }
+
+        // ============================================
+        // INICIALIZAR DATATABLE
+        // ============================================
+        
+        function initDataTable() {
+            console.log('Inicializando DataTable con userInfo:', userInfo);
+            
+            dataTable = $('#denunciasTable').DataTable({
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                ajax: {
+                    url: '/api/datatable/denuncias/simple/',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    data: function(d) {
+                        d.user_info = userInfo;
+                        console.log('Enviando datos al servidor:', d);
+                        return JSON.stringify(d);
+                    },
+                    dataSrc: function(json) {
+                        console.log('Respuesta del servidor:', json);
+                        hideLoading();
+                        return json.data;
+                    },
+                    error: function(xhr, error, thrown) {
+                        console.error('Error en Ajax:', error, xhr.responseText);
+                        hideLoading();
+                        showNotification('Error al cargar datos: ' + error, 'error');
+                    }
+                },
+                columns: [
+                    {
+                        data: 'codigo',
+                        name: 'codigo',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'fecha',
+                        name: 'fecha',
+                        render: function(data) {
+                            return formatDate(data);
+                        }
+                    },
+                    {
+                        data: 'categoria_nombre',
+                        name: 'categoria_nombre'
+                    },
+                    {
+                        data: 'item_enunciado',
+                        name: 'item_enunciado'
+                    },
+                    {
+                        data: 'usuario_nombre',
+                        name: 'usuario_nombre',
+                        render: renderUsuario
+                    },
+                    {
+                        data: 'estado_actual',
+                        name: 'estado_actual',
+                        className: 'text-center',
+                        render: renderEstado
+                    },
+                    {
+                        data: null,
+                        name: 'acciones',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center',
+                        render: renderAcciones
+                    }
+                ],
+                order: [[1, 'desc']],
+                pageLength: 10,
+                lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+                language: {
+                    processing: "Procesando...",
+                    search: "Buscar:",
+                    lengthMenu: "Mostrar _MENU_ registros",
+                    info: "Mostrando _START_ a _END_ de _TOTAL_ denuncias",
+                    infoEmpty: "Mostrando 0 a 0 de 0 denuncias",
+                    infoFiltered: "(filtrado de _MAX_ denuncias totales)",
+                    infoPostFix: "",
+                    loadingRecords: "Cargando...",
+                    zeroRecords: "No se encontraron denuncias",
+                    emptyTable: "No hay denuncias disponibles",
+                    paginate: {
+                        first: "Primera",
+                        previous: "Anterior",
+                        next: "Siguiente",
+                        last: "Última"
+                    }
+                },
+                drawCallback: function(settings) {
+                    console.log('Tabla redibujada');
+                    // Cerrar cualquier dropdown abierto
+                    closeDropdown();
+                }
+            });
+        }
+
+        // ============================================
+        // FUNCIONES DE CAMBIO DE ESTADO
+        // ============================================
+        
+        function mostrarOpcionesEstado(element, event) {
+            if (!userInfo.is_admin) return;
+            
+            event.stopPropagation();
+            
+            // Cerrar cualquier dropdown abierto
+            if (currentDropdown) {
+                currentDropdown.remove();
+                currentDropdown = null;
+            }
+            
+            const codigo = element.dataset.denuncia;
+            const estadoActual = element.dataset.estado;
+            
+            // Crear dropdown
+            const dropdown = document.createElement('div');
+            dropdown.className = 'estado-dropdown';
+            dropdown.style.position = 'absolute';
+            dropdown.innerHTML = `
+                <a class="dropdown-item ${estadoActual === '1' ? 'active' : ''}" 
+                   href="#" onclick="cambiarEstado('${codigo}', '1', event); return false;">
+                    <i class="fas fa-clock"></i> Pendiente
+                </a>
+                <a class="dropdown-item ${estadoActual === '2' ? 'active' : ''}" 
+                   href="#" onclick="cambiarEstado('${codigo}', '2', event); return false;">
+                    <i class="fas fa-search"></i> En Revisión
+                </a>
+                <a class="dropdown-item ${estadoActual === '3' ? 'active' : ''}" 
+                   href="#" onclick="cambiarEstado('${codigo}', '3', event); return false;">
+                    <i class="fas fa-check"></i> Resuelto
+                </a>
+            `;
+            
+            // Posicionar dropdown
+            const rect = element.getBoundingClientRect();
+            dropdown.style.top = (rect.bottom + window.scrollY) + 'px';
+            dropdown.style.left = rect.left + 'px';
+            
+            // Agregar al body
+            document.body.appendChild(dropdown);
+            currentDropdown = dropdown;
+            
+            // Cerrar al hacer click fuera
+            setTimeout(() => {
+                document.addEventListener('click', closeDropdown);
+            }, 100);
+        }
+
+        function closeDropdown() {
+            if (currentDropdown) {
+                currentDropdown.remove();
+                currentDropdown = null;
+                document.removeEventListener('click', closeDropdown);
+            }
+        }
+
+        async function cambiarEstado(codigo, nuevoEstado, event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            
+            if (!userInfo.is_admin) {
+                showNotification('No tiene permisos para cambiar estados', 'error');
+                return;
+            }
+            
+            // Cerrar dropdown
+            closeDropdown();
+            
+            // Mostrar loading en el badge actual
+            const badge = document.querySelector(`[data-denuncia="${codigo}"]`);
+            const originalHTML = badge ? badge.innerHTML : '';
+            if (badge) {
+                badge.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Actualizando...';
+                badge.style.opacity = '0.6';
+            }
+            
+            try {
+                const response = await fetch('/api/cambiar-estado-denuncia/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        denuncia_id: codigo,
+                        nuevo_estado: nuevoEstado
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    showNotification('Estado actualizado correctamente', 'success');
+                    
+                    // Actualizar el badge manualmente
+                    if (badge) {
+                        const estado = getNormalizedEstado(nuevoEstado);
+                        badge.className = `badge-estado ${estado.class} clickeable`;
+                        badge.dataset.estado = estado.value;
+                        badge.innerHTML = `<i class="fas fa-${estado.icon}"></i> ${estado.text}`;
+                        badge.style.opacity = '1';
+                    }
+                    
+                    // Recargar tabla después de un delay
+                    setTimeout(() => {
+                        dataTable.ajax.reload(null, false);
+                    }, 500);
+                    
+                } else {
+                    throw new Error(data.message || 'Error al cambiar estado');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Error al cambiar estado: ' + error.message, 'error');
+                
+                // Restaurar badge original
+                if (badge) {
+                    badge.innerHTML = originalHTML;
+                    badge.style.opacity = '1';
+                }
+            }
+        }
+
+        // ============================================
+        // FUNCIÓN VER DESCRIPCIÓN
+        // ============================================
+        
+        async function verDescripcion(codigo) {
+            currentDenunciaId = codigo;
+            const modal = new bootstrap.Modal(document.getElementById('modalDescripcion'));
+            const modalBody = document.getElementById('modalDescripcionBody');
+            
+            // Mostrar loading
+            modalBody.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="spinner"></div>
+                    <p class="mt-3">Cargando información...</p>
+                </div>
+            `;
+            
+            modal.show();
+            
+            try {
+                const response = await fetch(`/api/denuncia-detalle/${codigo}/`, {
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Error al cargar datos');
+                
+                const data = await response.json();
+                
+                // Mostrar información detallada
+                modalBody.innerHTML = `
+                    <div class="descripcion-section">
+                        <h6>Información General</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Código:</strong> ${data.codigo}</p>
+                                <p><strong>Fecha:</strong> ${formatDate(data.fecha)}</p>
+                                <p><strong>Estado:</strong> ${data.estado || 'PENDIENTE'}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Categoría:</strong> ${data.categoria}</p>
+                                <p><strong>Empresa:</strong> ${data.empresa || 'N/A'}</p>
+                                <p><strong>Usuario:</strong> ${data.usuario}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="descripcion-section">
+                        <h6>Tipo de Denuncia</h6>
+                        <p>${data.tipo_denuncia}</p>
+                    </div>
+                    
+                    <div class="descripcion-section">
+                        <h6>Descripción Detallada</h6>
+                        <p>${data.descripcion || 'No hay descripción disponible'}</p>
+                        ${data.descripcion_relacion ? `
+                            <h6 class="mt-3">Descripción de Relación</h6>
+                            <p>${data.descripcion_relacion}</p>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="descripcion-section">
+                        <h6>Detalles Adicionales</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Relación con Empresa:</strong> ${data.relacion_empresa || 'N/A'}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Tiempo de Ocurrencia:</strong> ${data.tiempo || 'N/A'}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${data.archivos && data.archivos.length > 0 ? `
+                        <div class="descripcion-section">
+                            <h6><i class="fas fa-paperclip"></i> Archivos Adjuntos (${data.archivos.length})</h6>
+                            ${data.archivos.map(archivo => `
+                                <div class="archivo-item">
+                                    <div class="archivo-info">
+                                        <i class="fas fa-file archivo-icon"></i>
+                                        <div>
+                                            <strong>${escapeHtml(archivo.nombre)}</strong>
+                                            ${archivo.peso_formateado ? `<small class="text-muted d-block">${archivo.peso_formateado}</small>` : ''}
+                                        </div>
+                                    </div>
+                                    <a href="/api/descargar-archivo/?archivo_id=${archivo.id}" 
+                                       target="_blank" 
+                                       class="btn btn-sm btn-primary">
+                                        <i class="fas fa-download"></i> Descargar
+                                    </a>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : `
+                        <div class="descripcion-section">
+                            <h6><i class="fas fa-paperclip"></i> Archivos Adjuntos</h6>
+                            <p class="text-muted">No hay archivos adjuntos en esta denuncia</p>
+                        </div>
+                    `}
+                `;
+            } catch (error) {
+                console.error('Error:', error);
+                modalBody.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Error al cargar la información: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // ============================================
+        // FUNCIONES DE MENSAJES/CHAT
+        // ============================================
+        
+        async function abrirMensajes(codigo) {
+            currentDenunciaId = codigo;
+            const modal = new bootstrap.Modal(document.getElementById('modalMensajes'));
+            
+            document.getElementById('mensajeDenunciaCodigo').textContent = codigo;
+            document.getElementById('chatMessages').innerHTML = `
+                <div class="text-center py-4">
+                    <div class="spinner"></div>
+                    <p class="mt-3">Cargando mensajes...</p>
+                </div>
+            `;
+            
+            modal.show();
+            
+            try {
+                const response = await fetch(`/api/denuncia-mensaje/${codigo}/`, {
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Error al cargar mensajes');
+                
+                const data = await response.json();
+                cargarMensajes(data.mensajes || []);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('chatMessages').innerHTML = `
+                    <div class="alert alert-danger">
+                        Error al cargar mensajes: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function cargarMensajes(mensajes) {
+            const container = document.getElementById('chatMessages');
+            
+            if (!mensajes || mensajes.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-chat">
+                        <i class="fas fa-inbox fa-3x"></i>
+                        <p class="mt-3">No hay mensajes en esta denuncia</p>
+                        <p class="text-muted">Sea el primero en escribir un mensaje</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = mensajes.map(m => `
+                <div class="message-item ${m.es_admin ? 'message-admin' : 'message-user'}">
+                    <div class="message-bubble">
+                        <div class="message-content">${escapeHtml(m.mensaje)}</div>
+                        <div class="message-time">
+                            ${m.es_admin ? 'Admin' : 'Usuario'} - ${formatDate(m.fecha || m.created_at)}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Scroll al final
+            const chatContainer = document.getElementById('chatContainer');
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        async function enviarMensaje(event) {
+            event.preventDefault();
+            
+            const textarea = document.getElementById('mensajeTexto');
+            const mensaje = textarea.value.trim();
+            const btnEnviar = event.target.querySelector('button[type="submit"]');
+            
+            if (!mensaje || !currentDenunciaId) return;
+            
+            // Deshabilitar mientras envía
+            btnEnviar.disabled = true;
+            btnEnviar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+            
+            try {
+                const response = await fetch('/api/denuncia-envio-mensaje/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        denuncia_codigo: currentDenunciaId,
+                        mensaje: mensaje
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // Agregar mensaje al chat
+                    const container = document.getElementById('chatMessages');
+                    
+                    // Si está vacío, limpiar primero
+                    if (container.querySelector('.empty-chat')) {
+                        container.innerHTML = '';
+                    }
+                    
+                    const nuevoMensaje = `
+                        <div class="message-item ${userInfo.is_admin ? 'message-admin' : 'message-user'}">
+                            <div class="message-bubble">
+                                <div class="message-content">${escapeHtml(mensaje)}</div>
+                                <div class="message-time">
+                                    ${userInfo.is_admin ? 'Admin' : 'Usuario'} - Ahora
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    container.insertAdjacentHTML('beforeend', nuevoMensaje);
+                    
+                    // Scroll al final
+                    const chatContainer = document.getElementById('chatContainer');
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                    
+                    // Limpiar textarea
+                    textarea.value = '';
+                    document.getElementById('charCount').textContent = '0';
+                    
+                    showNotification('Mensaje enviado correctamente', 'success');
+                } else {
+                    throw new Error(data.message || 'Error al enviar mensaje');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Error al enviar mensaje: ' + error.message, 'error');
+            } finally {
+                // Rehabilitar botón
+                btnEnviar.disabled = false;
+                btnEnviar.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar';
+            }
+        }
+
+        // Contador de caracteres
+        document.addEventListener('DOMContentLoaded', function() {
+            const textarea = document.getElementById('mensajeTexto');
+            if (textarea) {
+                textarea.addEventListener('input', function() {
+                    document.getElementById('charCount').textContent = this.value.length;
+                });
+            }
         });
+
+        // ============================================
+        // FUNCIONES DE DESCARGA
+        // ============================================
+        
+        async function prepararDescarga(codigo) {
+            currentDenunciaId = codigo;
+            const modal = new bootstrap.Modal(document.getElementById('modalDescarga'));
+            
+            // Buscar datos de la denuncia en la tabla actual
+            const rowData = dataTable.data().toArray().find(row => row.codigo === codigo);
+            
+            if (rowData) {
+                document.getElementById('descargaCodigo').textContent = codigo;
+                document.getElementById('descargaFecha').textContent = formatDate(rowData.fecha);
+                document.getElementById('descargaCategoria').textContent = rowData.categoria_nombre;
+            } else {
+                // Si no está en la tabla actual, hacer petición
+                try {
+                    const response = await fetch(`/api/denuncia-info/${codigo}/`, {
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken')
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        document.getElementById('descargaCodigo').textContent = data.codigo;
+                        document.getElementById('descargaFecha').textContent = formatDate(data.fecha);
+                        document.getElementById('descargaCategoria').textContent = data.categoria;
+                    }
+                } catch (error) {
+                    console.error('Error obteniendo info:', error);
+                    document.getElementById('descargaCodigo').textContent = codigo;
+                    document.getElementById('descargaFecha').textContent = 'N/A';
+                    document.getElementById('descargaCategoria').textContent = 'N/A';
+                }
+            }
+            
+            modal.show();
+        }
+
+        async function confirmarDescarga() {
+            if (!currentDenunciaId) return;
+            
+            const btn = document.getElementById('btnConfirmarDescarga');
+            const originalText = btn.innerHTML;
+            
+            try {
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando PDF...';
+                btn.disabled = true;
+                
+                const response = await fetch('/api/descargar-denuncia/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        denuncia_id: currentDenunciaId,
+                        admin_id: userInfo.is_admin ? userInfo.id : null
+                    })
+                });
+                
+                if (!response.ok) throw new Error('Error al generar archivo');
+                
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `denuncia_${currentDenunciaId}.pdf`;
+                a.click();
+                window.URL.revokeObjectURL(url);
+                
+                showNotification('Descarga iniciada correctamente', 'success');
+                bootstrap.Modal.getInstance(document.getElementById('modalDescarga')).hide();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Error al descargar: ' + error.message, 'error');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // ============================================
+        // FUNCIÓN EXPORTAR EXCEL
+        // ============================================
+        
+        async function exportarExcel() {
+            const btn = document.getElementById('btnExcel');
+            const originalText = btn.innerHTML;
+            
+            try {
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...';
+                btn.disabled = true;
+                
+                // Obtener configuración actual de DataTable
+                const order = dataTable.order();
+                const search = dataTable.search();
+                
+                const requestData = {
+                    draw: 1,
+                    start: 0,
+                    length: -1, // Todos los registros
+                    search: {
+                        value: search,
+                        regex: false
+                    },
+                    order: order.map(o => ({
+                        column: o[0],
+                        dir: o[1]
+                    })),
+                    columns: dataTable.settings()[0].aoColumns.map(col => ({
+                        data: col.data,
+                        name: col.name,
+                        searchable: col.bSearchable,
+                        orderable: col.bSortable
+                    })),
+                    user_info: userInfo
+                };
+                
+                console.log('Exportando con datos:', requestData);
+                
+                const response = await fetch('/api/datatable/denuncias/export/excel/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error al generar Excel');
+                }
+                
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `denuncias_${new Date().toISOString().split('T')[0]}.xlsx`;
+                a.click();
+                window.URL.revokeObjectURL(url);
+                
+                showNotification('Excel generado correctamente', 'success');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Error al generar Excel: ' + error.message, 'error');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM Cargado, inicializando...');
+            
+            // Mostrar loading
+            showLoading();
+            
+            // Obtener información del usuario
+            userInfo = getUserInfo();
+            console.log('UserInfo obtenido:', userInfo);
+            
+            // Actualizar UI según usuario
+            updateUIForUser();
+            
+            // Inicializar DataTable
+            initDataTable();
+            
+            // Event listeners
+            document.getElementById('btnExcel').addEventListener('click', exportarExcel);
+            document.getElementById('formMensaje').addEventListener('submit', enviarMensaje);
+            document.getElementById('btnConfirmarDescarga').addEventListener('click', confirmarDescarga);
+            
+            // Cerrar dropdowns al hacer scroll
+            window.addEventListener('scroll', closeDropdown);
+        });
+
+        // Debug helper
+        window.debugDataTable = function() {
+            console.log('=== DEBUG DATATABLE ===');
+            console.log('DataTable instance:', dataTable);
+            console.log('UserInfo:', userInfo);
+            console.log('Total registros:', dataTable?.page.info()?.recordsTotal);
+            console.log('Registros filtrados:', dataTable?.page.info()?.recordsFiltered);
+            console.log('Búsqueda actual:', dataTable?.search());
+            console.log('Orden actual:', dataTable?.order());
+            console.log('=======================');
+        };
     </script>
 </body>
 </html>

@@ -110,8 +110,6 @@ class EmailSenderAPIView(APIView):
             </div>
             '''
 
-            print("✅ Template HTML creado")
-            print(request.session.get('denuncia_categoria_id'))
             id=request.session.get('denuncia_categoria_id')
             print('Categoria ID:', id)
             Administradores=AdminDenuncias.objects.filter(rol_categoria__id=id)
