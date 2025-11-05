@@ -9,7 +9,5 @@ __pycache__/
 env/
 venv/
 ENV/
-media/
-staticfiles/
 *.log
 .DS_Store
