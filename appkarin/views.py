@@ -13,19 +13,21 @@ import re
 # =================================================================
 
 def renderHome(request,empresa):
+    print("Empresa solicitada:", empresa)
+    _empresa=Empresa.objects.filter(nombre=empresa).first()
+    if not _empresa:
+        return render(request, 'notfound.html')
 
-    _empresa=empresa
+    url_logo=f'assets/Logo{empresa}.png'
 
-    url_logo=f'assets/Logo{_empresa}.png'
-
-    if (_empresa !='ByF'):
-        _empresa = re.sub(r'(?<![A-Z\W])(?=[A-Z])', ' ', _empresa)
+    if (empresa !='ByF'):
+        empresa = re.sub(r'(?<![A-Z\W])(?=[A-Z])', ' ', empresa)
     else:
-        _empresa = 'B y F'
+        empresa = 'B y F'
 
     context= {
         'url_logo':url_logo,
-        'empresa':_empresa
+        'empresa':empresa
     }
 
     return render(request, 'index.html',context)
@@ -93,35 +95,53 @@ def renderConsultaDenuncia(request):
         codigo = request.POST.get('codigo', '').strip()
         if codigo:
             # Verificar que el código existe
-            # Para usuarios anónimos el código es DN-XXXXXXXX pero el ID es solo el DN-XXXXXXXX completo
             if codigo.startswith('DN-'):
-                print("estoy en codigo start")
+                print(f"Código de denuncia recibido: {codigo}")
                 # Buscar por código de denuncia directamente
                 exists = Denuncia.objects.filter(codigo=codigo).exists()
                 if exists:
-                    # Obtener el ID del usuario de esa denuncia
-                    denuncia = Denuncia.objects.filter(codigo=codigo).first()
-                    if denuncia:
-                        request.session['codigo_consulta'] = codigo = denuncia.usuario.id
+                    # Guardar el código de denuncia tal cual
+                    request.session['codigo_consulta'] = codigo
+                    # Redirigir a GET para evitar reenvío de formulario
+                    return redirect('consulta_denuncias')
+                else:
+                    messages.error(request, 'El código de denuncia no existe')
+                    # Obtener la empresa de la sesión para redirigir correctamente
+                    empresa_id = request.session.get('empresa_id')
+                    if empresa_id:
+                        empresa = Empresa.objects.filter(id=empresa_id).first()
+                        if empresa:
+                            return redirect('home', empresa=empresa.nombre)
+                    return redirect('hub')
             else:
                 # Usuario identificado - código de 5 caracteres
+                print(f"Código de usuario recibido: {codigo}")
                 exists = Usuario.objects.filter(id=codigo).exists()
-            
+                
                 if exists:
                     # Guardar en sesión para la consulta
                     request.session['codigo_consulta'] = codigo
                     # Redirigir a GET para evitar reenvío de formulario
+                    return redirect('consulta_denuncias')
                 else:
                     messages.error(request, 'El código ingresado no existe')
-                    return redirect('home')
-        
+                    # Obtener la empresa de la sesión para redirigir correctamente
+                    empresa_id = request.session.get('empresa_id')
+                    if empresa_id:
+                        empresa = Empresa.objects.filter(id=empresa_id).first()
+                        if empresa:
+                            return redirect('home', empresa=empresa.nombre)
+                    return redirect('hub')
+    
     # Para GET, obtener código de URL o sesión
-    codigo = request.session.get('codigo_consulta')
+    codigo = request.session.get('codigo_consulta', '')
+    
+    print(f"Código final enviado al template: {codigo}")
     
     context['codigo'] = codigo
-    context['admin_id']=request.user.id
-    # Si es admin, verificar autenticación (esto sería con el sistema de auth real)
-    # Por ahora solo pasamos el contexto 
+    context['admin_id'] = request.user.id if request.user.is_authenticated else None
+    
+    # Si es admin, verificar autenticación
     return render(request, 'consultaDenuncia.html', context)
 
 def renderLoginAdmin(request):
@@ -136,7 +156,7 @@ def renderHub(request):
     nombre_empresas=[]
     url_logos = []
     descripciones=[]
-    redirect_urls = []  # Agregar esta lista
+    redirect_urls = []
     
     for empresa in empresas:
         if (empresa.nombre !='ByF'):
@@ -145,10 +165,9 @@ def renderHub(request):
             nombre_empresas.append('B y F')
 
         url_logos.append(f'assets/Logo{empresa.nombre}.png')
-        redirect_urls.append(f'/{empresa.nombre}/')  # Usar la URL que ya tienes configurada
+        redirect_urls.append(f'/{empresa.nombre.lower()}/')  # ← .lower() agregado
         descripciones.append(empresa.descripcion)
 
-    # Cambiar el zip para incluir las URLs
     cards_data = zip(nombre_empresas, descripciones, url_logos, redirect_urls)
 
     context = {

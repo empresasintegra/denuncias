@@ -157,11 +157,15 @@ class ServiceProcessDenuncia(APIView):
             item = serializer.get_validated_item()
             
             # Guardar en sesión
+            print("estoy guardando en session")
+            print(item.categoria.id)
+
             request.session['denuncia_item_id'] = item.id
             request.session['denuncia_item_nombre'] = item.enunciado
             request.session['denuncia_categoria_id']=item.categoria.id
             request.session['denuncia_categoria_nombre'] = item.categoria.nombre
             request.session.modified = True
+            request.session.save()
             
             return Response({
                 'success': True,
@@ -400,8 +404,7 @@ class ServiceProcessDenuncia(APIView):
         """
         # Verificar datos previos en sesión
         required_session_keys = [
-            'denuncia_item_id', 'denuncia_relacion_id', 
-            'denuncia_categoria_id','denuncia_categoria_nombre',
+            'denuncia_item_id', 'denuncia_relacion_id','denuncia_categoria_nombre',
             'denuncia_tiempo_id', 'denuncia_descripcion'
         ]
 
@@ -468,7 +471,10 @@ class ServiceProcessDenuncia(APIView):
             
             # Guardar código para mostrar en página final
             request.session['codigo'] = denuncia.codigo if usuario.anonimo else usuario.id
-
+            request.session['denuncia_created'] = True  # Flag adicional
+            request.session.modified = True  # ✅ CRÍTICO: Forzar guardado
+            request.session.save()  # ✅ CRÍTICO: Guardar inmediatamente
+            
             
             response_data = {
                 'success': True,

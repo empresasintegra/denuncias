@@ -15,6 +15,9 @@ import os
 from datetime import datetime
 from docxtpl import DocxTemplate
 import datetime
+import os
+import tempfile
+from subprocess import Popen, PIPE
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -108,7 +111,7 @@ class DenunciaManagementViewSet(ViewSet):
             
             # Obtener mensajes del foro
             mensajes = denuncia.foro_set.all().order_by('id')
-            print(mensajes)
+          
             data = {
                 'codigo': denuncia.codigo,
                 'fecha': denuncia.fecha.isoformat(),
@@ -121,7 +124,7 @@ class DenunciaManagementViewSet(ViewSet):
                     'fecha':m.fecha,
                 } for m in mensajes]
             }
-            print(data)
+        
             
             return Response(data)
             
@@ -198,10 +201,10 @@ class DenunciaManagementViewSet(ViewSet):
                     'message': 'Usuario no autenticado'
                 }, status=401)
             
-            print("permison?")
+          
             # Verificar permisos de admin
             has_permission, categoria = self.check_admin_permissions(request)
-            print("permison2?")
+           
             if not has_permission:
                 return Response({
                     'success': False,
@@ -273,7 +276,6 @@ class DenunciaManagementViewSet(ViewSet):
             # Aquí deberías implementar la generación del PDF
             # Por ahora, retornamos un PDF dummy
             pdf_content = self._generar_pdf_denuncia(denuncia_codigo)
-            
             return pdf_content
             
         except Exception as e:
@@ -281,70 +283,88 @@ class DenunciaManagementViewSet(ViewSet):
     
     def _generar_pdf_denuncia(self, denuncia_codigo):
         """
-        Método helper para generar el PDF
-        Aquí deberías usar una librería como ReportLab o WeasyPrint
+        Método helper para generar el PDF - CORREGIDO
         """
-        print("denuncia?")
-        denuncia = Denuncia.objects.filter(codigo=denuncia_codigo).first()
-        
-        base_path = os.path.join(os.path.dirname(__file__), 'templates', 'word')
-        template_filename = f'template_denuncia_{denuncia.tipo_empresa.nombre}.docx'
-        path_archive = os.path.join(base_path, template_filename)
-        
-        # Genero el documento
-        print(denuncia.relacion_empresa.rol)
-        
-
-        doc = DocxTemplate(path_archive)
-        print(path_archive)
-        # Variables de Autorización Firma Electrónica
-        print("este será context")
-        context = { 'fecha_descarga':datetime.datetime.now().strftime('%d/%m/%Y'),
-                    'rol':denuncia.item.categoria.nombre,
-                    'codigo': denuncia.codigo,
-                    'fecha_denuncia': denuncia.fecha.strftime('%d/%m/%Y'),
-                    'usuario_nombre': denuncia.usuario.nombre or '',
-                    'usuario_apellidos': denuncia.usuario.apellidos or '',   
-                    'usuario_celular': denuncia.usuario.celular or '',
-                    'usuario_correo': denuncia.usuario.correo or '',
-                    'item_enunciado': denuncia.item.enunciado,
-                    'rol_empresa': denuncia.relacion_empresa.rol,
-                    'descripcion': denuncia.descripcion,
-                    'descripcion_relacion': denuncia.descripcion_relacion or '',
-                    'correo_trabajador': denuncia.usuario.correo or '',
-                    'tiempo': denuncia.tiempo.intervalo,
-                    'archivos':[],
-                    'anonimo': 'Sí' if denuncia.usuario.anonimo else 'No'
-                    }
-            # Creo documento word con datos de trabajador
-        print("render?")
-        doc.render(context)
-        print("termine render")
-        path_doc ='Informe_denuncia.docx'
-            # Guarda el documento
-        doc.save(path_doc)
-
-            # Convierto documento a PDF
-        print("pdf!")
-        pdf = Popen(['libreoffice', '--headless', '--convert-to', 'pdf', '--outdir',
-                        '', path_doc])
-        
-        pdf.communicate()
-
-        path_pdf = 'Informe_denuncia.pdf'
-            # Elimino el documento word.
-        os.remove(path_doc)
-
-        with open(path_pdf, 'rb') as pdf_file:
-            response = HttpResponse(
-                pdf_file.read(), 
-                content_type='application/pdf'
-            )
-            response['Content-Disposition'] = f'attachment; filename="{path_pdf}"'
-
-        os.remove(path_pdf)
-    
-        return response
+        try:
+            denuncia = Denuncia.objects.filter(codigo=denuncia_codigo).first()
+            if not denuncia:
+                raise ValueError(f"No se encontró denuncia con código: {denuncia_codigo}")
+            
+            base_path = os.path.join(os.path.dirname(__file__), 'templates', 'word')
+            template_filename = f'template_denuncia_{denuncia.tipo_empresa.nombre}.docx'
+            path_archive = os.path.join(base_path, template_filename)
+            
+            # Generar el documento
+            doc = DocxTemplate(path_archive)
+            
+            context = {
+                'fecha_descarga': datetime.datetime.now().strftime('%d/%m/%Y'),
+                'rol': denuncia.item.categoria.nombre,
+                'codigo': denuncia.codigo,
+                'fecha_denuncia': denuncia.fecha.strftime('%d/%m/%Y'),
+                'usuario_nombre': denuncia.usuario.nombre or '',
+                'usuario_apellidos': denuncia.usuario.apellidos or '',   
+                'usuario_celular': denuncia.usuario.celular or '',
+                'usuario_correo': denuncia.usuario.correo or '',
+                'item_enunciado': denuncia.item.enunciado,
+                'rol_empresa': denuncia.relacion_empresa.rol,
+                'descripcion': denuncia.descripcion,
+                'descripcion_relacion': denuncia.descripcion_relacion or '',
+                'correo_trabajador': denuncia.usuario.correo or '',
+                'tiempo': denuncia.tiempo.intervalo,
+                'archivos': [],
+                'anonimo': 'Sí' if denuncia.usuario.anonimo else 'No'
+            }
+            
+            doc.render(context)
+            
+            temp_dir = tempfile.gettempdir() 
+            
+           
+            path_doc = os.path.join(temp_dir, f'Informe_denuncia_{denuncia_codigo}.docx')
+            doc.save(path_doc)
+            pdf_process = Popen([
+                'libreoffice', 
+                '--headless', 
+                '--convert-to', 'pdf', 
+                '--outdir', temp_dir, 
+                path_doc
+            ], stdout=PIPE, stderr=PIPE)
+            
+            stdout, stderr = pdf_process.communicate()
+            
+            # Verificar si hubo errores
+            if pdf_process.returncode != 0:
+                print(f"Error en conversión PDF: {stderr.decode()}")
+                raise Exception(f"Error al convertir a PDF: {stderr.decode()}")
+            
+            # El PDF tendrá el mismo nombre pero con extensión .pdf
+            path_pdf = os.path.join(temp_dir, f'Informe_denuncia_{denuncia_codigo}.pdf')
+            
+            # Verificar que el PDF se creó
+            if not os.path.exists(path_pdf):
+                raise FileNotFoundError(f"No se encontró el PDF generado en: {path_pdf}")
+            
+            # Leer el PDF
+            with open(path_pdf, 'rb') as pdf_file:
+                response = HttpResponse(
+                    pdf_file.read(), 
+                    content_type='application/pdf'
+                )
+                response['Content-Disposition'] = f'attachment; filename="Informe_denuncia_{denuncia_codigo}.pdf"'
+            
+            # Limpiar archivos temporales
+            try:
+                os.remove(path_doc)
+                os.remove(path_pdf)
+            except:
+                pass  # Si falla la limpieza, no es crítico
+            
+            return response
+            
+        except Exception as e:
+            print(f"ERROR en _generar_pdf_denuncia: {str(e)}")
+            raise
     
     @action(detail=False, methods=['get'])
     def descargar_archivo(self, request):
@@ -390,13 +410,6 @@ class DenunciaManagementViewSet(ViewSet):
             
             # Ahora construir la ruta correcta
             file_path = os.path.join(settings.MEDIA_ROOT, archivo_url)
-            
-            # ✅ DEBUG: Imprimir rutas para verificar
-            print(f"DEBUG - archivo.url original: {archivo.url}")
-            print(f"DEBUG - archivo_url limpia: {archivo_url}")
-            print(f"DEBUG - MEDIA_ROOT: {settings.MEDIA_ROOT}")
-            print(f"DEBUG - file_path final: {file_path}")
-            print(f"DEBUG - archivo existe: {os.path.exists(file_path)}")
             
             # Verificar que el archivo existe
             if not os.path.exists(file_path):

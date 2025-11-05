@@ -2,6 +2,9 @@
 <!DOCTYPE html>
 <html lang="es">
     <head>
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+        <meta http-equiv="Pragma" content="no-cache">
+        <meta http-equiv="Expires" content="0">
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="description" content="Iniciar Sesión - Empresas Integra" />
@@ -87,10 +90,9 @@
             
             .input-icon .form-control {
                 padding-left: 2.75rem;
-                padding-right: 3rem; /* Espacio para el toggle */
+                padding-right: 3rem;
             }
             
-            /* Toggle de contraseña */
             #passwordToggle {
                 position: absolute;
                 right: 1rem;
@@ -119,7 +121,6 @@
                 transform: translateY(-50%) scale(0.95) !important;
             }
             
-            /* Efecto visual cuando se muestra la contraseña */
             .password-revealed {
                 background-color: #fef3cd !important;
                 border-color: #ffc107 !important;
@@ -137,6 +138,10 @@
                 cursor: pointer;
                 transition: all 0.2s ease;
                 margin-top: 1rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
             }
             
             .btn-login:hover {
@@ -191,7 +196,6 @@
                 border-top: 2px solid currentColor;
                 border-radius: 50%;
                 animation: spin 1s linear infinite;
-                margin-right: 0.5rem;
             }
             
             @keyframes spin {
@@ -207,14 +211,12 @@
 
         <!-- Formulario de Login -->
         <div class="login-container">
-            <!-- Login Form -->
             <div id="loginCard" class="login-card">
                 <div class="login-header">
                     <h2>Iniciar Sesión</h2>
                     <p>Ingresa tus credenciales para acceder al sistema</p>
                 </div>
                 
-                <!-- Mensajes de alerta -->
                 <div id="alertContainer" style="display: none;">
                     <div id="alertMessage" class="alert"></div>
                 </div>
@@ -264,7 +266,6 @@
                         <div id="loginSpinner" class="loading-spinner" style="display: none;"></div>
                     </button>
                 </form>
-
             </div>
         </div>
 
@@ -273,210 +274,380 @@
 
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script>
+            'use strict';
 
+            // ========================================
+            // UTILIDADES Y HELPERS
+            // ========================================
 
-
-        function getEmpresaFromNext() {
-                const next = new URLSearchParams(window.location.search).get('next');
-                if (!next) return null;
-                
-                const match = next.match(/^\/([^\/\?#]+)/);
-                if (!match) return null;
-                
-                const empresa = match[1];
-                const excluded = ['admin', 'api', 'login', 'logout', 'static', 'media'];
-                
-                return excluded.includes(empresa.toLowerCase()) ? null : empresa;
-            }
-            // Objeto para manejar el login de administradores
-            const AdminLoginApp = {
-                init: function() {
-                    this.bindEvents();
-                    this.checkAuthOnLoad();
-                },
-                
-                bindEvents: function() {
-                    $('#loginForm').on('submit', this.handleLogin.bind(this));
+            /**
+             * Extrae información de redirección del parámetro 'next' en la URL
+             * @returns {Object|null} Objeto con empresa y redirectUrl, o null si no hay next
+             * 
+             * Ejemplos:
+             * - Input: ?next=/index/Global/
+             * - Output: { empresa: 'index', redirectUrl: 'http://localhost:8000/index/global/' }
+             */
+            function getRedirectInfoFromNext() {
+                try {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const nextPath = urlParams.get('next');
                     
-                    // Verificar auth cuando la página carga
-                    $(window).on('beforeunload', this.clearSensitiveData.bind(this));
+                    if (!nextPath) {
+                        return null;
+                    }
+                    
+                    
+                    // Expresión regular para capturar /primera_parte/segunda_parte/
+                    const pathMatch = nextPath.match(/^\/([^\/\?#]+)(?:\/([^\/\?#]+))?\/?/);
+                    
+                    if (!pathMatch) {
+                        console.warn('⚠️ No se pudo parsear el path:', nextPath);
+                        return null;
+                    }
+                    
+                    const empresa = pathMatch[1]; // Primera parte del path
+                    const excluded = ['admin', 'api', 'login', 'logout', 'static', 'media'];
+                    
+                    // Validar que no sea una ruta excluida
+                    if (excluded.includes(empresa.toLowerCase())) {
+                        return null;
+                    }
+                    
+                    // Construir URL completa de redirección
+                    const origin = window.location.origin; // http://localhost:8000
+                    const normalizedPath = nextPath.toLowerCase(); // Convertir a minúsculas
+                    const redirectUrl = `${origin}${normalizedPath}`;
+                    
+                    const result = {
+                        empresa: empresa,
+                        redirectUrl: redirectUrl,
+                        rawNext: nextPath
+                    };
+                    
+                    return result;
+                    
+                } catch (error) {
+                    console.error('❌ Error al procesar parámetro next:', error);
+                    return null;
+                }
+            }
+
+            /**
+             * Valida las credenciales antes de enviar
+             */
+            const ValidationUtils = {
+                validateUsername: function(username) {
+                    if (!username || username.length < 3) {
+                        return {
+                            valid: false,
+                            message: 'El usuario debe tener al menos 3 caracteres'
+                        };
+                    }
+                    return { valid: true };
                 },
                 
+                validatePassword: function(password) {
+                    if (!password || password.length < 6) {
+                        return {
+                            valid: false,
+                            message: 'La contraseña debe tener al menos 6 caracteres'
+                        };
+                    }
+                    return { valid: true };
+                },
+                
+                validateForm: function(username, password) {
+                    const usernameValidation = this.validateUsername(username);
+                    if (!usernameValidation.valid) return usernameValidation;
+                    
+                    const passwordValidation = this.validatePassword(password);
+                    if (!passwordValidation.valid) return passwordValidation;
+                    
+                    return { valid: true };
+                }
+            };
+
+            // ========================================
+            // APLICACIÓN PRINCIPAL DE LOGIN
+            // ========================================
+
+            const AdminLoginApp = {
+                // Estado interno
+                state: {
+                    isLoading: false,
+                    redirectInfo: null
+                },
+                
+                /**
+                 * Inicializar la aplicación
+                 */
+                init: function() {
+                    
+                    // Obtener información de redirección
+                    this.state.redirectInfo = getRedirectInfoFromNext();
+                    
+                    // Vincular eventos
+                    this.bindEvents();
+                    
+                    // Verificar autenticación existente
+                    this.checkAuthOnLoad();
+                    
+                },
+                
+                /**
+                 * Vincular eventos del DOM
+                 */
+                bindEvents: function() {
+                    const self = this;
+                    
+                    // Submit del formulario
+                    $('#loginForm').on('submit', function(e) {
+                        self.handleLogin(e);
+                    });
+                    
+                    // Toggle de contraseña
+                    $('#passwordToggle').on('click', function() {
+                        self.togglePasswordVisibility();
+                    });
+                    
+                    // Limpiar datos sensibles al salir
+                    $(window).on('beforeunload', function() {
+                        self.clearSensitiveData();
+                    });
+                    
+                    // Manejo de errores AJAX globales
+                    $(document).ajaxError(function(event, xhr, settings, thrownError) {
+                        if (xhr.status === 403 && xhr.responseJSON?.error_code === 'CSRF_TOKEN_MISSING') {
+                            console.error('❌ Error CSRF - Recargando página...');
+                            location.reload();
+                        }
+                    });
+                },
+                
+                /**
+                 * Verificar si el usuario ya está autenticado
+                 */
                 checkAuthOnLoad: function() {
-                    // Verificar si ya está autenticado
+                    const self = this;
+                    
+                    // 🔧 AGREGAR: Resetear loading state por si viene del cache
+                    this.setLoadingState(false);
+                    
                     $.ajax({
                         url: '{% url "admin_check_auth_api" %}',
                         type: 'GET',
                         success: function(response) {
                             if (response.success && response.authenticated) {
-                                console.log('👤 Usuario ya autenticado:', response.user_info.username);
-                                this.showAlert('Ya tiene una sesión activa. Redirigiendo...', 'success');
+                                self.showAlert('Ya tiene una sesión activa. Redirigiendo...', 'success');
+                                
+                                const redirectUrl = self.state.redirectInfo?.redirectUrl || 
+                                                response.redirect_url || 
+                                                '{% url "consulta_denuncias" %}';
                                 
                                 setTimeout(() => {
-                                    window.location.href = '{% url "consulta_denuncias" %}';
+                                    window.location.replace = redirectUrl;
                                 }, 1500);
                             }
-                        }.bind(this),
+                        },
                         error: function(xhr) {
-                            console.log('🔍 Verificando estado de autenticación...');
-                            // No mostrar error, es normal no estar autenticado
+                            // 🔧 AGREGAR: Asegurar que el formulario esté habilitado
+                            self.setLoadingState(false);
                         }
                     });
                 },
                 
-                // Manejo del login principal
+                /**
+                 * Manejar el submit del formulario de login
+                 */
                 handleLogin: function(e) {
                     e.preventDefault();
+                    
+                    if (this.state.isLoading) {
+                
+                        return;
+                    }
                     
                     const username = $('#username').val().trim();
                     const password = $('#password').val();
                     
-                    // Validaciones básicas
+                    // Validar campos vacíos
                     if (!username || !password) {
                         this.showAlert('Por favor, completa todos los campos', 'error');
                         return;
                     }
                     
                     // Validaciones adicionales
-                    if (username.length < 3) {
-                        this.showAlert('El usuario debe tener al menos 3 caracteres', 'error');
+                    const validation = ValidationUtils.validateForm(username, password);
+                    if (!validation.valid) {
+                        this.showAlert(validation.message, 'error');
                         return;
                     }
                     
-                    if (password.length < 6) {
-                        this.showAlert('La contraseña debe tener al menos 6 caracteres', 'error');
-                        return;
-                    }
-                    
+                    // Proceder con el login
                     this.submitLogin(username, password);
                 },
                 
-
-            // 🔧 MODIFICAR solo esta parte en tu función submitLogin existente:
-
-            submitLogin: function(username, password) {
-                const csrfToken = $('[name=csrfmiddlewaretoken]').val();
+                /**
+                 * Enviar credenciales al backend
+                 */
+                submitLogin: function(username, password) {
+                    const self = this;
+                    const csrfToken = $('[name=csrfmiddlewaretoken]').val();
+                    
+                    // Preparar datos para enviar
+                    const loginData = {
+                        username: username,
+                        password: password
+                    };
+                    
+                    // Agregar empresa si está disponible
+                    if (this.state.redirectInfo?.empresa) {
+                        loginData.empresa = this.state.redirectInfo.empresa;
                 
-                // 🔧 NUEVO: Extraer empresa del parámetro next
-                const empresa = getEmpresaFromNext();
-                console.log('📤 Enviando empresa al backend:', empresa);
+                    }
+                    
+                    this.setLoadingState(true);
+                    this.hideAlert();
                 
-                this.setLoadingState(true);
-                this.hideAlert();
-                
-                console.log('🔐 Enviando credenciales para:', username);
-                
-                $.ajax({
-                    url: '{% url "admin_login_api" %}',
-                    type: 'POST',
-                    headers: {
-                        'X-CSRFToken': csrfToken,
-                        'Content-Type': 'application/json',
-                    },
-                    data: JSON.stringify({
-                        'username': username,
-                        'password': password,
-                        'empresa': empresa  // 🔧 AGREGAR ESTA LÍNEA
-                    }),
-                    success: function(response) {
-                        console.log('✅ Respuesta del servidor:', response);
-                        
-                        if (response.success) {
-                            this.showAlert(response.message || 'Inicio de sesión exitoso', 'success');
-                            
-                            if (response.user_info) {
-                                console.log('👤 Usuario autenticado:', {
-                                    username: response.user_info.username,
-                                    categoria: response.user_info.categoria?.nombre,
-                                    is_staff: response.user_info.is_staff,
-                                    is_superuser: response.user_info.is_superuser
-                                });
-                            }
-                            
-                            this.clearFormData();
-                            
-                            // ✅ SIN CAMBIOS: Usar response.redirect_url como siempre
-                            setTimeout(() => {
-                                window.location.href = response.redirect_url;
-                            }, 1500);
-                            
-                        } else {
-                            this.handleLoginError(response);
+                    
+                    $.ajax({
+                        url: '{% url "admin_login_api" %}',
+                        type: 'POST',
+                        headers: {
+                            'X-CSRFToken': csrfToken,
+                            'Content-Type': 'application/json',
+                        },
+                        data: JSON.stringify(loginData),
+                        success: function(response) {
+                            self.handleLoginSuccess(response);
+                        },
+                        error: function(xhr, status, error) {
+                            self.handleAjaxError(xhr, status, error);
                         }
-                    }.bind(this),
-                    error: function(xhr, status, error) {
-                        console.error('❌ Error en login:', error);
-                        this.handleAjaxError(xhr, status, error);
-                    }.bind(this)
-                });
-            },
-
+                    });
+                },
                 
+                /**
+                 * Manejar respuesta exitosa del login
+                 */
+                handleLoginSuccess: function(response) {
+
+                    
+                    if (response.success) {
+                        this.showAlert(response.message || 'Inicio de sesión exitoso', 'success');
+                        
+                        // Log de información del usuario
+                        
+                        this.clearFormData();
+                        
+                        // Determinar URL de redirección
+                        // Prioridad: redirectUrl del frontend > redirect_url del backend
+                        const redirectUrl = this.state.redirectInfo?.redirectUrl || 
+                                           response.redirect_url || 
+                                           '{% url "consulta_denuncias" %}';
+                        
+                        
+                        setTimeout(() => {
+                            window.location.href = redirectUrl;
+                        }, 1500);
+                        
+                    } else {
+                        this.handleLoginError(response);
+                    }
+                },
+                
+                /**
+                 * Manejar errores de login del backend
+                 */
                 handleLoginError: function(response) {
                     let errorMessage = response.message || 'Error en las credenciales';
                     
-                    // Personalizar mensajes según el código de error
-                    switch(response.error_code) {
-                        case 'MISSING_CREDENTIALS':
-                            errorMessage = 'Usuario y contraseña son requeridos';
-                            break;
-                        case 'INVALID_CREDENTIALS':
-                            errorMessage = 'Usuario o contraseña incorrectos';
-                            break;
-                        case 'NOT_ADMIN':
-                            errorMessage = 'No tiene permisos de administrador';
-                            break;
-                        case 'USER_INACTIVE':
-                            errorMessage = 'Su cuenta está desactivada. Contacte al administrador.';
-                            break;
-                        default:
-                            errorMessage = response.message || 'Error en el inicio de sesión';
+                    // Mensajes personalizados según código de error
+                    const errorMessages = {
+                        'MISSING_CREDENTIALS': 'Usuario y contraseña son requeridos',
+                        'INVALID_CREDENTIALS': 'Usuario o contraseña incorrectos',
+                        'NOT_ADMIN': 'No tiene permisos de administrador',
+                        'USER_INACTIVE': 'Su cuenta está desactivada. Contacte al administrador.'
+                    };
+                    
+                    if (response.error_code && errorMessages[response.error_code]) {
+                        errorMessage = errorMessages[response.error_code];
                     }
                     
                     this.showAlert(errorMessage, 'error');
                     this.setLoadingState(false);
                     
                     // Limpiar contraseña por seguridad
-                    $('#password').val('');
+                    $('#password').val('').focus();
                 },
                 
+                /**
+                 * Manejar errores AJAX
+                 */
                 handleAjaxError: function(xhr, status, error) {
+                    console.error('❌ Error AJAX:', { status: xhr.status, error: error });
+                    
                     let errorMessage = 'Error de conexión. Intenta nuevamente.';
                     
+                    // Intentar parsear respuesta del servidor
                     try {
                         const response = JSON.parse(xhr.responseText);
                         if (response.message) {
                             errorMessage = response.message;
                         }
                     } catch (e) {
-                        // Si no se puede parsear, usar mensaje por defecto
-                    }
-                    
-                    // Personalizar según código de estado HTTP
-                    switch(xhr.status) {
-                        case 400:
-                            errorMessage = 'Datos inválidos enviados';
-                            break;
-                        case 401:
-                            errorMessage = 'Credenciales incorrectas';
-                            break;
-                        case 403:
-                            errorMessage = 'No tiene permisos de acceso';
-                            break;
-                        case 500:
-                            errorMessage = 'Error del servidor. Contacte al administrador.';
-                            break;
-                        case 0:
-                            errorMessage = 'Sin conexión al servidor. Verifique su internet.';
-                            break;
+                        // Usar mensajes por defecto según código HTTP
+                        const httpErrors = {
+                            0: 'Sin conexión al servidor. Verifique su internet.',
+                            400: 'Datos inválidos enviados',
+                            401: 'Credenciales incorrectas',
+                            403: 'No tiene permisos de acceso',
+                            500: 'Error del servidor. Contacte al administrador.',
+                            503: 'Servicio no disponible. Intente más tarde.'
+                        };
+                        
+                        if (httpErrors[xhr.status]) {
+                            errorMessage = httpErrors[xhr.status];
+                        }
                     }
                     
                     this.showAlert(errorMessage, 'error');
                     this.setLoadingState(false);
                 },
                 
-                // Estados de carga mejorados
+                /**
+                 * Toggle de visibilidad de contraseña
+                 */
+                togglePasswordVisibility: function() {
+                    const passwordInput = $('#password');
+                    const icon = $('#passwordToggle i');
+                    const isPassword = passwordInput.attr('type') === 'password';
+                    
+                    if (isPassword) {
+                        // Mostrar contraseña
+                        passwordInput.attr('type', 'text');
+                        icon.removeClass('fa-eye').addClass('fa-eye-slash');
+                        passwordInput.addClass('password-revealed');
+                        
+                    } else {
+                        // Ocultar contraseña
+                        passwordInput.attr('type', 'password');
+                        icon.removeClass('fa-eye-slash').addClass('fa-eye');
+                        passwordInput.removeClass('password-revealed');
+                       
+                    }
+                    
+                    // Mantener foco en el input
+                    passwordInput.focus();
+                },
+                
+                /**
+                 * Establecer estado de carga del formulario
+                 */
                 setLoadingState: function(loading) {
+                    this.state.isLoading = loading;
+                    
                     const btn = $('#loginBtn');
                     const text = $('#loginText');
                     const spinner = $('#loginSpinner');
@@ -495,7 +666,9 @@
                     }
                 },
                 
-                // Manejo de alertas mejorado
+                /**
+                 * Mostrar alerta
+                 */
                 showAlert: function(message, type) {
                     const container = $('#alertContainer');
                     const alert = $('#alertMessage');
@@ -512,31 +685,45 @@
                         }, 5000);
                     }
                     
-                    // Scroll hasta la alerta si es necesario
-                    container[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    // Scroll suave hasta la alerta
+                    container[0].scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'nearest' 
+                    });
                 },
                 
+                /**
+                 * Ocultar alerta
+                 */
                 hideAlert: function() {
-                    $('#alertContainer').hide();
+                    $('#alertContainer').fadeOut(300);
                 },
                 
-                // Seguridad: limpiar datos sensibles
+                /**
+                 * Limpiar datos del formulario
+                 */
                 clearFormData: function() {
                     $('#password').val('');
                 },
                 
+                /**
+                 * Limpiar datos sensibles (al salir de la página)
+                 */
                 clearSensitiveData: function() {
-                    // Limpiar datos sensibles cuando se sale de la página
                     $('#password').val('');
                 },
                 
-                // Función para logout (si se necesita)
+                /**
+                 * Logout (si se necesita)
+                 */
                 logout: function() {
+                    const csrfToken = $('[name=csrfmiddlewaretoken]').val();
+                    
                     $.ajax({
                         url: '{% url "admin_logout_api" %}',
                         type: 'POST',
                         headers: {
-                            'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val(),
+                            'X-CSRFToken': csrfToken,
                         },
                         success: function(response) {
                             if (response.success) {
@@ -551,44 +738,12 @@
                 }
             };
             
-            // Inicializar la aplicación cuando el documento esté listo
+            // ========================================
+            // INICIALIZACIÓN
+            // ========================================
+            
             $(document).ready(function() {
                 AdminLoginApp.init();
-                
-                // Agregar manejo de errores globales
-                $(document).ajaxError(function(event, xhr, settings, thrownError) {
-                    if (xhr.status === 403 && xhr.responseJSON && xhr.responseJSON.error_code === 'CSRF_TOKEN_MISSING') {
-                        console.error('❌ Error CSRF - Recargando página...');
-                        location.reload();
-                    }
-                });
-                
-                console.log('🎯 AdminLoginApp inicializado correctamente');
-                
-                // ✅ TOGGLE DE CONTRASEÑA - FUNCIONAL
-                $('#passwordToggle').on('click', function() {
-                    console.log("✅ Toggle funcionando correctamente");
-                    const passwordInput = $('#password');
-                    const icon = $(this).find('i');
-                    const isPassword = passwordInput.attr('type') === 'password';
-                    
-                    if (isPassword) {
-                        // Mostrar contraseña
-                        passwordInput.attr('type', 'text');
-                        icon.removeClass('fa-eye').addClass('fa-eye-slash');
-                        passwordInput.addClass('password-revealed');
-                        console.log("🔓 Contraseña mostrada");
-                    } else {
-                        // Ocultar contraseña
-                        passwordInput.attr('type', 'password');
-                        icon.removeClass('fa-eye-slash').addClass('fa-eye');
-                        passwordInput.removeClass('password-revealed');
-                        console.log("🔒 Contraseña oculta");
-                    }
-                    
-                    // Mantener foco en el input
-                    passwordInput.focus();
-                });
             });
         </script>
     </body>
