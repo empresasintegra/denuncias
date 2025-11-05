@@ -79,9 +79,7 @@ class ServiceProcessDenuncia(APIView):
         - consulta: Consultar estado de denuncia
         """
 
-        print("hola?")
         try:
-            print("estoy en try")
 
             if step == 'initialize':
                 print("estoy en initilize")
@@ -131,14 +129,11 @@ class ServiceProcessDenuncia(APIView):
        
         empresa=request.data['empresa']
         empresa="".join(empresa.split())
-        
-        print("process")
+    
         empresa_filtrada=Empresa.objects.filter(nombre=empresa).first()
 
-        print("empresa_filtrada")
-        print(empresa_filtrada)
         request.session['empresa_id']=empresa_filtrada.id
-        print(empresa_filtrada.id)
+       
 
         return Response({
                 'success': True,
@@ -157,8 +152,7 @@ class ServiceProcessDenuncia(APIView):
             item = serializer.get_validated_item()
             
             # Guardar en sesión
-            print("estoy guardando en session")
-            print(item.categoria.id)
+         
 
             request.session['denuncia_item_id'] = item.id
             request.session['denuncia_item_nombre'] = item.enunciado
@@ -205,7 +199,7 @@ class ServiceProcessDenuncia(APIView):
         serializer = DenunciaCreateSerializer(data=data)
         
         if serializer.is_valid():
-            print("✅ Datos del wizard validados")
+            
             
             # ===== PROCESAR ARCHIVOS (OPCIONAL) =====
             archivos_procesados = []
@@ -213,11 +207,9 @@ class ServiceProcessDenuncia(APIView):
             
             # Obtener archivos del request - puede estar vacío
             archivos = request.FILES.getlist('archivos[]')
-            print(f"📁 Archivos recibidos: {len(archivos)}")
             
             # ✅ PROCESAR SOLO SI HAY ARCHIVOS
             if archivos and len(archivos) > 0:
-                print("📎 Procesando archivos adjuntos...")
                 for archivo in archivos:
                     try:
                         # Validar archivo
@@ -226,7 +218,6 @@ class ServiceProcessDenuncia(APIView):
                             # Guardar archivo físicamente
                             archivo_guardado = self._save_file(archivo)
                             archivos_procesados.append(archivo_guardado)
-                            print(f"✅ Archivo guardado: {archivo.name}")
                         else:
                             archivos_errors.append(archivo_validado['error'])
                             print(f"❌ Archivo inválido: {archivo.name} - {archivo_validado['error']}")
@@ -243,9 +234,7 @@ class ServiceProcessDenuncia(APIView):
                         'message': 'Errores al procesar archivos',
                         'errors': archivos_errors
                     }, status=400)
-            else:
-                print("📝 Denuncia sin archivos adjuntos - continuando normalmente")
-                # ✅ SIN ARCHIVOS ES VÁLIDO - continuar proceso normal
+            
             
             # Guardar datos en sesión para el siguiente paso
             request.session.update({
@@ -256,7 +245,6 @@ class ServiceProcessDenuncia(APIView):
                 'archivos_procesados': archivos_procesados  # Guardar info de archivos
             })
 
-            print("✅ Datos guardados en sesión")
             request.session.modified = True
             
             response_data = {
@@ -285,20 +273,20 @@ class ServiceProcessDenuncia(APIView):
             'errors': serializer.errors
         }, status=400)
     
-    # ===== FUNCIONES DE MANEJO DE ARCHIVOS =====
+
     
     def _validate_file(self, archivo):
         """
         Valida un archivo subido
         """
-        # Validar tamaño
+        
         if archivo.size > self.MAX_FILE_SIZE:
             return {
                 'valid': False,
                 'error': f'El archivo {archivo.name} excede el tamaño máximo (500MB)'
             }
         
-        # Validar extensión
+        
         file_extension = Path(archivo.name).suffix.lower()
         if file_extension not in self.ALLOWED_EXTENSIONS:
             return {
@@ -306,7 +294,7 @@ class ServiceProcessDenuncia(APIView):
                 'error': f'Tipo de archivo no permitido: {file_extension}'
             }
         
-        # Validar MIME type (seguridad adicional)
+       
         mime_type, _ = mimetypes.guess_type(archivo.name)
         if mime_type and mime_type not in self.ALLOWED_MIME_TYPES:
             return {
@@ -314,7 +302,7 @@ class ServiceProcessDenuncia(APIView):
                 'error': f'Tipo MIME no permitido: {mime_type}'
             }
         
-        # Validar que el archivo no esté vacío
+       
         if archivo.size == 0:
             return {
                 'valid': False,
@@ -327,11 +315,9 @@ class ServiceProcessDenuncia(APIView):
         """
         Guarda un archivo en el servidor y retorna la información
         """
-        # Generar nombre único para evitar colisiones
         file_extension = Path(archivo.name).suffix.lower()
         unique_filename = f"{uuid.uuid4().hex}{file_extension}"
         
-        # Crear estructura de carpetas por fecha
         fecha_actual = datetime.now()
         folder_path = os.path.join(
             self.UPLOAD_FOLDER,
@@ -339,17 +325,13 @@ class ServiceProcessDenuncia(APIView):
             f"{fecha_actual.month:02d}"
         )
         
-        # Ruta completa del archivo
         file_path = os.path.join(folder_path, unique_filename)
         
-        # Crear directorio si no existe
         full_directory = os.path.join(settings.MEDIA_ROOT, folder_path)
         os.makedirs(full_directory, exist_ok=True)
         
-        # Guardar archivo usando Django's file storage
         saved_path = default_storage.save(file_path, ContentFile(archivo.read()))
         
-        # Generar URL accesible
         file_url = os.path.join(settings.MEDIA_URL, saved_path)
         
         return {
@@ -368,7 +350,6 @@ class ServiceProcessDenuncia(APIView):
         """
         archivos_creados = []
         
-        # ✅ SI NO HAY ARCHIVOS, RETORNAR LISTA VACÍA (no es error)
         if not archivos_info or len(archivos_info) == 0:
             print("📝 No hay archivos para registrar en base de datos")
             return archivos_creados
@@ -408,11 +389,8 @@ class ServiceProcessDenuncia(APIView):
             'denuncia_tiempo_id', 'denuncia_descripcion'
         ]
 
-        print(required_session_keys)
-        print("?")
         
         missing_keys = [key for key in required_session_keys if not request.session.get(key)]
-        print(missing_keys)
         if missing_keys:
             return Response({
                 'success': False,
@@ -421,7 +399,6 @@ class ServiceProcessDenuncia(APIView):
                 'redirect': '/denuncia/Paso1/'
             }, status=400)
 
-        print(request.data)        
         tipo_denuncia = request.data.get('tipo_denuncia')
 
         usuario_data = {
@@ -435,15 +412,11 @@ class ServiceProcessDenuncia(APIView):
 
         # Procesar datos de usuario
         user_serializer = UsuarioCreateSerializer(data=usuario_data)
-        print("user?")  
         if user_serializer.is_valid():
             # Crear o actualizar usuario
             usuario = user_serializer.update_or_create()
-            print("id usuario ")
             
             # Crear denuncia
-            print("create?")
-            print (request.session['empresa_id'])
             denuncia = Denuncia.objects.create(
                 usuario=usuario,
                 item_id=request.session['denuncia_item_id'],
@@ -459,11 +432,8 @@ class ServiceProcessDenuncia(APIView):
             archivos_creados = []
             
             if archivos_procesados and len(archivos_procesados) > 0:
-                print(f"📁 Creando registros para {len(archivos_procesados)} archivos")
                 archivos_creados = self._create_archivo_records(denuncia, archivos_procesados)
-                print(f"✅ {len(archivos_creados)} archivos registrados en base de datos")
-            else:
-                print("📝 Denuncia creada sin archivos adjuntos")
+                
             
             # Limpiar sesión (incluyendo archivos si los había)
             for key in required_session_keys + ['archivos_procesados']:
@@ -471,9 +441,9 @@ class ServiceProcessDenuncia(APIView):
             
             # Guardar código para mostrar en página final
             request.session['codigo'] = denuncia.codigo if usuario.anonimo else usuario.id
-            request.session['denuncia_created'] = True  # Flag adicional
-            request.session.modified = True  # ✅ CRÍTICO: Forzar guardado
-            request.session.save()  # ✅ CRÍTICO: Guardar inmediatamente
+            request.session['denuncia_created'] = True  
+            request.session.modified = True  
+            request.session.save()  
             
             
             response_data = {
@@ -486,15 +456,12 @@ class ServiceProcessDenuncia(APIView):
                 },
             }
             
-            # ✅ AGREGAR INFORMACIÓN DE ARCHIVOS SOLO SI EXISTEN
+            
             if archivos_creados and len(archivos_creados) > 0:
                 response_data['data']['archivos'] = {
                     'total': len(archivos_creados),
                     'nombres': [archivo.nombre for archivo in archivos_creados]
                 }
-                print(f"📎 Respuesta incluye info de {len(archivos_creados)} archivos")
-            else:
-                print("📝 Respuesta sin información de archivos (no se adjuntaron)")
             
             return Response(response_data)
         
@@ -523,25 +490,20 @@ class ServiceProcessDenuncia(APIView):
                     'message': 'RUT requerido'
                 }, status=400, json_dumps_params={'ensure_ascii': False})
             
-            print(f"🔍 Validando RUT: {rut_input}")
             
-            # ✅ VALIDAR FORMATO DE RUT
+        
             try:
                 validate_rut(rut_input)
-                print("✅ RUT con formato válido")
             except Exception as e:
-                print(f"❌ RUT con formato inválido: {str(e)}")
                 return Response({
-                    'success': True,  # Success porque la operación se completó
+                    'success': True,  
                     'valid': False,
                     'exists': False,
                     'message': f'RUT inválido: {str(e)}',
                     'error_type': 'format_error'
                 }, status=200)
             
-            # ✅ BUSCAR RUT EN BASE DE DATOS
             try:
-                # Limpiar RUT para búsqueda (remover puntos y guión)
                 
                 # Buscar usuario con este RUT
                 usuario_existente = Usuario.objects.filter(
@@ -549,9 +511,7 @@ class ServiceProcessDenuncia(APIView):
                 ).first()
                 
                 if usuario_existente:
-                    print(f"⚠️ RUT ya existe - Usuario ID: {usuario_existente.id}")
                     
-                    # ✅ RUT EXISTE - Preparar información del usuario
                     user_info = {
                         'id': usuario_existente.id,
                         'nombre_completo': usuario_existente.nombre_completo,
@@ -574,7 +534,6 @@ class ServiceProcessDenuncia(APIView):
                 else:
                     print("✅ RUT válido y disponible")
                     
-                    # ✅ RUT VÁLIDO Y NO EXISTE
                     return Response({
                         'success': True,
                         'valid': True,
@@ -664,7 +623,6 @@ class ServiceProcessDenuncia(APIView):
             denuncias = Denuncia.objects.filter(codigo=codigo)
             tipo_consulta = 'anonima'
         else:
-            # Usuario identificado - buscar por ID
             try:
                 # Intentar convertir a número (ID de usuario)
                 user_id = int(codigo)

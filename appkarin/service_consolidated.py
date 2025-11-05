@@ -399,14 +399,13 @@ class DenunciaManagementViewSet(ViewSet):
                 if categoria and archivo.denuncia.item.categoria != categoria:
                     return Response({'error': 'Sin permisos para esta categoría'}, status=403)
             
-            # ✅ SOLUCIÓN: Limpiar la URL antes de construir la ruta
+            
             archivo_url = archivo.url
             
-            # Si la URL empieza con /media/, quitarlo
             if archivo_url.startswith('/media/'):
-                archivo_url = archivo_url[7:]  # Quitar '/media/'
+                archivo_url = archivo_url[7:] 
             elif archivo_url.startswith('media/'):
-                archivo_url = archivo_url[6:]  # Quitar 'media/'
+                archivo_url = archivo_url[6:]  
             
             # Ahora construir la ruta correcta
             file_path = os.path.join(settings.MEDIA_ROOT, archivo_url)
