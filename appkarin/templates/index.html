@@ -1200,7 +1200,6 @@
                 consultarText.style.display = 'flex';
                 loadingSpinner.style.display = 'none';
                 
-                console.log('✅ Estado del botón reseteado correctamente');
             }
         }
 
@@ -1208,27 +1207,23 @@
         window.addEventListener('pageshow', function(event) {
             // Si la página se carga desde el cache del navegador (botón atrás)
             if (event.persisted) {
-                console.log('🔄 Página cargada desde cache - reseteando estado');
                 resetearEstadoBoton();
             }
         });
 
         // ✅ También resetear al cargar la página normalmente
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('📄 DOM cargado - reseteando estado inicial');
             resetearEstadoBoton();
         });
 
         // ✅ Limpiar estado antes de salir de la página
         window.addEventListener('beforeunload', function() {
-            console.log('🚪 Saliendo de la página - limpiando estado');
             resetearEstadoBoton();
         });
 
         // ✅ Resetear también cuando se hace visible la página (para móviles)
         document.addEventListener('visibilitychange', function() {
             if (!document.hidden) {
-                console.log('👁️ Página visible - verificando estado');
                 resetearEstadoBoton();
             }
         });
@@ -1363,11 +1358,9 @@
 
             // ✅ PREVENIR ENVÍOS MÚLTIPLES: Validar que el botón no esté ya procesando
             if (btnConsultar.disabled) {
-                console.log('⚠️ Botón ya está procesando, ignorando clic');
                 return;
             }
 
-            console.log('🔍 Iniciando consulta de código:', codigo);
 
             // Mostrar loading
             btnConsultar.disabled = true;
@@ -1376,7 +1369,6 @@
 
             // ✅ TIMEOUT DE SEGURIDAD: Resetear después de 15 segundos si algo falla
             const timeoutId = setTimeout(() => {
-                console.log('⏰ Timeout alcanzado - reseteando estado por seguridad');
                 resetearEstadoBoton();
                 mostrarNotificacion('Tiempo de espera agotado. Intente nuevamente.', 'error');
             }, 15000);
@@ -1411,7 +1403,7 @@
                 // ✅ Limpiar timeout ya que vamos a enviar el formulario
                 clearTimeout(timeoutId);
                 
-                console.log('📤 Enviando formulario...');
+                
                 
                 // Enviar formulario
                 form.submit();
@@ -1430,7 +1422,6 @@
             if (btnConsultar.disabled) {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('🛑 Formulario ya está siendo procesado - prevenido');
                 return false;
             }
         });
@@ -1484,7 +1475,6 @@
             }, 300);
         });
 
-        console.log('🚀 Script del Portal de Denuncias inicializado correctamente');
     </script>
 </body>
 </html>

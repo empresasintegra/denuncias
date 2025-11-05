@@ -22,12 +22,7 @@ class SimpleDenunciaDataTableAPIView(APIView):
     
     def post(self, request, *args, **kwargs):
         try:
-            print("="*50)
-            print("DATATABLE API - REQUEST RECIBIDO")
-            print("="*50)
             
-            # ✅ FIX PRINCIPAL: Usar request.data de DRF directamente
-            # DRF ya parseó el body, no intentar leerlo de nuevo
             dt_data = {}
             
             # Obtener datos de forma segura
@@ -57,15 +52,13 @@ class SimpleDenunciaDataTableAPIView(APIView):
             dt_data['start'] = int(dt_data.get('start', 0))
             dt_data['length'] = int(dt_data.get('length', 10))
             
-            print(f"Params procesados: draw={dt_data['draw']}, start={dt_data['start']}, length={dt_data['length']}")
-            print(f"User info: {dt_data.get('user_info', {})}")
+          
             
             # ✅ FIX: Verificar autenticación antes de acceder a user
             admin = None
             if request.user and request.user.is_authenticated:
                 try:
                     admin = AdminDenuncias.objects.filter(id=request.user.id).first()
-                    print(f"Admin autenticado: {request.user.username} (ID: {request.user.id})")
                 except Exception as e:
                     print(f"Error obteniendo admin: {e}")
                     admin = None
@@ -106,15 +99,12 @@ class SimpleDenunciaDataTableAPIView(APIView):
             
             # FILTRADO según tipo de usuario
             if request.user and request.user.is_authenticated:
-                print("Usuario autenticado - aplicando filtros de admin")
                 
-                # ✅ FIX: Verificar que rol_categoria existe
+             
                 if hasattr(request.user, 'rol_categoria') and request.user.rol_categoria:
-                    print(f"Filtrando por categoría: {request.user.rol_categoria.nombre} (ID: {request.user.rol_categoria.id})")
                     denuncia = denuncia.filter(item__categoria_id=request.user.rol_categoria.id)
                 elif request.user.is_superuser:
-                    print("Superusuario - mostrando todas las denuncias")
-                    # No aplicar filtros
+                   pass
                 else:
                     print("Admin sin categoría - sin permisos")
                     denuncia = denuncia.none()
@@ -124,31 +114,24 @@ class SimpleDenunciaDataTableAPIView(APIView):
                 user_type = user_info.get('tipo', 'guest')
                 codigo = user_info.get('codigo', '')
                 
-                print(f"Usuario no autenticado - tipo: {user_type}, código: {codigo}")
                 
                 if user_type == 'anonimo' and codigo:
-                    print(f"Filtrando denuncias anónimas: {codigo}")
                     denuncia = denuncia.filter(codigo=codigo)
                 elif user_type == 'identificado' and codigo:
-                    print(f"Filtrando denuncias identificadas: {codigo}")
                     denuncia = denuncia.filter(usuario__id=codigo)
                 else:
-                    print("Sin código válido - sin denuncias")
                     denuncia = denuncia.none()
             
             # Contar total antes de búsqueda
             records_total = denuncia.count()
-            print(f"Total antes de búsqueda: {records_total}")
             
             # Aplicar búsqueda si existe
             search_value = dt_data.get('search', {}).get('value', '')
             if search_value:
-                print(f"Aplicando búsqueda: '{search_value}'")
                 denuncia = self._apply_search(denuncia, search_value)
             
             # Contar registros filtrados
             records_filtered = denuncia.count()
-            print(f"Total después de búsqueda: {records_filtered}")
             
             # Aplicar ordenamiento
             denuncia = self._apply_ordering(denuncia, dt_data)
@@ -162,7 +145,7 @@ class SimpleDenunciaDataTableAPIView(APIView):
             else:
                 denuncias = denuncia  # Todas las filas si length = -1
             
-            print(f"Paginación: desde {start}, cantidad {length if length > 0 else 'todas'}")
+
             
             # Serializar datos
             data = []
@@ -200,10 +183,8 @@ class SimpleDenunciaDataTableAPIView(APIView):
                     data.append(row)
                     
                 except Exception as e:
-                    print(f"Error serializando denuncia {denuncia.codigo}: {e}")
                     continue
             
-            print(f"Serializadas {len(data)} denuncias")
             
             # Construir respuesta
             response_data = {
@@ -213,15 +194,9 @@ class SimpleDenunciaDataTableAPIView(APIView):
                 'data': data
             }
             
-            print(f"Respuesta final: draw={response_data['draw']}, total={records_total}, filtered={records_filtered}, data_count={len(data)}")
-            print("="*50)
-            
             return JsonResponse(response_data, safe=False)
             
         except Exception as e:
-            import traceback
-            print(f"ERROR en SimpleDenunciaDataTableAPIView: {str(e)}")
-            print(traceback.format_exc())
             
             # Devolver respuesta válida de DataTables incluso en error
             return JsonResponse({
@@ -270,7 +245,6 @@ class SimpleDenunciaDataTableAPIView(APIView):
                 if direction == 'desc':
                     order_field = f'-{order_field}'
                 
-                print(f"Ordenando por: {order_field}")
                 return queryset.order_by(order_field)
             except Exception as e:
                 print(f"Error aplicando ordenamiento: {e}")

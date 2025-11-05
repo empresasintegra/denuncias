@@ -23,37 +23,36 @@ const DenunciaApp = {
 
     // Detección de página actual - MEJORADA
     getCurrentPage: function() {
-        console.log('🔍 Detectando página actual...');
-        console.log('📍 URL actual:', window.location.pathname);
         
         // Detectar por elementos únicos en el DOM
         if (document.getElementById('codigo-texto')) {
-            console.log('✅ Página detectada: CÓDIGO');
+           
             return 'codigo';
         }
         
         if (document.getElementById('smartwizard')) {
-            console.log('✅ Página detectada: WIZARD');
+           
             return 'wizard';
         }
         
         if (document.getElementById('usuarioForm')) {
-            console.log('✅ Página detectada: USUARIO');
+           
             return 'usuario';
         }
         
         if (document.getElementById('denunciaForm')) {
-            console.log('✅ Página detectada: ITEMS');
+            
             return 'items';
         }
 
-        console.log('⚠️ Página no reconocida');
+       
+
         return 'unknown';
     },
 
     // Inicialización general
     init: function() {
-        console.log('🚀 DenunciaApp iniciado');
+      
         
         // Detectar página y ejecutar código específico
         const currentPage = this.getCurrentPage();
@@ -75,8 +74,7 @@ const DenunciaApp = {
             case 'codigo':
                 this.codigoPage.init();
                 break;
-            default:
-                console.log('⚠️ No hay código específico para esta página');
+               
         }
     },
 
@@ -85,7 +83,7 @@ const DenunciaApp = {
     // ===========================================
     common: {
         init: function() {
-            console.log('🔧 Inicializando funciones comunes');
+            
             this.setupErrorHandling();
             this.setupCommonAnimations();
         },
@@ -94,28 +92,28 @@ const DenunciaApp = {
         getCSRFToken: function() {
             // Opción 1: Desde variable global del template
             if (window.CSRF_TOKEN) {
-                console.log('✅ CSRF token encontrado desde variable global:', window.CSRF_TOKEN.substring(0, 10) + '...');
+               
                 return window.CSRF_TOKEN;
             }
 
             // Opción 2: Desde input hidden
             const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
             if (csrfInput && csrfInput.value) {
-                console.log('✅ CSRF token encontrado desde input:', csrfInput.value.substring(0, 10) + '...');
+                
                 return csrfInput.value;
             }
 
             // Opción 3: Desde cookie (si está configurado)
             const cookieValue = this.getCookie('csrftoken');
             if (cookieValue) {
-                console.log('✅ CSRF token encontrado desde cookie:', cookieValue.substring(0, 10) + '...');
+               
                 return cookieValue;
             }
 
             // Opción 4: Desde meta tag (si está configurado)
             const metaTag = document.querySelector('meta[name=csrf-token]');
             if (metaTag && metaTag.content) {
-                console.log('✅ CSRF token encontrado desde meta:', metaTag.content.substring(0, 10) + '...');
+               
                 return metaTag.content;
             }
 
@@ -141,7 +139,7 @@ const DenunciaApp = {
 
         // ⭐ FUNCIÓN SIMPLE: Insertar error DENTRO de .tab-content como primer hijo + scroll arriba
         showError: function(message, container = null) {
-            console.log('🚨 Mostrando error:', message);
+           
             
             // Remover alertas previas
             $('.alert-danger, .emergency-alert').remove();
@@ -158,19 +156,19 @@ const DenunciaApp = {
             // ⭐ ESTRATEGIA SIMPLE: Buscar .tab-content e insertar DENTRO como primer hijo
             const tabContent = document.querySelector('.tab-content');
             if (tabContent) {
-                console.log('✅ Encontrado .tab-content, insertando como primer hijo...');
+               
                 $(tabContent).prepend(alert);
-                console.log('✅ Error insertado dentro de .tab-content');
+               
                 
                 // ⭐ SCROLL SIMPLE: Ir hasta arriba
                 setTimeout(() => {
                     $('html, body').animate({scrollTop: 0}, 600);
-                    console.log('✅ Scroll hacia arriba completado');
+                    
                 }, 100);
                 
             } else {
                 // Fallback simple
-                console.log('❌ No se encontró .tab-content, usando fallback');
+               
                 if (container) {
                     $(container).prepend(alert);
                 } else {
@@ -187,7 +185,7 @@ const DenunciaApp = {
                 });
             }, 8000);
             
-            console.log('✅ showError completado');
+            
         },
 
         // Remover alerta
@@ -271,7 +269,7 @@ const DenunciaApp = {
     // ===========================================
     itemsPage: {
         init: function() {
-            console.log('📋 Inicializando página de items con collapse');
+            
             this.setupForm();
             this.setupSelectionEffects();
             this.setupCollapseSystem();
@@ -281,16 +279,14 @@ const DenunciaApp = {
         setupForm: function() {
             const form = $('#denunciaForm');
             if (form.length === 0) {
-                console.log('❌ No se encontró #denunciaForm');
+                
                 return;
             }
 
-            console.log('✅ Configurando formulario de items');
-            console.log('📍 Action:', form.attr('action'));
 
             form.submit(function (e) {
                 e.preventDefault();
-                console.log('📤 Enviando formulario de items...');
+                
                 // Validar que se haya seleccionado algo
                 if (!$('input[name="denuncia_item"]:checked').length) {
                     DenunciaApp.common.showError('Debe seleccionar el tipo de denuncia');
@@ -301,30 +297,26 @@ const DenunciaApp = {
                     type: form.attr('method') || 'POST',
                     url: form.attr('action'),
                     data: form.serialize(),
-                    beforeSend: function() {
-                        console.log('🔄 Enviando datos...');
-                    },
+
                     success: function (response) {
-                        console.log('✅ Respuesta recibida:', response);
+                        
                         
                         if (response.success) {
-                            console.log('✅ Envío exitoso');
-                            console.log('🔄 Redirect URL:', response.redirect_url);
+                           
                             
                             if (response.redirect_url) {
                                 window.location.href = response.redirect_url;
                             } else {
-                                console.log('⚠️ No hay redirect_url, usando fallback');
+                               
                                 window.location.href = '/denuncia/Paso2/';
                             }        
                         } else {
-                            console.log('❌ Error en respuesta:', response.message);
+                            
                             DenunciaApp.common.showError(response.message || 'Error al procesar la denuncia');
                         }
                     },
                     error: function (xhr, status, error) {
-                        console.log('❌ Error AJAX:', error);
-                        console.log('📄 Response text:', xhr.responseText);
+                        
                         DenunciaApp.common.showError('Error al procesar la denuncia. Por favor intente nuevamente.');
                     },
                 });
@@ -355,8 +347,7 @@ const DenunciaApp = {
                             categoriaCard.classList.add('has-selection');
                         }
                         
-                        console.log('✅ Item seleccionado:', this.value);
-                        console.log('📂 Categoría:', this.dataset.categoria);
+                       
                     }
                 });
             });
@@ -366,7 +357,7 @@ const DenunciaApp = {
         // SISTEMA DE COLLAPSE
         // ===========================================
         setupCollapseSystem: function() {
-            console.log('🎯 Configurando sistema de collapse');
+            
             
             // Inicializar todas las categorías como colapsadas
             document.querySelectorAll('.categoria-card').forEach(card => {
@@ -386,7 +377,6 @@ const DenunciaApp = {
         },
 
         toggleCategoria: function(categoriaId) {
-            console.log(`🔄 Toggle categoría: ${categoriaId}`);
             
             const card = document.querySelector(`[data-categoria-id="${categoriaId}"]`);
             if (!card) {
@@ -399,11 +389,11 @@ const DenunciaApp = {
             if (isExpanded) {
                 this.collapseCategory(card);
                 DenunciaApp.vars.expandedCategories.delete(categoriaId);
-                console.log(`📉 Categoría ${categoriaId} colapsada`);
+               
             } else {
                 this.expandCategory(card);
                 DenunciaApp.vars.expandedCategories.add(categoriaId);
-                console.log(`📈 Categoría ${categoriaId} expandida`);
+               
             }
 
             // Actualizar atributos de accesibilidad
@@ -507,7 +497,7 @@ const DenunciaApp = {
         // ACCESIBILIDAD
         // ===========================================
         initAccessibility: function() {
-            console.log('♿ Configurando accesibilidad');
+            
             
             // Agregar atributos ARIA
             document.querySelectorAll('.categoria-header').forEach(header => {
@@ -567,11 +557,11 @@ const DenunciaApp = {
     // ===========================================
     wizardPage: {
         init: function() {
-            console.log('🧙‍♂️ Inicializando wizard');
+            
             
             // Esperar a que jQuery y SmartWizard estén listos
             if (typeof $ === 'undefined') {
-                console.log('⏳ Esperando jQuery...');
+                
                 setTimeout(() => this.init(), 100);
                 return;
             }
@@ -583,7 +573,7 @@ const DenunciaApp = {
         },
 
         setupRelacionEmpresaHandler: function() {
-            console.log('🔧 Configurando handler para relación empresa');
+            
             
             // Detectar cambios en los radio buttons de relación empresa
             $('input[name="denuncia_relacion"]').on('change', function() {
@@ -591,18 +581,18 @@ const DenunciaApp = {
                 const otroContainer = $('#otro-descripcion-container');
                 const otroInput = $('#descripcion_relacion');
                 
-                console.log(`📌 Relación seleccionada: ${rol}`);
+              
                 
                 if (rol && rol.toLowerCase() === 'otro') {
                     // Mostrar campo con animación
                     otroContainer.slideDown(300);
                     otroInput.prop('required', true);
-                    console.log('✅ Campo "Otro" activado');
+                  
                 } else {
                     // Ocultar campo y limpiar valor
                     otroContainer.slideUp(300);
                     otroInput.prop('required', false).val('');
-                    console.log('❌ Campo "Otro" desactivado');
+                   
                 }
             });
             
@@ -616,11 +606,11 @@ const DenunciaApp = {
         setupSmartWizard: function() {
             const wizardElement = $('#smartwizard');
             if (wizardElement.length === 0) {
-                console.log('❌ No se encontró #smartwizard');
+               
                 return;
             }
 
-            console.log('✅ Configurando SmartWizard');
+           
 
             wizardElement.smartWizard({
                 selected: 0,                    // Paso inicial 
@@ -659,7 +649,6 @@ const DenunciaApp = {
             // ⭐ USANDO EL EVENTO CORRECTO CON PARÁMETROS REALES
     wizardElement.on("showStep", function(e, anchorObject, stepIndex, stepDirection, stepPosition) {
     DenunciaApp.vars.currentStep = stepIndex;
-    console.log(`📍 Mostrando paso: ${stepIndex + 1}, dirección: ${stepDirection}, posición: ${stepPosition}`);
     this.updateNavigation();
     
     // ⭐ LIMPIAR ERRORES PREVIOS
@@ -680,7 +669,6 @@ const DenunciaApp = {
             behavior: 'smooth'
         });
         
-        console.log('📜 Auto-scroll ejecutado en showStep');
         }, 25); // Esperar 300ms para que termine la animación slideHorizontal
         
         if (stepIndex === 3) {
@@ -709,7 +697,7 @@ const DenunciaApp = {
 
         // Navegación
        nextStep: function() {
-            console.log(`➡️ Avanzando desde paso ${DenunciaApp.vars.currentStep + 1}`);
+            
             if (this.validateStep(DenunciaApp.vars.currentStep)) {
                 $('#smartwizard').smartWizard("next");
                 
@@ -718,7 +706,7 @@ const DenunciaApp = {
         },
 
         prevStep: function() {
-            console.log(`⬅️ Retrocediendo desde paso ${DenunciaApp.vars.currentStep + 1}`);
+           
             $('#smartwizard').smartWizard("prev");
             
             // ⭐ AUTO-SCROLL DESPUÉS DE CAMBIAR PASO
@@ -742,7 +730,7 @@ const DenunciaApp = {
             let isValid = true;
             let errorMessage = '';
 
-            console.log(`🔍 Validando paso ${stepIndex + 1}`);
+            
 
             switch(stepIndex) {
                 case 0:
@@ -791,11 +779,9 @@ const DenunciaApp = {
             }
 
             if (!isValid) {
-                console.log(`❌ Validación falló en paso ${stepIndex + 1}: ${errorMessage}`);
+                
                 // ⭐ MEJORADO: Usar la función de error mejorada que detecta el paso activo
                 DenunciaApp.common.showError(errorMessage);
-            } else {
-                console.log(`✅ Validación exitosa en paso ${stepIndex + 1}`);
             }
 
             return isValid;
@@ -811,18 +797,15 @@ const DenunciaApp = {
         },
 
         setupFileUpload: function() {
-            console.log('📎 Configurando upload de archivos');
             
             const uploadArea = document.getElementById('upload-area');
             const fileInput = document.getElementById('file-input');
             const selectBtn = document.getElementById('select-files-btn');
 
             if (!uploadArea || !fileInput || !selectBtn) {
-                console.log('❌ No se encontraron elementos de upload');
                 return;
             }
 
-            console.log('✅ Elementos de upload encontrados');
 
             // Event listeners
             selectBtn.onclick = (e) => {
@@ -862,7 +845,6 @@ const DenunciaApp = {
         },
 
         handleFiles: function(files) {
-            console.log(`📁 Procesando ${files.length} archivos`);
             
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
@@ -881,7 +863,6 @@ const DenunciaApp = {
                 }
 
                 if ($('.file-item').length <5){
-                    console.log($('.file-item').length)
                     DenunciaApp.vars.selectedFiles.push(file);
                     this.displayFile(file, DenunciaApp.vars.selectedFiles.length - 1);
                 }
@@ -890,7 +871,6 @@ const DenunciaApp = {
                     continue;
                 }
                 
-                console.log(`✅ Archivo agregado: ${file.name}`);
             }
         },
 
@@ -917,7 +897,6 @@ const DenunciaApp = {
         },
 
         removeFile: function(index) {
-            console.log(`🗑️ Removiendo archivo en índice: ${index}`);
             DenunciaApp.vars.selectedFiles.splice(index, 1);
             $(`.file-item[data-index="${index}"]`).remove();
             
@@ -955,7 +934,6 @@ const DenunciaApp = {
 
         // Envío final del wizard
         submitDenuncia: function() {
-            console.log('📤 Enviando denuncia final...');
             
             const submitBtn = $('#btn-submit');
             submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Procesando...');
@@ -967,13 +945,11 @@ const DenunciaApp = {
             formData.append('denuncia_tiempo', $('select[name="denuncia_tiempo"]').val());
             formData.append('descripcion', $('textarea[name="descripcion"]').val());
             
-            // NUEVO: Agregar descripción de "Otro" si aplica
             const relacionSeleccionada = $('input[name="denuncia_relacion"]:checked');
             const rol = relacionSeleccionada.data('rol');
             if (rol && rol.toLowerCase() === 'otro') {
                 const descripcionRelacion = $('#descripcion_relacion').val().trim();
                 formData.append('descripcion_relacion', descripcionRelacion);
-                console.log('📝 Descripción "Otro":', descripcionRelacion);
             }
             
             // Obtener y validar CSRF token
@@ -991,31 +967,22 @@ const DenunciaApp = {
                 formData.append('archivos[]', file);
             });
 
-            console.log('📊 Datos a enviar:');
-            console.log('- Relación:', $('input[name="denuncia_relacion"]:checked').val());
-            console.log('- Rol:', rol);
-            if (rol && rol.toLowerCase() === 'otro') {
-                console.log('- Descripción Otro:', $('#descripcion_relacion').val());
-            }
-            console.log('- Tiempo:', $('select[name="denuncia_tiempo"]').val());
-            console.log('- Descripción chars:', $('textarea[name="descripcion"]').val().length);
-            console.log('- Archivos:', DenunciaApp.vars.selectedFiles.length);
-
+           
             // Obtener URL desde diferentes fuentes
             let submitUrl;
             
             if (window.WIZARD_SUBMIT_URL) {
                 submitUrl = window.WIZARD_SUBMIT_URL;
-                console.log('🎯 URL desde variable global:', submitUrl);
+               
             } else if ($('#smartwizard').data('submit-url')) {
                 submitUrl = $('#smartwizard').data('submit-url');
-                console.log('🎯 URL desde data attribute:', submitUrl);
+              
             } else if ($('#wizard-form').attr('action')) {
                 submitUrl = $('#wizard-form').attr('action');
-                console.log('🎯 URL desde action del form:', submitUrl);
+              
             } else {
                 submitUrl = '/api/post/denuncia/wizzard/';
-                console.log('⚠️ Usando URL fallback:', submitUrl);
+               
             }
 
             $.ajax({
@@ -1025,7 +992,7 @@ const DenunciaApp = {
                 processData: false,
                 contentType: false,
                 success: function(response) {
-                    console.log('✅ Respuesta del servidor:', response);
+                  
                     
                     if (response.success) {
                         DenunciaApp.common.showNotification('¡Denuncia enviada exitosamente!');
@@ -1037,14 +1004,13 @@ const DenunciaApp = {
                             }
                         }, 1000);
                     } else {
-                        console.log('❌ Error en respuesta:', response.message);
+                       
                         DenunciaApp.common.showError(response.message || 'Error al procesar la denuncia');
                         submitBtn.prop('disabled', false).html('<i class="fas fa-paper-plane me-2"></i>Continuar');
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.log('❌ Error AJAX:', error);
-                    console.log('📄 Response text:', xhr.responseText);
+                     
                     DenunciaApp.common.showError('Error al enviar la denuncia. Por favor intente nuevamente.');
                     submitBtn.prop('disabled', false).html('<i class="fas fa-paper-plane me-2"></i>Continuar');
                 }
@@ -1060,7 +1026,7 @@ const DenunciaApp = {
         rutValidationRequest: null,
         
         init: function() {
-            console.log('👤 Inicializando página de usuario con validación de RUT');
+           
             this.setupFormValidation();
             this.setupInputFormatting();
             this.setupPrivacySelection();
@@ -1073,13 +1039,13 @@ const DenunciaApp = {
         // 🆕 VALIDACIÓN DE RUT EN TIEMPO REAL
         // =================================================================
         setupRutValidation: function() {
-            console.log('🔍 Configurando validación de RUT en tiempo real');
+            
             
             const rutInput = $('#rut');
             const rutContainer = rutInput.closest('.form-group');
             
             if (!rutInput.length) {
-                console.log('❌ No se encontró campo RUT');
+                
                 return;
             }
 
@@ -1102,7 +1068,7 @@ const DenunciaApp = {
                 
                 // Solo validar si el RUT parece completo (al menos 8 caracteres)
                 if (rutValue.length >= 8) {
-                    console.log(`🔍 Programando validación para RUT: ${rutValue}`);
+                    
                     
                     // ⭐ DEBOUNCE: Esperar 2 segundos antes de validar
                     this.rutValidationTimeout = setTimeout(() => {
@@ -1124,7 +1090,7 @@ const DenunciaApp = {
                         clearTimeout(this.rutValidationTimeout);
                     }
                     
-                    console.log(`🔍 Validación inmediata por blur: ${rutValue}`);
+                   
                     this.validateRutRealTime(rutValue, rutContainer);
                 }
             });
@@ -1132,7 +1098,7 @@ const DenunciaApp = {
 
         // ✅ FUNCIÓN PRINCIPAL DE VALIDACIÓN
         validateRutRealTime: function(rut, container) {
-            console.log(`📡 Iniciando validación de RUT: ${rut}`);
+            
             
             // Mostrar estado de carga
             this.showRutValidationState(container, 'loading', 'Validando RUT...');
@@ -1147,17 +1113,13 @@ const DenunciaApp = {
                 },
                 timeout: 2000, // ⭐ TIMEOUT DE 2 SEGUNDOS
                 
-                beforeSend: function() {
-                    console.log('🔄 Enviando validación de RUT...');
-                },
-                
                 success: (response) => {
-                    console.log('✅ Respuesta de validación RUT:', response);
+                   
                     this.handleRutValidationResponse(response, container);
                 },
                 
                 error: (xhr, status, error) => {
-                    console.log('❌ Error en validación RUT:', {status, error});
+                    
                     this.handleRutValidationError(xhr, status, error, container);
                 },
                 
@@ -1173,7 +1135,7 @@ const DenunciaApp = {
                 if (response.valid) {
                     if (response.exists) {
                         // ⚠️ RUT EXISTE - Mostrar información del usuario
-                        console.log('⚠️ RUT ya existe en el sistema');
+                      
                         this.showRutValidationState(
                             container, 
                             'exists', 
@@ -1187,7 +1149,6 @@ const DenunciaApp = {
                         
                     } else {
                         // ✅ RUT VÁLIDO Y DISPONIBLE
-                        console.log('✅ RUT válido y disponible');
                         this.showRutValidationState(
                             container, 
                             'valid', 
@@ -1196,7 +1157,7 @@ const DenunciaApp = {
                     }
                 } else {
                     // ❌ RUT INVÁLIDO
-                    console.log('❌ RUT con formato inválido');
+                   
                     this.showRutValidationState(
                         container, 
                         'invalid', 
@@ -1219,12 +1180,12 @@ const DenunciaApp = {
             
             if (status === 'timeout') {
                 errorMessage = 'Tiempo de espera agotado. Intente nuevamente.';
-                console.log('⏰ Timeout en validación de RUT');
+            
             } else if (status === 'abort') {
-                console.log('🛑 Validación de RUT cancelada');
+              
                 return; // No mostrar error si fue cancelada
             } else {
-                console.log(`❌ Error de red: ${error}`);
+               
                 errorMessage = 'Error de conexión. Verifique su internet.';
             }
             
@@ -1246,7 +1207,7 @@ const DenunciaApp = {
             // Insertar mensaje de feedback
             container.append(feedbackElement);
             
-            console.log(`🎨 Estado visual RUT: ${state} - ${message}`);
+           
         },
 
         // ✅ LIMPIAR ESTADO VISUAL
@@ -1322,7 +1283,7 @@ const DenunciaApp = {
 
         // ✅ AUTOCOMPLETAR DATOS DEL USUARIO
         autoCompleteUserData: function(userId) {
-            console.log(`🪄 Autocompletando datos del usuario: ${userId}`);
+           
             
             // Llamada para obtener datos detallados
             $.ajax({
@@ -1350,7 +1311,7 @@ const DenunciaApp = {
                             $(this).remove();
                         });
                         
-                        console.log('✅ Datos autocompletados');
+                        
                     } else {
                         DenunciaApp.common.showNotification('No se pudieron autocompletar los datos', 'error');
                     }
@@ -1461,7 +1422,7 @@ const DenunciaApp = {
                     
                     if (this.checked) {
                         this.closest('.privacy-btn').classList.add('selected');
-                        console.log(`🔒 Tipo de denuncia seleccionado: ${this.value}`);
+                        
                         
                         if (this.value === 'identificado') {
                             datosPersonales.classList.add('show');
@@ -1489,15 +1450,15 @@ const DenunciaApp = {
             const btnEnviar = document.getElementById('btnEnviar');
             
             if (!form) {
-                console.log('❌ No se encontró #usuarioForm');
+                
                 return;
             }
 
-            console.log('✅ Configurando formulario de usuario');
+           
 
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
-                console.log('📤 Enviando formulario de usuario...');
+                
 
                 const existeInput= document.querySelector('input[name="tipo_denuncia"]');
 
@@ -1529,7 +1490,6 @@ const DenunciaApp = {
                     formData.set('celular', celularFormateado);
                 }
                 
-                console.log('🔵 Paso 1: Creando usuario y denuncia...');
 
                 // ✅ PRIMER REQUEST: Crear usuario y denuncia
                 $.ajax({
@@ -1538,31 +1498,25 @@ const DenunciaApp = {
                     data: formData,
                     processData: false,
                     contentType: false,
-                    beforeSend: function() {
-                        console.log('🔄 Enviando datos de usuario...');
-                    },
                     success: function(response) {
-                        console.log('✅ Respuesta de usuario recibida:', response);
                         
                         if (response.success) {
-                            // ⭐ EXTRAER CÓDIGO DE LA RESPUESTA
+                        
                             const codigo = response.data.codigo;
                             const esAnonima = response.data.es_anonima;
                             
-                            console.log(`🎫 Código generado: ${codigo}`);
-                            console.log(`🔒 Es anónima: ${esAnonima}`);
+                         
                             
                             btnEnviar.innerHTML = '<i class="fas fa-check me-2"></i>Usuario creado, enviando email...';
                             
-                            // ⭐ ESPERAR 300ms para asegurar que la sesión se guarde
+                           
                             setTimeout(function() {
-                                // ✅ SEGUNDO REQUEST: Enviar email (SOLO SI NO ES ANÓNIMA)
+                        
                                 if (!esAnonima) {
                                     const emailData = new FormData();
                                     emailData.set('correo_electronico', formData.get('correo_electronico'));
-                                    emailData.set('codigo', codigo);  // ⭐ ENVIAR CÓDIGO EXPLÍCITAMENTE
+                                    emailData.set('codigo', codigo); 
                                     
-                                    console.log('🔵 Paso 2: Enviando email...');
                                     
                                     $.ajax({
                                         type: 'POST',
@@ -1570,18 +1524,15 @@ const DenunciaApp = {
                                         data: emailData,
                                         processData: false,
                                         contentType: false,
-                                        beforeSend: function() {
-                                            console.log('📧 Enviando email de confirmación...');
-                                        },
+                                       
                                         success: function(emailResponse) {
-                                            console.log('✅ Email enviado:', emailResponse.message);
                                             
                                             btnEnviar.innerHTML = '<i class="fas fa-check me-2"></i>¡Completado!';
                                             
                                             // Redirigir después de 500ms
                                             setTimeout(() => {
                                                 if (emailResponse.redirect_url) {
-                                                    console.log('🔀 Redirigiendo a:', emailResponse.redirect_url);
+                                                   
                                                     window.location.href = emailResponse.redirect_url;
                                                 } else {
                                                     window.location.href = '/denuncia/final/';
@@ -1589,10 +1540,9 @@ const DenunciaApp = {
                                             }, 500);
                                         },
                                         error: function(xhr, status, error) {
-                                            console.log('❌ Error enviando email:', error);
-                                            console.log('❌ Response:', xhr.responseJSON);
+                                           
                                             
-                                            // Aunque falle el email, redirigir igual
+
                                             alert('Denuncia creada correctamente, pero hubo un error al enviar el email de confirmación.');
                                             
                                             setTimeout(() => {
@@ -1601,15 +1551,15 @@ const DenunciaApp = {
                                         }
                                     });
                                 } else {
-                                    // Usuario anónimo - redirigir directamente
-                                    console.log('⚠️ Usuario anónimo, sin email');
+                                
+                                   
                                     btnEnviar.innerHTML = '<i class="fas fa-check me-2"></i>¡Completado!';
                                     
                                     setTimeout(() => {
                                         window.location.href = '/denuncia/final/';
                                     }, 500);
                                 }
-                            }, 300); // ⭐ Delay de 300ms para asegurar guardado de sesión
+                            }, 300);
                             
                         } else {
                             console.error('❌ Error en la respuesta:', response.message);
@@ -1619,8 +1569,7 @@ const DenunciaApp = {
                         }
                     },
                     error: function(xhr, status, error) {
-                        console.log('❌ Error AJAX en usuario:', error);
-                        console.log('❌ Response:', xhr.responseJSON);
+                        
                         
                         const errorMsg = xhr.responseJSON && xhr.responseJSON.message 
                             ? xhr.responseJSON.message 
@@ -1634,7 +1583,7 @@ const DenunciaApp = {
             });
         },
 
-        // ✅ ACTUALIZAR VALIDACIÓN DE FORMULARIO PARA INCLUIR ESTADO DE RUT
+    
         validateIdentifiedForm: function() {
             // Verificar si el RUT está en estado válido
             const rutContainer = $('#rut').closest('.form-group');
@@ -1703,7 +1652,7 @@ const DenunciaApp = {
                 }
             }
 
-            console.log('✅ Validación de formulario identificado exitosa');
+            
             return true;
         },
 
@@ -1711,7 +1660,7 @@ const DenunciaApp = {
             const btnAtras = document.getElementById('btnAtras');
             if (btnAtras) {
                 btnAtras.addEventListener('click', function() {
-                    console.log('⬅️ Navegando hacia atrás');
+                   
                     window.history.back();
                 });
             }
@@ -1723,7 +1672,7 @@ const DenunciaApp = {
     // ===========================================
     codigoPage: {
         init: function() {
-            console.log('🎫 Inicializando página de código');
+          
             this.setupCopyFunction();
             this.setupAnimations();
             this.setupSessionClearance();
@@ -1732,7 +1681,7 @@ const DenunciaApp = {
         setupCopyFunction: function() {
             // Función global para copiar código
             window.copiarCodigo = () => {
-                console.log('📋 Copiando código...');
+               
                 
                 const codigo = document.getElementById('codigo-texto').textContent.trim();
                 const copyButton = document.querySelector('.copy-button');
@@ -1751,7 +1700,7 @@ const DenunciaApp = {
                     copyText.innerHTML = '<i class="fas fa-check"></i> ¡Copiado!';
                     
                     DenunciaApp.common.showNotification('Código copiado al portapapeles', 'success');
-                    console.log('✅ Código copiado exitosamente');
+                  
                     
                     setTimeout(() => {
                         copyButton.classList.remove('copied');
@@ -1792,8 +1741,6 @@ const DenunciaApp = {
             setTimeout(() => {
                 if (typeof fetch !== 'undefined') {
                     fetch('/clear-session/', {method: 'POST'})
-                        .then(() => console.log('🗑️ Sesión limpiada automáticamente'))
-                        .catch(() => console.log('⚠️ No se pudo limpiar la sesión automáticamente'));
                 }
             }, 30000);
         }
@@ -1823,13 +1770,13 @@ function submitDenuncia() {
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🔥 DOM listo - Iniciando DenunciaApp...');
+   
     DenunciaApp.init();
 });
 
 // Inicializar también cuando jQuery esté listo (por compatibilidad)
 $(document).ready(function() {
-    console.log('🟢 jQuery listo');
+    
     // La inicialización ya se hizo en DOMContentLoaded
 });
 

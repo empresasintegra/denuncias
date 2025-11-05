@@ -439,7 +439,6 @@
                         type: 'GET',
                         success: function(response) {
                             if (response.success && response.authenticated) {
-                                console.log('👤 Usuario ya autenticado:', response.user_info?.username);
                                 self.showAlert('Ya tiene una sesión activa. Redirigiendo...', 'success');
                                 
                                 const redirectUrl = self.state.redirectInfo?.redirectUrl || 
@@ -454,7 +453,6 @@
                         error: function(xhr) {
                             // 🔧 AGREGAR: Asegurar que el formulario esté habilitado
                             self.setLoadingState(false);
-                            console.log('🔍 Usuario no autenticado - Esperando credenciales');
                         }
                     });
                 },
@@ -466,7 +464,7 @@
                     e.preventDefault();
                     
                     if (this.state.isLoading) {
-                        console.log('⏳ Login ya en proceso...');
+                
                         return;
                     }
                     
@@ -506,13 +504,12 @@
                     // Agregar empresa si está disponible
                     if (this.state.redirectInfo?.empresa) {
                         loginData.empresa = this.state.redirectInfo.empresa;
-                        console.log('📤 Empresa detectada:', loginData.empresa);
+                
                     }
                     
                     this.setLoadingState(true);
                     this.hideAlert();
-                    
-                    console.log('🔐 Enviando credenciales para:', username);
+                
                     
                     $.ajax({
                         url: '{% url "admin_login_api" %}',
@@ -535,20 +532,12 @@
                  * Manejar respuesta exitosa del login
                  */
                 handleLoginSuccess: function(response) {
-                    console.log('✅ Respuesta del servidor:', response);
+
                     
                     if (response.success) {
                         this.showAlert(response.message || 'Inicio de sesión exitoso', 'success');
                         
                         // Log de información del usuario
-                        if (response.user_info) {
-                            console.log('👤 Usuario autenticado:', {
-                                username: response.user_info.username,
-                                categoria: response.user_info.categoria?.nombre,
-                                is_staff: response.user_info.is_staff,
-                                is_superuser: response.user_info.is_superuser
-                            });
-                        }
                         
                         this.clearFormData();
                         
@@ -558,7 +547,6 @@
                                            response.redirect_url || 
                                            '{% url "consulta_denuncias" %}';
                         
-                        console.log('➡️ Redirigiendo a:', redirectUrl);
                         
                         setTimeout(() => {
                             window.location.href = redirectUrl;
@@ -641,13 +629,13 @@
                         passwordInput.attr('type', 'text');
                         icon.removeClass('fa-eye').addClass('fa-eye-slash');
                         passwordInput.addClass('password-revealed');
-                        console.log('🔓 Contraseña visible');
+                        
                     } else {
                         // Ocultar contraseña
                         passwordInput.attr('type', 'password');
                         icon.removeClass('fa-eye-slash').addClass('fa-eye');
                         passwordInput.removeClass('password-revealed');
-                        console.log('🔒 Contraseña oculta');
+                       
                     }
                     
                     // Mantener foco en el input
@@ -723,7 +711,6 @@
                  */
                 clearSensitiveData: function() {
                     $('#password').val('');
-                    console.log('🧹 Datos sensibles limpiados');
                 },
                 
                 /**

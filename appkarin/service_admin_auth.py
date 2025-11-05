@@ -74,9 +74,7 @@ class ServiceAdminDenunciaAuth(APIView):
                     'error_code': 'MISSING_CREDENTIALS'
                 }, status=400)
             
-            print(f"🔐 Intentando autenticar con: {username_or_email}")
             
-            # ⭐ PASO 1: Determinar si es username o email y obtener el username real
             actual_username = None
             user_obj = None
             
@@ -84,16 +82,12 @@ class ServiceAdminDenunciaAuth(APIView):
             try:
                 # Opción 1: Es un email
                 if '@' in username_or_email:
-                    print(f"📧 Detectado como email, buscando usuario...")
                     user_obj = AdminDenuncias.objects.get(email=username_or_email)
                     actual_username = user_obj.username
-                    print(f"✅ Usuario encontrado por email: {actual_username}")
                 else:
                     # Opción 2: Es un username
-                    print(f"👤 Detectado como username")
                     user_obj = AdminDenuncias.objects.get(username=username_or_email)
                     actual_username = username_or_email
-                    print(f"✅ Usuario encontrado por username: {actual_username}")
                     
             except AdminDenuncias.DoesNotExist:
                 print(f"❌ No se encontró usuario con: {username_or_email}")
@@ -104,35 +98,28 @@ class ServiceAdminDenunciaAuth(APIView):
                     'error_code': 'INVALID_CREDENTIALS'
                 }, status=401)
             except AdminDenuncias.MultipleObjectsReturned:
-                print(f"⚠️ Múltiples usuarios con el mismo email: {username_or_email}")
                 return Response({
                     'success': False,
                     'message': 'Error en la configuración de usuarios. Contacte al administrador.',
                     'error_code': 'DUPLICATE_EMAIL'
                 }, status=500)
             
-            # ⭐ PASO 2: Intentar autenticación con el username real
-            print(f"🔓 Autenticando con username: {actual_username}")
+           
             user = authenticate(request, username=actual_username, password=password)
             
-            # ⭐ PASO 3: Si falla, verificar si es contraseña no hasheada
             if user is None and user_obj is not None:
-                print("❌ Autenticación normal falló, verificando contraseñas no hasheadas...")
                 
                 # Verificar si la contraseña está hasheada
                 is_hashed = user_obj.password.startswith(('pbkdf2_', 'bcrypt', 'argon2'))
                 
                 if not is_hashed:
-                    print("⚠️ Contraseña en texto plano detectada")
                     
                     # Comparar contraseña en texto plano
                     if user_obj.password == password:
-                        print("✅ Contraseña correcta, hasheando...")
                         
                         # Hashear la contraseña para futuras autenticaciones
                         user_obj.set_password(password)
                         user_obj.save()
-                        print("✅ Contraseña hasheada y guardada")
                         
                         # Ahora intentar autenticar de nuevo
                         user = authenticate(request, username=actual_username, password=password)
@@ -142,7 +129,6 @@ class ServiceAdminDenunciaAuth(APIView):
                     # La contraseña está hasheada pero no coincide
                     print("❌ Contraseña hasheada pero incorrecta")
             
-            # ⭐ PASO 4: Verificar el resultado final
             if user is not None:
                 # Verificar que el usuario esté activo
                 if not user.is_active:
@@ -154,14 +140,12 @@ class ServiceAdminDenunciaAuth(APIView):
                 
                 # Verificar que sea staff o superuser
                 if not (user.is_staff or user.is_superuser):
-                    print(f"⚠️ Usuario {actual_username} no es staff. Actualizando...")
                     # Auto-corregir si no es staff
                     user.is_staff = True
                     user.save()
                 
                 # Login exitoso
                 login(request, user)
-                print(f"✅ Login exitoso para: {actual_username}")
                 
                 # Preparar datos de respuesta
                 response_data = {

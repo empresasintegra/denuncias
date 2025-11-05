@@ -234,8 +234,6 @@
         <script>
             window.WIZARD_SUBMIT_URL = '{% url "process_denuncia" %}';
             window.CSRF_TOKEN = '{{ csrf_token }}';
-            console.log('🔗 URL del wizard configurada:', window.WIZARD_SUBMIT_URL);
-            console.log('🔒 CSRF token configurado:', window.CSRF_TOKEN ? 'Presente' : 'Falta');
         </script>
 
         <!-- Scripts originales -->

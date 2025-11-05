@@ -111,7 +111,7 @@ class DenunciaManagementViewSet(ViewSet):
             
             # Obtener mensajes del foro
             mensajes = denuncia.foro_set.all().order_by('id')
-            print(mensajes)
+          
             data = {
                 'codigo': denuncia.codigo,
                 'fecha': denuncia.fecha.isoformat(),
@@ -124,7 +124,7 @@ class DenunciaManagementViewSet(ViewSet):
                     'fecha':m.fecha,
                 } for m in mensajes]
             }
-            print(data)
+        
             
             return Response(data)
             
@@ -201,10 +201,10 @@ class DenunciaManagementViewSet(ViewSet):
                     'message': 'Usuario no autenticado'
                 }, status=401)
             
-            print("permison?")
+          
             # Verificar permisos de admin
             has_permission, categoria = self.check_admin_permissions(request)
-            print("permison2?")
+           
             if not has_permission:
                 return Response({
                     'success': False,
@@ -276,7 +276,6 @@ class DenunciaManagementViewSet(ViewSet):
             # Aquí deberías implementar la generación del PDF
             # Por ahora, retornamos un PDF dummy
             pdf_content = self._generar_pdf_denuncia(denuncia_codigo)
-            print("pdf_content",pdf_content)
             return pdf_content
             
         except Exception as e:
@@ -319,23 +318,19 @@ class DenunciaManagementViewSet(ViewSet):
             
             doc.render(context)
             
-            # ✅ SOLUCIÓN: Usar directorio temporal
-            temp_dir = tempfile.gettempdir()  # O usar tempfile.mkdtemp() para un dir único
+            temp_dir = tempfile.gettempdir() 
             
-            # Guardar el documento Word en directorio temporal
+           
             path_doc = os.path.join(temp_dir, f'Informe_denuncia_{denuncia_codigo}.docx')
             doc.save(path_doc)
-            
-            # ✅ CORREGIDO: Especificar correctamente el directorio de salida
             pdf_process = Popen([
                 'libreoffice', 
                 '--headless', 
                 '--convert-to', 'pdf', 
-                '--outdir', temp_dir,  # ✅ Directorio temporal en lugar de ''
+                '--outdir', temp_dir, 
                 path_doc
             ], stdout=PIPE, stderr=PIPE)
             
-            # Esperar a que termine el proceso y capturar salida
             stdout, stderr = pdf_process.communicate()
             
             # Verificar si hubo errores
@@ -415,13 +410,6 @@ class DenunciaManagementViewSet(ViewSet):
             
             # Ahora construir la ruta correcta
             file_path = os.path.join(settings.MEDIA_ROOT, archivo_url)
-            
-            # ✅ DEBUG: Imprimir rutas para verificar
-            print(f"DEBUG - archivo.url original: {archivo.url}")
-            print(f"DEBUG - archivo_url limpia: {archivo_url}")
-            print(f"DEBUG - MEDIA_ROOT: {settings.MEDIA_ROOT}")
-            print(f"DEBUG - file_path final: {file_path}")
-            print(f"DEBUG - archivo existe: {os.path.exists(file_path)}")
             
             # Verificar que el archivo existe
             if not os.path.exists(file_path):

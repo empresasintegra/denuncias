@@ -988,7 +988,6 @@
         // ============================================
         
         function initDataTable() {
-            console.log('Inicializando DataTable con userInfo:', userInfo);
             
             dataTable = $('#denunciasTable').DataTable({
                 processing: true,
@@ -1003,11 +1002,9 @@
                     },
                     data: function(d) {
                         d.user_info = userInfo;
-                        console.log('Enviando datos al servidor:', d);
                         return JSON.stringify(d);
                     },
                     dataSrc: function(json) {
-                        console.log('Respuesta del servidor:', json);
                         hideLoading();
                         return json.data;
                     },
@@ -1080,7 +1077,6 @@
                     }
                 },
                 drawCallback: function(settings) {
-                    console.log('Tabla redibujada');
                     // Cerrar cualquier dropdown abierto
                     closeDropdown();
                 }
@@ -1602,7 +1598,6 @@
                     user_info: userInfo
                 };
                 
-                console.log('Exportando con datos:', requestData);
                 
                 const response = await fetch('/api/datatable/denuncias/export/excel/', {
                     method: 'POST',
@@ -1642,14 +1637,13 @@
         // ============================================
         
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM Cargado, inicializando...');
+            
             
             // Mostrar loading
             showLoading();
             
             // Obtener información del usuario
             userInfo = getUserInfo();
-            console.log('UserInfo obtenido:', userInfo);
             
             // Actualizar UI según usuario
             updateUIForUser();
@@ -1665,18 +1659,6 @@
             // Cerrar dropdowns al hacer scroll
             window.addEventListener('scroll', closeDropdown);
         });
-
-        // Debug helper
-        window.debugDataTable = function() {
-            console.log('=== DEBUG DATATABLE ===');
-            console.log('DataTable instance:', dataTable);
-            console.log('UserInfo:', userInfo);
-            console.log('Total registros:', dataTable?.page.info()?.recordsTotal);
-            console.log('Registros filtrados:', dataTable?.page.info()?.recordsFiltered);
-            console.log('Búsqueda actual:', dataTable?.search());
-            console.log('Orden actual:', dataTable?.order());
-            console.log('=======================');
-        };
     </script>
 </body>
 </html>
