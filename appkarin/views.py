@@ -159,10 +159,15 @@ def renderHub(request):
     redirect_urls = []
     
     for empresa in empresas:
-        if (empresa.nombre !='ByF'):
-             nombre_empresas.append(re.sub(r'(?<![A-Z\W])(?=[A-Z])', ' ', empresa.nombre))
-        else:
+        
+        if empresa.nombre == 'byf':
             nombre_empresas.append('B y F')
+        elif "servicios" in empresa.nombre:
+        # Remover "servicios" y capitalizar el resto
+            nombre_sin_servicios = empresa.nombre.replace('servicios', '')
+            nombre_empresas.append(f'Servicios {nombre_sin_servicios.capitalize()}')
+        else:
+            nombre_empresas.append(re.sub(r'(?<![A-Z\W])(?=[A-Z])', ' ', empresa.nombre).capitalize())
 
         url_logos.append(f'assets/Logo{empresa.nombre}.png')
         redirect_urls.append(f'/{empresa.nombre.lower()}/')  # ← .lower() agregado

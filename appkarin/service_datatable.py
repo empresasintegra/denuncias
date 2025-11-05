@@ -54,7 +54,6 @@ class SimpleDenunciaDataTableAPIView(APIView):
             
           
             
-            # ✅ FIX: Verificar autenticación antes de acceder a user
             admin = None
             if request.user and request.user.is_authenticated:
                 try:
