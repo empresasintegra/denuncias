@@ -208,7 +208,7 @@ class DenunciaManagementViewSet(ViewSet):
                     'message': 'Sin permisos de administración'
                 }, status=403)
             
-            # Obtener datos
+           
             
             denuncia_id = request.data.get('denuncia_id')
             nuevo_estado_id = request.data.get('nuevo_estado')
@@ -219,7 +219,6 @@ class DenunciaManagementViewSet(ViewSet):
                     'message': 'Faltan parámetros requeridos'
                 }, status=400)
             
-            # Obtener denuncia
             denuncia = self.get_denuncia(denuncia_id)
             
             # Verificar permisos sobre la categoría
@@ -465,8 +464,7 @@ class DenunciaManagementViewSet(ViewSet):
             return Response({
                 'error': f'Error al descargar archivo: {str(e)}'
             }, status=500)
-    
-    # NUEVO: AGREGAR ARCHIVOS A DENUNCIA
+     
     @action(detail=False, methods=['post'])
     def agregar_archivos(self, request):
         """
@@ -513,7 +511,6 @@ class DenunciaManagementViewSet(ViewSet):
                     'message': f'Denuncia {denuncia_codigo} no encontrada'
                 }, status=404)
             
-            # Verificar permisos de categoría si aplica
             if categoria and denuncia.item.categoria != categoria:
                 return Response({
                     'success': False,
@@ -560,16 +557,13 @@ class DenunciaManagementViewSet(ViewSet):
                         errores.append(f'{archivo.name}: Extensión no permitida')
                         continue
                     
-                    # Validar tipo MIME
                     if archivo.content_type not in ALLOWED_MIME_TYPES:
                         errores.append(f'{archivo.name}: Tipo de archivo no permitido')
                         continue
                     
-                    # Generar nombre único
                     nombre_unico = f"{uuid.uuid4()}_{archivo.name}"
                     s3_key = f"{denuncia.codigo}/{nombre_unico}"
                     
-                    # Leer contenido
                     file_content = archivo.read()
                     
                     # Subir a S3
@@ -601,7 +595,6 @@ class DenunciaManagementViewSet(ViewSet):
                         'peso': archivo.size
                     })
                     
-                    print(f"✅ Archivo subido: {archivo.name} -> {s3_key}")
                     
                 except Exception as e:
                     error_msg = f'{archivo.name}: {str(e)}'
@@ -687,10 +680,8 @@ class DenunciaQueryAPI(APIView):
         
         try:
             if codigo.startswith('DN-'):
-                # Denuncia anónima
                 denuncias = Denuncia.objects.filter(codigo=codigo)
             else:
-                # Usuario identificado
                 denuncias = Denuncia.objects.filter(usuario__id=codigo)
             
             results = [{
@@ -754,29 +745,4 @@ class DenunciaQueryAPI(APIView):
             'success': True,
             'count': len(results),
             'results': results
-        })
-    
-    def _get_stats(self, data):
-        """Obtener estadísticas de denuncias"""
-        from django.db.models import Count
-        
-        # Estadísticas por estado
-        estados = Denuncia.objects.values('estado_actual').annotate(
-            total=Count('id')
-        )
-        
-        # Estadísticas por categoría
-        categorias = Denuncia.objects.values(
-            'item__categoria__nombre'
-        ).annotate(
-            total=Count('id')
-        )
-        
-        return JsonResponse({
-            'success': True,
-            'stats': {
-                'total': Denuncia.objects.count(),
-                'por_estado': list(estados),
-                'por_categoria': list(categorias)
-            }
         })

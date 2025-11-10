@@ -279,22 +279,18 @@ class Archivo(models.Model):
         verbose_name_plural = "Archivos"
     
     def save(self, *args, **kwargs):
-        # Solo actualizar peso si no está establecido manualmente Y el archivo existe
         if not self.Peso and self.archivo:
             try:
-                # Intentar obtener tamaño solo si el archivo existe
                 self.Peso = self.archivo.size
             except (FileNotFoundError, OSError, AttributeError):
-                # Si el archivo está en S3 o no existe localmente, mantener el peso actual
                 pass
         
         # Guardar primero
         super().save(*args, **kwargs)
         
-        # Después de guardar, actualizar permisos ACL y URL
         if self.archivo:
             try:
-                # Establecer ACL público en S3
+            
                 import boto3
                 from django.conf import settings
                 from botocore.config import Config
@@ -307,14 +303,12 @@ class Archivo(models.Model):
                     config=Config(signature_version='s3v4')
                 )
                 
-                # Actualizar ACL del objeto a público
                 s3_client.put_object_acl(
                     Bucket=settings.AWS_STORAGE_BUCKET_NAME,
                     Key=self.archivo.name,
                     ACL='public-read'
                 )
                 
-                print(f"✅ ACL público establecido para: {self.archivo.name}")
                 
             except Exception as e:
                 print(f"⚠️ No se pudo establecer ACL público: {e}")
