@@ -36,11 +36,9 @@ class DenunciaManagementViewSet(ViewSet):
         if not request.user.is_authenticated:
             return False, "Usuario no autenticado"
         
-        # Si es superuser, tiene todos los permisos
         if request.user.is_superuser:
             return True, None
         
-        # Si tiene rol_categoria, puede ver/editar solo esas denuncias
         if hasattr(request.user, 'rol_categoria') and request.user.rol_categoria:
             return True, request.user.rol_categoria
         
@@ -55,19 +53,16 @@ class DenunciaManagementViewSet(ViewSet):
         try:
             denuncia = self.get_denuncia(codigo)
             
-            # Verificar permisos
             if request.user.is_authenticated:
                 has_permission, categoria = self.check_admin_permissions(request)
                 if not has_permission:
                     return Response({'error': 'Sin permisos'}, status=403)
                 
-                # Si tiene categoría específica, verificar que coincida
                 if categoria and denuncia.item.categoria != categoria:
                     return Response({'error': 'Sin permisos para esta categoría'}, status=403)
             
             archivos = denuncia.archivo_set.all()
             
-            # Serializar datos
             data = {
                 'codigo': denuncia.codigo,
                 'fecha': denuncia.fecha.isoformat(),
@@ -106,7 +101,6 @@ class DenunciaManagementViewSet(ViewSet):
         try:
             denuncia = self.get_denuncia(codigo)
             
-            # Obtener mensajes del foro
             mensajes = denuncia.foro_set.all().order_by('id')
           
             data = {
@@ -128,7 +122,6 @@ class DenunciaManagementViewSet(ViewSet):
         except Exception as e:
             return Response({'error': str(e)}, status=500)
 
-    # 3. INFORMACIÓN BÁSICA (reemplaza DenunciaInfoAPIView)
     @action(detail=True, methods=['get'])
     def info(self, request, codigo=None):
         """
@@ -183,7 +176,6 @@ class DenunciaManagementViewSet(ViewSet):
             return Response({'error': str(e)}, status=500)
 
 
-    # 4. CAMBIAR ESTADO (reemplaza CambiarEstadoDenunciaAPIView)
     @action(detail=False, methods=['post'])
     def cambiar_estado(self, request):
         """
@@ -199,7 +191,6 @@ class DenunciaManagementViewSet(ViewSet):
                 }, status=401)
             
           
-            # Verificar permisos de admin
             has_permission, categoria = self.check_admin_permissions(request)
            
             if not has_permission:
@@ -221,14 +212,12 @@ class DenunciaManagementViewSet(ViewSet):
             
             denuncia = self.get_denuncia(denuncia_id)
             
-            # Verificar permisos sobre la categoría
             if categoria and denuncia.item.categoria != categoria:
                 return Response({
                     'success': False,
                     'message': 'Sin permisos para esta categoría de denuncia'
                 }, status=403)
             
-            # Obtener el nuevo estado
             try:
                 nuevo_estado = DenunciaEstado.objects.get(id=int(nuevo_estado_id))
             except DenunciaEstado.DoesNotExist:
@@ -236,12 +225,10 @@ class DenunciaManagementViewSet(ViewSet):
                     'success': False,
                     'message': 'Estado no válido'
                 }, status=400)
-            
-            # Actualizar estado
+
             denuncia.estado_actual = nuevo_estado.estado
             denuncia.save()
             
-            # Registrar en historial
             EstadosDenuncia.objects.create(
                 denuncia=denuncia,
                 estado=nuevo_estado,
@@ -259,7 +246,7 @@ class DenunciaManagementViewSet(ViewSet):
                 'message': f'Error al cambiar estado: {str(e)}'
             }, status=500)
 
-    # 5. DESCARGAR PDF (reemplaza DescargarDenunciaAPIView)
+
     @action(detail=True, methods=['post'])
     def descargar(self, request, codigo=None):
         """
@@ -327,32 +314,27 @@ class DenunciaManagementViewSet(ViewSet):
             
             stdout, stderr = pdf_process.communicate()
             
-            # Verificar si hubo errores
             if pdf_process.returncode != 0:
                 print(f"Error en conversión PDF: {stderr.decode()}")
                 raise Exception(f"Error al convertir a PDF: {stderr.decode()}")
             
-            # El PDF tendrá el mismo nombre pero con extensión .pdf
             path_pdf = os.path.join(temp_dir, f'Informe_denuncia_{denuncia_codigo}.pdf')
             
-            # Verificar que el PDF se creó
             if not os.path.exists(path_pdf):
                 raise FileNotFoundError(f"No se encontró el PDF generado en: {path_pdf}")
             
-            # Leer el PDF
             with open(path_pdf, 'rb') as pdf_file:
                 response = HttpResponse(
                     pdf_file.read(), 
                     content_type='application/pdf'
                 )
                 response['Content-Disposition'] = f'attachment; filename="Informe_denuncia_{denuncia_codigo}.pdf"'
-            
-            # Limpiar archivos temporales
+        
             try:
                 os.remove(path_doc)
                 os.remove(path_pdf)
             except:
-                pass  # Si falla la limpieza, no es crítico
+                pass 
             
             return response
             
@@ -377,14 +359,14 @@ class DenunciaManagementViewSet(ViewSet):
             if not archivo_id:
                 return Response({'error': 'ID de archivo requerido'}, status=400)
             
-            # Obtener archivo con su denuncia
+            
             try:
                 from .models import Archivo
                 archivo = Archivo.objects.select_related('denuncia').get(id=archivo_id)
             except Archivo.DoesNotExist:
                 return Response({'error': 'Archivo no encontrado'}, status=404)
             
-            # Verificar permisos
+            
             if request.user.is_authenticated:
                 has_permission, categoria = self.check_admin_permissions(request)
                 if not has_permission:
@@ -423,7 +405,7 @@ class DenunciaManagementViewSet(ViewSet):
                     Key=s3_key
                 )
                 
-                # Leer el contenido del archivo
+                
                 file_content = s3_response['Body'].read()
                 
                 print(f"✅ Archivo descargado exitosamente ({len(file_content)} bytes)")
@@ -443,14 +425,12 @@ class DenunciaManagementViewSet(ViewSet):
                         'details': str(e)
                     }, status=500)
             
-            # Detectar tipo MIME
             mime_type = s3_response.get('ContentType')
             if not mime_type:
                 mime_type, _ = mimetypes.guess_type(archivo.nombre)
             if not mime_type:
                 mime_type = 'application/octet-stream'
             
-            # Crear respuesta HTTP con el archivo
             response = HttpResponse(file_content, content_type=mime_type)
             response['Content-Disposition'] = f'attachment; filename="{archivo.nombre}"'
             response['Content-Length'] = len(file_content)
@@ -479,7 +459,6 @@ class DenunciaManagementViewSet(ViewSet):
             import boto3
             from botocore.config import Config
             
-            # Verificar permisos de admin
             has_permission, categoria = self.check_admin_permissions(request)
             if not has_permission:
                 return Response({
@@ -502,7 +481,6 @@ class DenunciaManagementViewSet(ViewSet):
                     'message': 'No se recibieron archivos'
                 }, status=400)
             
-            # Buscar denuncia
             try:
                 denuncia = Denuncia.objects.get(codigo=denuncia_codigo)
             except Denuncia.DoesNotExist:
@@ -532,7 +510,6 @@ class DenunciaManagementViewSet(ViewSet):
                 'text/plain'
             }
             
-            # Configurar cliente S3
             s3_client = boto3.client(
                 's3',
                 endpoint_url=settings.AWS_S3_ENDPOINT_URL,
@@ -551,7 +528,7 @@ class DenunciaManagementViewSet(ViewSet):
                         errores.append(f'{archivo.name}: Excede el tamaño máximo (500MB)')
                         continue
                     
-                    # Validar extensión
+
                     ext = os.path.splitext(archivo.name)[1].lower()
                     if ext not in ALLOWED_EXTENSIONS:
                         errores.append(f'{archivo.name}: Extensión no permitida')
@@ -566,7 +543,7 @@ class DenunciaManagementViewSet(ViewSet):
                     
                     file_content = archivo.read()
                     
-                    # Subir a S3
+                    
                     s3_client.put_object(
                         Bucket=settings.AWS_STORAGE_BUCKET_NAME,
                         Key=s3_key,
@@ -575,10 +552,10 @@ class DenunciaManagementViewSet(ViewSet):
                         ACL='public-read'
                     )
                     
-                    # Construir URL pública
+
                     url_publica = f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/{s3_key}"
                     
-                    # Crear registro en base de datos
+                  
                     archivo_obj = Archivo.objects.create(
                         denuncia=denuncia,
                         nombre=archivo.name[:250],
@@ -601,7 +578,6 @@ class DenunciaManagementViewSet(ViewSet):
                     errores.append(error_msg)
                     print(f"❌ Error subiendo {archivo.name}: {str(e)}")
             
-            # Preparar respuesta
             if len(archivos_subidos) > 0:
                 mensaje = f'{len(archivos_subidos)} archivo(s) subido(s) correctamente'
                 if errores:

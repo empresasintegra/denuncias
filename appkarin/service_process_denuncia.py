@@ -43,26 +43,20 @@ def validate_rut(rut):
         return (False, None)
     
     try:
-        # Limpiar el RUT: remover puntos, guiones y espacios
         rut_limpio = rut.replace('.', '').replace('-', '').replace(' ', '').upper()
         
-        # Verificar que tenga al menos 2 caracteres (número + dígito verificador)
         if len(rut_limpio) < 2:
             return (False, None)
         
-        # Separar cuerpo y dígito verificador
         cuerpo = rut_limpio[:-1]
         dv = rut_limpio[-1]
         
-        # Verificar que el cuerpo sea numérico
         if not cuerpo.isdigit():
             return (False, None)
         
-        # Verificar que el dígito verificador sea válido (0-9 o K)
         if dv not in '0123456789K':
             return (False, None)
         
-        # Calcular dígito verificador esperado
         suma = 0
         multiplo = 2
         
@@ -282,18 +276,14 @@ class ServiceProcessDenuncia(APIView):
             
             if serializer.is_valid():
                 
-                # ===== PROCESAR ARCHIVOS (OPCIONAL) =====
                 archivos_procesados = []
                 archivos_errors = []
                 
-                # Obtener archivos del request
                 archivos = request.FILES.getlist('archivos[]')
                 
-                # PROCESAR SOLO SI HAY ARCHIVOS
                 if archivos and len(archivos) > 0:
                     for archivo in archivos:
                         try:
-                            # Validar archivo
                             archivo_validado = self._validate_file(archivo)
                             if archivo_validado['success']:
                                 archivos_procesados.append({
@@ -311,7 +301,6 @@ class ServiceProcessDenuncia(APIView):
                             archivos_errors.append(error_msg)
                             print(f"❌ {error_msg}")
                     
-                    # Si hay errores en archivos, retornar sin crear la denuncia
                     if archivos_errors:
                         return Response({
                             'success': False,
@@ -320,18 +309,12 @@ class ServiceProcessDenuncia(APIView):
                         }, status=400)
                 
                 if archivos_procesados:
-                    # Guardar archivos temporalmente DIRECTAMENTE en MEDIA_ROOT (sin carpeta)
-                    # Usamos prefijo "temp_" para identificarlos y eliminarlos después
-                    
-                    # Guardar archivos temporalmente
                     for archivo_info in archivos_procesados:
                         archivo = archivo_info['file']
-                        # Generar nombre único con prefijo temporal
                         temp_filename = f"temp_{uuid.uuid4()}_{archivo.name}"
                         temp_path = os.path.join(settings.MEDIA_ROOT, temp_filename)
                         
                         try:
-                            # Guardar archivo temporalmente
                             with open(temp_path, 'wb+') as destination:
                                 for chunk in archivo.chunks():
                                     destination.write(chunk)
@@ -345,15 +328,13 @@ class ServiceProcessDenuncia(APIView):
                             print(f"✅ Archivo guardado temporalmente: {temp_filename}")
                         except Exception as e:
                             print(f"❌ Error guardando archivo temporalmente: {str(e)}")
-                            # Limpiar archivos ya guardados antes de retornar error
                             self._cleanup_temp_files([a['temp_path'] for a in archivos_temp_paths])
                             raise
                     
-                    # Guardar rutas en sesión
                     request.session['archivos_temp_paths'] = archivos_temp_paths
                     print(f"✅ {len(archivos_temp_paths)} archivos guardados temporalmente")
                 
-                # Guardar datos validados en sesión
+                
                 validated_data = serializer.validated_data
     
                 request.session['denuncia_relacion_id'] = validated_data['relacion_empresa_id']
@@ -387,7 +368,7 @@ class ServiceProcessDenuncia(APIView):
                 })
             else:
                 print(f"❌ Serializer inválido: {serializer.errors}")
-                # Limpiar archivos temporales en caso de error de validación
+
                 if archivos_temp_paths:
                     self._cleanup_temp_files([a['temp_path'] for a in archivos_temp_paths])
                 
@@ -401,7 +382,6 @@ class ServiceProcessDenuncia(APIView):
             import traceback
             traceback.print_exc()
             
-            # Limpiar archivos temporales en caso de error
             if archivos_temp_paths:
                 self._cleanup_temp_files([a['temp_path'] for a in archivos_temp_paths])
             
@@ -410,7 +390,6 @@ class ServiceProcessDenuncia(APIView):
                 'message': f'Error interno: {str(e)}'
             }, status=500)
     
-    # ===== PASO 3: REGISTRO DE USUARIO Y CREACIÓN DE DENUNCIA =====
     @transaction.atomic
     def _process_user(self, request):
         """
@@ -418,10 +397,10 @@ class ServiceProcessDenuncia(APIView):
         Recupera archivos temporales, los sube a S3 y los elimina localmente
         """
 
-        archivos_subidos = []  # Para rastrear archivos subidos a S3 en caso de error
+        archivos_subidos = []  
         
         try:
-            # Verificar sesión
+           
             required_session_keys = [
                 'denuncia_item_id',
                 'denuncia_relacion_id', 
@@ -436,7 +415,7 @@ class ServiceProcessDenuncia(APIView):
                     print(f"❌ Falta en sesión: {key}")
             
             if missing_keys:
-                # Limpiar archivos temporales si la sesión es inválida
+                
                 self._cleanup_temp_files_from_session(request)
                 
                 return Response({
@@ -445,30 +424,21 @@ class ServiceProcessDenuncia(APIView):
                     'redirect': '/denuncia/Paso1/'
                 }, status=400)
             
-            print("✅ Todos los datos de sesión presentes")
             
-            # LÓGICA CORREGIDA: Determinar si es anónimo basándose en datos reales
-            # Si hay datos personales (RUT, nombre, correo), la denuncia DEBE ser identificada
-            tipo_denuncia = request.data.get('tipo_denuncia', 'anonimo')
             rut = request.data.get('rut', '').strip()
             nombre = request.data.get('nombre_completo', '').strip()
             correo = request.data.get('correo_electronico', '').strip()
             
-            # Verificar si realmente hay datos personales
             tiene_datos_personales = bool(rut or nombre or correo)
             
-            # Si hay datos personales, NO puede ser anónimo, sin importar el radio button
             es_anonimo = not tiene_datos_personales
             
-            # Preparar datos para el serializer
             if es_anonimo:
-                # Usuario anónimo solo necesita el flag
                 user_data = {
                     'anonimo': True
                 }
 
             else:
-                # Usuario identificado necesita todos los campos
                 user_data = {
                     'anonimo': False,
                     'rut': rut,
@@ -484,14 +454,11 @@ class ServiceProcessDenuncia(APIView):
             
             if serializer.is_valid():
                 
-                # Usar update_or_create() en lugar de save()
                 usuario = serializer.update_or_create()
             
-                
                 codigo_denuncia = self._generar_codigo_anonimo()
                 
                 
-                # Obtener empresa desde la sesión
                 empresa_id = request.session.get('empresa_id')
                 if not empresa_id:
                     print("❌ No hay empresa_id en sesión")
@@ -502,7 +469,6 @@ class ServiceProcessDenuncia(APIView):
                         'redirect': '/denuncia/'
                     }, status=400)
                 
-                # Crear denuncia
                 denuncia = Denuncia.objects.create(
                     codigo=codigo_denuncia,
                     tipo_empresa_id=empresa_id,
@@ -517,7 +483,6 @@ class ServiceProcessDenuncia(APIView):
                 
                 request.session['codigo'] = codigo_denuncia
                 
-                # ===== PROCESAR ARCHIVOS TEMPORALES Y SUBIR A S3 =====
                 archivos_guardados = []
                 archivos_temp_paths = request.session.get('archivos_temp_paths', [])
                 
@@ -538,19 +503,14 @@ class ServiceProcessDenuncia(APIView):
                         temp_path = archivo_info['temp_path']
                         
                         try:
-                            # Verificar que el archivo temporal existe
                             if not os.path.exists(temp_path):
-                                print(f"⚠️ Archivo temporal no encontrado: {temp_path}")
                                 continue
                             
-                            # Leer contenido del archivo
                             with open(temp_path, 'rb') as f:
                                 file_content = f.read()
                             
-                            # Key: codigo/nombre_archivo
                             s3_key = f"{denuncia.codigo}/{archivo_info['original_name']}"
                             
-                            # Subir a S3 con ACL público
                             s3_client.put_object(
                                 Bucket=settings.AWS_STORAGE_BUCKET_NAME,
                                 Key=s3_key,
@@ -561,17 +521,15 @@ class ServiceProcessDenuncia(APIView):
                             
                             archivos_subidos.append(s3_key)
                             
-                            # Construir URL pública completa
                             url_publica = f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/{s3_key}"
                             
-                            # Crear objeto Archivo en la base de datos
                             archivo_obj = Archivo.objects.create(
                                 denuncia=denuncia,
                                 nombre=archivo_info['original_name'][:250],
                                 descripción=f"Archivo adjunto a denuncia {denuncia.codigo}"[:250],
-                                archivo=s3_key,  # Key en S3
-                                url=url_publica,  # URL directa
-                                Peso=archivo_info['size']  # Tamaño en bytes
+                                archivo=s3_key,  
+                                url=url_publica,  
+                                Peso=archivo_info['size']  
                             )
                             
                             archivos_guardados.append(archivo_obj)
@@ -580,10 +538,8 @@ class ServiceProcessDenuncia(APIView):
                             print(f"❌ Error procesando archivo {temp_path}: {e}")
                             import traceback
                             traceback.print_exc()
-                            # Continuar con los demás archivos
                         
                         finally:
-                            # SIEMPRE eliminar archivo temporal después de procesarlo
                             try:
                                 if os.path.exists(temp_path):
                                     os.remove(temp_path)
@@ -592,10 +548,8 @@ class ServiceProcessDenuncia(APIView):
                                 print(f"⚠️ No se pudo eliminar archivo temporal {temp_path}: {e}")
                     
                 
-                # Limpiar sesión (incluye limpieza adicional de archivos huérfanos)
                 self._limpiar_sesion_denuncia(request)
                 
-                # Preparar respuesta
                 response_data = {
                     'success': True,
                     'message': 'Denuncia creada exitosamente',
@@ -611,7 +565,7 @@ class ServiceProcessDenuncia(APIView):
                 
             else:
                 print(f"❌ Serializer de usuario inválido: {serializer.errors}")
-                # Limpiar archivos temporales en caso de error de validación
+
                 self._cleanup_temp_files_from_session(request)
                 
                 return Response({
@@ -646,7 +600,6 @@ class ServiceProcessDenuncia(APIView):
                                 Bucket=settings.AWS_STORAGE_BUCKET_NAME,
                                 Key=s3_key
                             )
-                            print(f"🗑️ Archivo eliminado de S3: {s3_key}")
                         except Exception as delete_error:
                             print(f"⚠️ No se pudo eliminar {s3_key} de S3: {delete_error}")
                 except Exception as cleanup_error:
@@ -657,7 +610,6 @@ class ServiceProcessDenuncia(APIView):
                 'message': f'Error interno: {str(e)}'
             }, status=500)
     
-    # ===== FUNCIÓN DE VALIDACIÓN DE ARCHIVOS =====
     def _validate_file(self, archivo):
         """
         Valida un archivo antes de guardarlo
@@ -668,14 +620,12 @@ class ServiceProcessDenuncia(APIView):
         Returns:
             dict: {'success': bool, 'message': str}
         """
-        # Validar tamaño
         if archivo.size > self.MAX_FILE_SIZE:
             return {
                 'success': False,
                 'message': f'El archivo {archivo.name} excede el tamaño máximo de 500MB'
             }
         
-        # Validar extensión
         ext = os.path.splitext(archivo.name)[1].lower()
         if ext not in self.ALLOWED_EXTENSIONS:
             return {
@@ -683,7 +633,6 @@ class ServiceProcessDenuncia(APIView):
                 'message': f'Extensión {ext} no permitida para {archivo.name}'
             }
         
-        # Validar tipo MIME
         if archivo.content_type not in self.ALLOWED_MIME_TYPES:
             return {
                 'success': False,
@@ -692,7 +641,6 @@ class ServiceProcessDenuncia(APIView):
         
         return {'success': True}
     
-    # ===== FUNCIONES DE LIMPIEZA =====
     def _cleanup_temp_files(self, file_paths):
         """
         Elimina archivos temporales dada una lista de rutas
@@ -749,7 +697,6 @@ class ServiceProcessDenuncia(APIView):
             max_age_seconds = max_age_hours * 3600
             files_deleted = 0
             
-            # Buscar archivos con prefijo temp_ en MEDIA_ROOT
             for filename in os.listdir(settings.MEDIA_ROOT):
                 if not filename.startswith('temp_'):
                     continue
@@ -757,12 +704,9 @@ class ServiceProcessDenuncia(APIView):
                 file_path = os.path.join(settings.MEDIA_ROOT, filename)
                 
                 try:
-                    # Verificar si es un archivo (no directorio)
                     if os.path.isfile(file_path):
-                        # Obtener edad del archivo
                         file_age = now - os.path.getmtime(file_path)
                         
-                        # Eliminar si es más viejo que max_age
                         if file_age > max_age_seconds:
                             os.remove(file_path)
                             files_deleted += 1
@@ -795,7 +739,7 @@ class ServiceProcessDenuncia(APIView):
         
         request.session.modified = True
     
-    # ===== VALIDACIÓN DE RUT =====
+
     def _validate_rut(self, request):
         """
         Valida un RUT chileno y verifica si existe en la base de datos
@@ -813,10 +757,8 @@ class ServiceProcessDenuncia(APIView):
                 }, status=400)
             
             
-            # Validar formato del RUT usando la función local
             validation_result = validate_rut(rut)
             
-            # Verificar que el resultado no sea None
             if validation_result is None or not isinstance(validation_result, tuple):
                 return Response({
                     'success': False,
@@ -838,18 +780,15 @@ class ServiceProcessDenuncia(APIView):
                     'error_type': 'invalid_format'
                 }, status=200)
             
-            # Verificar si el RUT existe en la base de datos
+
             try:
-                # Buscar usuario por RUT (solo no anónimos)
                 usuario_existente = Usuario.objects.filter(
                     rut__iexact=formatted_rut, 
                     anonimo=False
                 ).first()
                 
                 if usuario_existente:
-                    print(f"✅ RUT encontrado en base de datos: ID {usuario_existente.id}")
-                    
-                    # Preparar información del usuario
+
                     user_info = {
                         'id': usuario_existente.id,
                         'nombre_completo': usuario_existente.nombre_completo,
@@ -870,7 +809,6 @@ class ServiceProcessDenuncia(APIView):
                     }, status=200)
                     
                 else:
-                    print("✅ RUT válido y disponible")
                     
                     return Response({
                         'success': True,
@@ -884,7 +822,7 @@ class ServiceProcessDenuncia(APIView):
                 print(f"❌ Error al buscar en base de datos: {str(e)}")
                 return Response({
                     'success': False,
-                    'valid': True,  # Formato OK, pero error en DB
+                    'valid': True, 
                     'exists': False,
                     'message': 'Error al verificar RUT en la base de datos',
                     'error_type': 'database_error'
@@ -900,7 +838,6 @@ class ServiceProcessDenuncia(APIView):
                 'error_type': 'server_error'
             }, status=500)
     
-    # ===== AUTOCOMPLETAR USUARIO =====
     def _autocomplete_user(self, request):
         """
         Autocompletar datos de usuario basado en RUT
@@ -914,22 +851,18 @@ class ServiceProcessDenuncia(APIView):
             }, status=400)
         
         try:
-            # Buscar usuario por RUT (solo no anónimos)
             usuario = Usuario.objects.filter(
                 rut__iexact=rut, 
                 anonimo=False
             ).first()
             
             if usuario:
-                print(f"✅ Usuario encontrado: {usuario.nombre_completo}")
-                
-                # Preparar datos para autocompletar
-                # Separar nombre completo en nombre y apellidos si es necesario
+    
                 nombre_completo_parts = usuario.nombre_completo.split(' ', 1)
                 nombre = nombre_completo_parts[0] if len(nombre_completo_parts) > 0 else ''
                 apellidos = nombre_completo_parts[1] if len(nombre_completo_parts) > 1 else ''
                 
-                # Si el usuario tiene campos separados, usarlos
+    
                 if hasattr(usuario, 'nombre') and usuario.nombre:
                     nombre = usuario.nombre
                 if hasattr(usuario, 'apellidos') and usuario.apellidos:
@@ -967,7 +900,6 @@ class ServiceProcessDenuncia(APIView):
                 'error': str(e)
             }, status=500)
     
-    # ===== CONSULTA DE DENUNCIA =====
     def _consulta_denuncia(self, request):
         """
         Consultar estado de denuncia por código
@@ -981,25 +913,21 @@ class ServiceProcessDenuncia(APIView):
                 'message': 'Código requerido'
             }, status=400)
         
-        # Validar formato DN-XXXXX
         if not codigo.startswith('DN-'):
             return Response({
                 'success': False,
                 'message': 'Formato de código inválido. Debe ser DN-XXXXX'
             }, status=400)
         
-        # Buscar denuncia por código (funciona para anónimos e identificados)
         denuncias = Denuncia.objects.filter(codigo=codigo)
         
         if denuncias.exists():
             denuncia = denuncias.first()
             usuario = denuncia.usuario
             
-            # Determinar tipo de denuncia
             es_anonima = usuario.anonimo
             tipo_consulta = 'anonima' if es_anonima else 'identificada'
             
-            # Preparar datos para la sesión
             request.session['codigo_consulta'] = codigo
             request.session['tipo_consulta'] = tipo_consulta
             if not es_anonima:
@@ -1019,12 +947,10 @@ class ServiceProcessDenuncia(APIView):
             'message': 'No se encontraron denuncias con ese código'
         }, status=404)
     
-    # ===== OBTENER DATOS PARA WIZARD =====
     def _get_wizard_data(self, request):
         """
         Obtiene todos los datos necesarios para el wizard
         """
-        # Verificar que haya item seleccionado
         item_id = request.session.get('denuncia_item_id')
         if not item_id:
             return Response({
@@ -1032,11 +958,9 @@ class ServiceProcessDenuncia(APIView):
                 'message': 'Debe seleccionar un tipo de denuncia primero'
             }, status=400)
         
-        # Obtener datos
         relaciones = RelacionEmpresa.objects.all()
         tiempos = Tiempo.objects.all()
         
-        # Obtener item seleccionado
         try:
             item = Item.objects.select_related('categoria').get(id=item_id)
             item_data = {
@@ -1056,7 +980,6 @@ class ServiceProcessDenuncia(APIView):
             }
         })
     
-    # ===== OBTENER CATEGORÍAS E ITEMS =====
     def _get_categories_items(self, request):
         """
         Obtiene todas las categorías con sus items
@@ -1069,20 +992,17 @@ class ServiceProcessDenuncia(APIView):
             'data': serializer.data
         })
     
-    # ===== HELPERS =====
     def _generar_codigo_anonimo(self):
         """
         Genera un código único para denuncias anónimas
         Formato: DN-XXXXXXXX (8 caracteres aleatorios)
         """
         while True:
-            # Generar código aleatorio
             random_part = ''.join(
                 secrets.choice(string.ascii_uppercase + string.digits) 
                 for _ in range(8)
             )
             codigo = f'DN-{random_part}'
             
-            # Verificar que no exista
             if not Denuncia.objects.filter(codigo=codigo).exists():
                 return codigo
