@@ -217,6 +217,7 @@ class Denuncia(models.Model):
             ('PENDIENTE', 'Pendiente'),
             ('EN_REVISION', 'En Revisión'),
             ('RESUELTO', 'Resuelto'),
+            ('ENVIADO_A_DT', 'Enviado a DT'),
         ]
     )
     
@@ -238,19 +239,101 @@ class Denuncia(models.Model):
     def __str__(self):
         return f"Denuncia {self.codigo} - {self.usuario.nombre_completo}"
 
+def archivo_upload_path(instance, filename):
+    """Path: {codigo_denuncia}/{filename}"""
+    return f"{instance.denuncia.codigo}/{filename}"
+
+def archivo_upload_path(instance, filename):
+    """Path: {codigo_denuncia}/{filename}"""
+    return f"{instance.denuncia.codigo}/{filename}"
+
 class Archivo(models.Model):
-    denuncia=models.ForeignKey(Denuncia, on_delete=models.CASCADE)
-    url=models.URLField(max_length=500)
-    nombre=models.CharField(max_length=250)
-    descripción=models.CharField(max_length=250)
-    Peso = models.IntegerField(
-        default=0,  # Valor por defecto para archivos existentes
+    denuncia = models.ForeignKey(Denuncia, on_delete=models.CASCADE)
+    
+    # Campo nuevo para el archivo en S3
+    archivo = models.FileField(
+        upload_to=archivo_upload_path,
+        max_length=500,
+        blank=True,
+        null=True,
+        help_text="Archivo almacenado en DigitalOcean Spaces"
+    )
+    
+    url = models.URLField(
+        max_length=500, 
+        blank=True,  
+        help_text="URL del archivo (deprecado - usar archivo)"
+    )
+    
+    nombre = models.CharField(max_length=250)
+    descripción = models.CharField(max_length=250)  
+    Peso = models.IntegerField(  
+        default=0,
         help_text="Peso del archivo en bytes"
     )
-
+    
+    fecha_subida = models.DateTimeField(auto_now_add=True, null=True)  
+    
     class Meta:
         verbose_name = "Archivo"
         verbose_name_plural = "Archivos"
+    
+    def save(self, *args, **kwargs):
+        # Solo actualizar peso si no está establecido manualmente Y el archivo existe
+        if not self.Peso and self.archivo:
+            try:
+                # Intentar obtener tamaño solo si el archivo existe
+                self.Peso = self.archivo.size
+            except (FileNotFoundError, OSError, AttributeError):
+                # Si el archivo está en S3 o no existe localmente, mantener el peso actual
+                pass
+        
+        # Guardar primero
+        super().save(*args, **kwargs)
+        
+        # Después de guardar, actualizar permisos ACL y URL
+        if self.archivo:
+            try:
+                # Establecer ACL público en S3
+                import boto3
+                from django.conf import settings
+                from botocore.config import Config
+                
+                s3_client = boto3.client(
+                    's3',
+                    endpoint_url=settings.AWS_S3_ENDPOINT_URL,
+                    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                    config=Config(signature_version='s3v4')
+                )
+                
+                # Actualizar ACL del objeto a público
+                s3_client.put_object_acl(
+                    Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+                    Key=self.archivo.name,
+                    ACL='public-read'
+                )
+                
+                print(f"✅ ACL público establecido para: {self.archivo.name}")
+                
+            except Exception as e:
+                print(f"⚠️ No se pudo establecer ACL público: {e}")
+            
+            # Actualizar URL si está vacía
+            if not self.url:
+                try:
+                    self.url = self.archivo.url
+                    super().save(update_fields=['url'])
+                except Exception as e:
+                    print(f"⚠️ No se pudo obtener URL del archivo: {e}")
+    
+    def get_url(self):
+        if self.archivo:
+            return self.archivo.url
+        return self.url
+    
+    def __str__(self):
+        return f"{self.nombre} - Denuncia {self.denuncia.codigo}"
 
 
 class AdminDenuncias(AbstractUser):
@@ -325,8 +408,3 @@ class EstadosDenuncia(models.Model):
     class Meta:
         verbose_name = "Estado de denuncia"
         verbose_name_plural = "Estados de denuncias"
-    
-
-
-
-
