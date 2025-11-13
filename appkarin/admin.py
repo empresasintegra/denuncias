@@ -154,7 +154,7 @@ class DenunciaAdmin(admin.ModelAdmin):
 
 @admin.register(Archivo)
 class ArchivoAdmin(admin.ModelAdmin):
-    list_display = ['nombre', 'denuncia', 'Peso', 'descripción']
+    list_display = ['nombre', 'denuncia','archivo', 'Peso', 'descripción']
     list_filter = ['denuncia__estado_actual']
     search_fields = ['nombre', 'descripción', 'denuncia__codigo']
     ordering = ['-denuncia__fecha']

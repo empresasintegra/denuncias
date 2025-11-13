@@ -183,6 +183,11 @@
             color: white;
         }
 
+        .badge-enviado {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+            color: white;
+        }
+
         /* Estado clickeable para admin */
         .badge-estado.clickeable {
             cursor: pointer;
@@ -536,6 +541,123 @@
             margin: 0;
         }
 
+        .btn-agregar-archivos {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-agregar-archivos:hover {
+            background: #6d28d9;
+            transform: translateY(-1px);
+        }
+
+        /* Estilos para el área de drag & drop */
+        .upload-area {
+            border: 2px dashed #cbd5e0;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: #f0f4ff;
+        }
+
+        .upload-area.dragover {
+            border-color: var(--primary);
+            background: #e0e7ff;
+        }
+
+        .upload-area i {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .file-list {
+            margin-top: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .file-item-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .file-item-name {
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .file-item-size {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .file-item-remove {
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .file-item-remove:hover {
+            background: #dc2626;
+            transform: scale(1.1);
+        }
+
+        .upload-progress {
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .upload-progress.show {
+            display: block;
+        }
+
+        .progress {
+            height: 25px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #e5e7eb;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .page-header h1 {
@@ -586,8 +708,10 @@
             <div class="info-card" id="userInfoCard" style="display: none;">
                 <h5><i class="fas fa-user-circle"></i> Información de Usuario</h5>
                 <div class="info-item" id="userCodeRow">
+                    {%if request.user.is_authenticated == False %}
                     <i class="fas fa-hashtag"></i>
                     <span>Código:</span>
+                    {% endif %}
                     <span class="info-value" id="userCode"></span>
                 </div>
                 <div class="info-item" id="userNameRow" style="display: none;">
@@ -735,6 +859,46 @@
                 <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
             </div>
             <div class="toast-body"></div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalAgregarArchivos" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-paperclip"></i> Agregar Archivos a Denuncia <span id="codigoArchivos"></span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Área de subida -->
+                    <div class="upload-area" id="uploadArea">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <h5>Arrastra archivos aquí o haz clic para seleccionar</h5>
+                        <p class="text-muted">Archivos permitidos: PDF, DOC, DOCX, JPG, PNG, GIF, XLSX, XLS, TXT</p>
+                        <p class="text-muted">Tamaño máximo: 500MB por archivo</p>
+                        <input type="file" id="fileInput" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.xlsx,.xls,.txt" style="display: none;">
+                    </div>
+
+                    <!-- Lista de archivos seleccionados -->
+                    <div class="file-list" id="fileList"></div>
+
+                    <!-- Barra de progreso -->
+                    <div class="upload-progress" id="uploadProgress">
+                        <div class="progress">
+                            <div class="progress-bar" id="progressBar" role="progressbar" style="width: 0%">0%</div>
+                        </div>
+                        <p class="text-center mt-2" id="uploadStatus">Subiendo archivos...</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btnSubirArchivos" disabled>
+                        <i class="fas fa-upload"></i> Subir Archivos
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -900,6 +1064,8 @@
                         return { value: '2', text: 'En Revisión', icon: 'search', class: 'badge-revision' };
                     case 3:
                         return { value: '3', text: 'Resuelto', icon: 'check', class: 'badge-resuelto' };
+                    case 4:  // ✅ AGREGAR ESTE CASO
+                        return { value: '4', text: 'Enviado a DT', icon: 'paper-plane', class: 'badge-enviado' };
                 }
             }
             
@@ -920,6 +1086,8 @@
                 return { value: '2', text: 'En Revisión', icon: 'search', class: 'badge-revision' };
             } else if (sinTildes === 'RESUELTO' || sinTildes === 'RESUELTA') {
                 return { value: '3', text: 'Resuelto', icon: 'check', class: 'badge-resuelto' };
+            } else if (sinTildes === 'ENVIADO_A_DT' || sinTildes === 'ENVIADO A DT' || sinTildes.includes('ENVIADO')) {  // ✅ AGREGAR ESTE CASO
+                return { value: '4', text: 'Enviado a DT', icon: 'paper-plane', class: 'badge-enviado' };
             }
             
             // Default
@@ -962,26 +1130,40 @@
         }
 
         function renderAcciones(data, type, row) {
-            return `
-                <div class="btn-group btn-group-sm" role="group">
-                    <button class="btn-action btn-ver" 
-                            onclick="verDescripcion('${row.codigo}')" 
-                            title="Ver descripción">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="btn-action btn-mensaje" 
-                            onclick="abrirMensajes('${row.codigo}')" 
-                            title="Ver mensajes">
-                        <i class="fas fa-comments"></i>
-                    </button>
-                    <button class="btn-action btn-descargar" 
-                            onclick="prepararDescarga('${row.codigo}')" 
-                            title="Descargar">
-                        <i class="fas fa-download"></i>
-                    </button>
-                </div>
+        let botonesBase = `
+            <div class="btn-group btn-group-sm" role="group">
+                <button class="btn-action btn-ver" 
+                        onclick="verDescripcion('${row.codigo}')" 
+                        title="Ver descripción">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn-action btn-mensaje" 
+                        onclick="abrirMensajes('${row.codigo}')" 
+                        title="Ver mensajes">
+                    <i class="fas fa-comments"></i>
+                </button>
+                <button class="btn-action btn-descargar" 
+                        onclick="prepararDescarga('${row.codigo}')" 
+                        title="Descargar">
+                    <i class="fas fa-download"></i>
+                </button>
+        `;
+        
+        // ✅ BOTÓN SOLO PARA ADMINISTRADORES - AGREGAR ARCHIVOS
+        if (userInfo.is_admin) {
+            botonesBase += `
+                <button class="btn-action btn-agregar-archivos" 
+                        onclick="abrirModalAgregarArchivos('${row.codigo}')" 
+                        title="Agregar archivos">
+                    <i class="fas fa-paperclip"></i>
+                </button>
             `;
         }
+        
+        botonesBase += `</div>`;
+        
+        return botonesBase;
+    }
 
         // ============================================
         // INICIALIZAR DATATABLE
@@ -1088,8 +1270,8 @@
         // ============================================
         
         function mostrarOpcionesEstado(element, event) {
-            if (!userInfo.is_admin) return;
-            
+             if (!userInfo.is_admin) return;
+    
             event.stopPropagation();
             
             // Cerrar cualquier dropdown abierto
@@ -1107,16 +1289,20 @@
             dropdown.style.position = 'absolute';
             dropdown.innerHTML = `
                 <a class="dropdown-item ${estadoActual === '1' ? 'active' : ''}" 
-                   href="#" onclick="cambiarEstado('${codigo}', '1', event); return false;">
+                href="#" onclick="cambiarEstado('${codigo}', '1', event); return false;">
                     <i class="fas fa-clock"></i> Pendiente
                 </a>
                 <a class="dropdown-item ${estadoActual === '2' ? 'active' : ''}" 
-                   href="#" onclick="cambiarEstado('${codigo}', '2', event); return false;">
+                href="#" onclick="cambiarEstado('${codigo}', '2', event); return false;">
                     <i class="fas fa-search"></i> En Revisión
                 </a>
                 <a class="dropdown-item ${estadoActual === '3' ? 'active' : ''}" 
-                   href="#" onclick="cambiarEstado('${codigo}', '3', event); return false;">
+                href="#" onclick="cambiarEstado('${codigo}', '3', event); return false;">
                     <i class="fas fa-check"></i> Resuelto
+                </a>
+                <a class="dropdown-item ${estadoActual === '4' ? 'active' : ''}" 
+                href="#" onclick="cambiarEstado('${codigo}', '4', event); return false;">
+                    <i class="fas fa-paper-plane"></i> Enviado a DT
                 </a>
             `;
             
@@ -1633,6 +1819,185 @@
         }
 
         // ============================================
+        // AGREGAR ARCHIVOS A DENUNCIA (ADMIN)
+        // ============================================
+
+        let currentDenunciaArchivos = null;
+        let archivosSeleccionados = [];
+
+        function abrirModalAgregarArchivos(codigo) {
+            if (!userInfo.is_admin) {
+                showNotification('No tiene permisos para agregar archivos', 'error');
+                return;
+            }
+            
+            currentDenunciaArchivos = codigo;
+            archivosSeleccionados = [];
+            
+            document.getElementById('codigoArchivos').textContent = codigo;
+            document.getElementById('fileList').innerHTML = '';
+            document.getElementById('btnSubirArchivos').disabled = true;
+            document.getElementById('uploadProgress').classList.remove('show');
+            
+            const modal = new bootstrap.Modal(document.getElementById('modalAgregarArchivos'));
+            modal.show();
+        }
+
+        function agregarArchivos(files) {
+            const allowedTypes = [
+                'application/pdf',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'image/jpeg',
+                'image/png',
+                'image/gif',
+                'application/vnd.ms-excel',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'text/plain'
+            ];
+            
+            const maxSize = 500 * 1024 * 1024;
+            
+            for (const file of files) {
+                if (!allowedTypes.includes(file.type)) {
+                    showNotification(`Archivo ${file.name}: tipo no permitido`, 'error');
+                    continue;
+                }
+                
+                if (file.size > maxSize) {
+                    showNotification(`Archivo ${file.name}: excede el tamaño máximo (500MB)`, 'error');
+                    continue;
+                }
+                
+                archivosSeleccionados.push(file);
+            }
+            
+            mostrarArchivosSeleccionados();
+        }
+
+        function mostrarArchivosSeleccionados() {
+            const fileList = document.getElementById('fileList');
+            const btnSubir = document.getElementById('btnSubirArchivos');
+            
+            if (archivosSeleccionados.length === 0) {
+                fileList.innerHTML = '<p class="text-muted text-center">No hay archivos seleccionados</p>';
+                btnSubir.disabled = true;
+                return;
+            }
+            
+            fileList.innerHTML = archivosSeleccionados.map((file, index) => `
+                <div class="file-item">
+                    <div class="file-item-info">
+                        <i class="fas fa-file-alt" style="color: var(--primary);"></i>
+                        <div>
+                            <div class="file-item-name">${escapeHtml(file.name)}</div>
+                            <div class="file-item-size">${formatFileSize(file.size)}</div>
+                        </div>
+                    </div>
+                    <button class="file-item-remove" onclick="eliminarArchivo(${index})" title="Eliminar">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `).join('');
+            
+            btnSubir.disabled = false;
+        }
+
+        function eliminarArchivo(index) {
+            archivosSeleccionados.splice(index, 1);
+            mostrarArchivosSeleccionados();
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        async function subirArchivos() {
+            if (archivosSeleccionados.length === 0 || !currentDenunciaArchivos) {
+                showNotification('No hay archivos para subir', 'error');
+                return;
+            }
+            
+            const btnSubir = document.getElementById('btnSubirArchivos');
+            const progressContainer = document.getElementById('uploadProgress');
+            const progressBar = document.getElementById('progressBar');
+            const uploadStatus = document.getElementById('uploadStatus');
+            
+            btnSubir.disabled = true;
+            progressContainer.classList.add('show');
+            progressBar.style.width = '0%';
+            progressBar.textContent = '0%';
+            uploadStatus.textContent = 'Preparando archivos...';
+            
+            try {
+                const formData = new FormData();
+                formData.append('denuncia_codigo', currentDenunciaArchivos);
+                
+                for (const file of archivosSeleccionados) {
+                    formData.append('archivos[]', file);
+                }
+                
+                uploadStatus.textContent = 'Subiendo archivos...';
+                
+                const response = await fetch('/api/agregar-archivos-denuncia/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: formData
+                });
+                
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 10;
+                    if (progress <= 90) {
+                        progressBar.style.width = progress + '%';
+                        progressBar.textContent = progress + '%';
+                    }
+                }, 200);
+                
+                const data = await response.json();
+                clearInterval(interval);
+                
+                if (response.ok && data.success) {
+                    progressBar.style.width = '100%';
+                    progressBar.textContent = '100%';
+                    uploadStatus.textContent = '¡Archivos subidos correctamente!';
+                    
+                    showNotification(`${data.archivos_subidos} archivo(s) agregado(s) correctamente`, 'success');
+                    
+                    setTimeout(() => {
+                        bootstrap.Modal.getInstance(document.getElementById('modalAgregarArchivos')).hide();
+                        
+                        archivosSeleccionados = [];
+                        document.getElementById('fileInput').value = '';
+                        mostrarArchivosSeleccionados();
+                        progressContainer.classList.remove('show');
+                        
+                        if (dataTable) {
+                            dataTable.ajax.reload(null, false);
+                        }
+                    }, 2000);
+                    
+                } else {
+                    throw new Error(data.message || 'Error al subir archivos');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Error al subir archivos: ' + error.message, 'error');
+                uploadStatus.textContent = 'Error al subir archivos';
+                progressBar.style.width = '0%';
+                progressBar.textContent = '0%';
+                btnSubir.disabled = false;
+            }
+        }
+
+        // ============================================
         // EVENT LISTENERS
         // ============================================
         
@@ -1655,6 +2020,44 @@
             document.getElementById('btnExcel').addEventListener('click', exportarExcel);
             document.getElementById('formMensaje').addEventListener('submit', enviarMensaje);
             document.getElementById('btnConfirmarDescarga').addEventListener('click', confirmarDescarga);
+            
+            // Event listeners para modal de archivos
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            const btnSubir = document.getElementById('btnSubirArchivos');
+            
+            if (uploadArea && fileInput) {
+                // Click en área de subida
+                uploadArea.addEventListener('click', () => {
+                    fileInput.click();
+                });
+                
+                // Cambio en input de archivos
+                fileInput.addEventListener('change', (e) => {
+                    agregarArchivos(Array.from(e.target.files));
+                });
+                
+                // Drag & Drop
+                uploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.add('dragover');
+                });
+                
+                uploadArea.addEventListener('dragleave', () => {
+                    uploadArea.classList.remove('dragover');
+                });
+                
+                uploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.remove('dragover');
+                    agregarArchivos(Array.from(e.dataTransfer.files));
+                });
+            }
+            
+            // Botón subir archivos
+            if (btnSubir) {
+                btnSubir.addEventListener('click', subirArchivos);
+            }
             
             // Cerrar dropdowns al hacer scroll
             window.addEventListener('scroll', closeDropdown);

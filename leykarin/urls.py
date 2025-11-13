@@ -129,6 +129,10 @@ urlpatterns = [
      DenunciaManagementViewSet.as_view({'get': 'descargar_archivo'}), 
      name='descargar-archivo-individual'),
 
+    path('api/agregar-archivos-denuncia/', 
+     DenunciaManagementViewSet.as_view({'post': 'agregar_archivos'}), 
+     name='agregar-archivos-denuncia'),
+
     # API de consultas complejas
     path('api/denuncias/query/<str:action>/', 
          csrf_exempt(DenunciaQueryAPI.as_view()), 

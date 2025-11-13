@@ -213,33 +213,15 @@ class UsuarioDetailSerializer(serializers.ModelSerializer):
 # =================================================================
 
 class DenunciaCreateSerializer(serializers.Serializer):
-    """Serializer para crear denuncias a través del wizard"""
-    
-    # Paso 1: Relación empresa
-    denuncia_relacion = serializers.IntegerField()
+    item_id = serializers.IntegerField()
+    relacion_empresa_id = serializers.IntegerField()
+    tiempo_id = serializers.IntegerField()
+    descripcion = serializers.CharField(min_length=50, max_length=2000)
     descripcion_relacion = serializers.CharField(
+        max_length=50, 
         required=False, 
-        allow_blank=True, 
-        max_length=50,
-        help_text="Requerido solo si relación es 'Otro'"
+        allow_blank=True
     )
-    
-    # Paso 2: Tiempo
-    denuncia_tiempo = serializers.IntegerField()
-    
-    # Paso 3: Descripción
-    descripcion = serializers.CharField(
-        min_length=50, 
-        max_length=2000,
-        error_messages={
-            'min_length': 'La descripción debe tener al menos 50 caracteres',
-            'max_length': 'La descripción no puede exceder 2000 caracteres',
-            'required': 'La descripción es obligatoria'
-        }
-    )
-    
-    # Datos del item (desde sesión)
-    item_id = serializers.IntegerField(write_only=True)
     
     def validate_denuncia_relacion(self, value):
         """Validar que la relación empresa existe"""
